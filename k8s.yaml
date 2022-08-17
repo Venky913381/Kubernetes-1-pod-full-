@@ -1,0 +1,1108 @@
+
+---------------------------------------POD----------------------------------------
+
+apiVersion: v1
+kind: Pod 
+
+metadata: 
+  name: firstpod
+  labels: 
+     env: prod
+     name: swapnil
+spec: 
+  containers:
+    - name: firstcontainer
+      image: coolgourav147/nginx-custom
+      env: 
+        - name: owner
+          value: swapnil
+          name: city 
+          value: pune 
+      args: ["sleep","3600"]  
+    - name: secondcontainer
+      image: coolgourav147/nginx-custom
+      env: 
+        - name: name
+          value: swapnil
+          name: city 
+          value: nagpur
+      args: ["sleep","3600"]
+  initContainers:
+    - name: init1container
+      image: coolgourav147/nginx-custom
+      env: 
+        - name: name
+          value: swapnil
+          name: city 
+          value: nagpur
+      args: ["sleep","15"] 
+    - name: init2container
+      image: coolgourav147/nginx-custom
+      env: 
+        - name: name
+          value: swapnil
+          name: city 
+          value: nagpur
+      args: ["sleep","15"]
+
+
+
+#---------------------service--------------------------------
+
+
+apiVersion: v1
+kind: Service
+
+metadata:
+      name: firstservice
+      labels:
+        servicelabel: label1
+spec:
+      type: NodePort
+      port:
+        - nodePort: 32000
+          port: 9000
+          targetPort: 80
+      selector:
+          type: app
+
+
+
+
+ #--------------------------------POD AND SERVICE------------------
+
+
+
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: pod1 
+  labels: 
+     type: app   #this label is use by selector of service
+spec:
+  containers:
+    - image:  coolgourav147/nginx-custom
+      name:  firstcontainer
+
+
+apiVersion: v1
+kind: Service
+metadata:
+      name: service1
+      labels:
+        servicename: service1
+spec:
+      type: NodePort
+      port:
+        - nodePort: 32000  #port to open on node/machine
+          port: 9000       #port to open on pod on node
+          targetPort: 80   #port to open on container inside the pod
+      selector:
+          type: app  # this must be same as pods label
+
+
+
+
+#------------------------Replication-Controller-----------------------------
+
+
+apiVersion: v1                      # USES ONLY EQUILITY BASED SELECTOR.
+kind: ReplicationController
+
+metadata:
+    name: firstrc
+    labels:
+      name: rc-app #label of rc, services will  Not use this.
+spec:
+    replicas: 5
+    selector:
+        type: app         #selector value and pods label needed to match,  even if selector is given
+                                                 # pod label is must. If selector attribute  is not provided
+                                                  # then pods label is taken as default selector for rc.
+    template:        # pod details in template
+        metadata: 
+          name: firstpod
+          labels:
+            type: app # Services use this label for identification/ Mapping
+        spec: 
+          containers:
+            - name: firstcontainer
+              image: coolgourav147/nginx-custom
+              env: 
+                - name: owner
+                  value: swapnil
+    
+
+#---------------------------Replica-Set------------------------------------
+                                         # USES EQUILITY BASED SELECTOR AS WELL AS SET BASED SELECTOR..
+apiVersion: apps/v1
+kind: ReplicaSet
+
+metadata:
+    name: firstrs
+    labels:
+      name: rs-app
+spec:
+    replicas: 5
+    selector:  
+        matchLabels: 
+          type: app # Services use this label for identification/ Mapping
+    template:
+        metadata: 
+          name: firstpod
+          labels: 
+            type: app # Services use this label for identification/ Mapping
+            name: swapnil
+        spec: 
+          containers:
+            - name: firstcontainer
+              image: coolgourav147/nginx-custom
+              env: 
+                - name: owner
+                  value: swapnil
+
+
+
+ #--------------rs_2------------------------
+
+
+
+apiVersion: apps/v1
+kind: ReplicaSet
+
+metadata:
+    name: firstrs
+    labels:
+      appname: app-rs
+spec:
+    replicas: 5
+    selector:  
+      matchExpressions:
+        key: type 
+        operator: In  # In/ NotIn
+        values:
+          - app 
+          - app2
+          - app3
+
+    template:
+      metadata: 
+        name: pod1
+          labels: 
+            type: app       # notice the Key and Values in MatchExpression.
+      spec:                # key is app and values can any from values.
+        containers:
+            name: firstcontainer
+            image: coolgourav147/nginx-custom
+               
+
+
+
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: firstrs
+  labels: 
+    name: firstrs
+spec:
+  replicas: 5
+  selector:
+    matchExpressions:
+      - key: app 
+        operator: In 
+        values: 
+          - app       # RS will consider these pods having labels as app, app2, frontend
+          - app2
+          - frontend
+
+      - key: type
+        operator: NotIn 
+        values:             # RS will not consider these pods having labels as backend and test
+          - backend
+          - test    
+
+  template: 
+    metadata: 
+      name: pod 
+      labels: 
+        app: app 
+        type: middleware  # this will be considered as it does  ot fall in NotIn type
+    spec: 
+      containers:
+        - name: container
+          image: coolgourav147/nginx-custom      
+
+
+
+#--------------------------------Deployment-------------------------------------
+
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: deploy
+  labels: 
+    name: deploy-app
+spec:
+  replicas: 5                 #BY DEFAULT ROLLING-UPDATE STRATEGY WILL BE APPLIED...
+  selector:
+    matchExpressions:  # matchLabels can also be used
+      - key: app 
+        operator: In 
+        values: 
+          - app
+          - app2
+          - app3
+
+  template: 
+    metadata: 
+      name: pod 
+      labels: 
+        app: app 
+    spec: 
+      containers:
+        - name: container
+          image: coolgourav147/nginx-custom   
+
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deploy1
+  labels: 
+    name: deploy1
+spec:
+  replicas: 10
+  minReadySeconds: 5  # this defines a time we give for our pod/app to ready after creation
+  strategy:
+    rollingUpdate:
+      maxSurge: 0  #
+      maxUnavailable: 2 # is the number of pod that will get replaced from old deployment when we change the
+    type: RollingUpdate                    #the code, same number of new pods will be created
+
+  selector:
+    matchExpressions:
+      - key: app 
+        operator: In 
+        values: 
+          - app
+          - app2
+          - app3
+
+  template: 
+    metadata: 
+      name: pod 
+      labels: 
+        app: app 
+    spec: 
+      containers:
+        - name: container
+          image: coolgourav147/nginx-custom       
+
+#---------------------------------------
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deploy1
+  labels: 
+    name: deploy1
+spec:
+  replicas: 10
+  minReadySeconds: 5  # this defines a time we give for our pod/app to ready after creation
+  strategy:
+    rollingUpdate:
+      maxSurge: 2  # is the new pod that will get created , without replacing the old pods
+      maxUnavailable: 0 # is the number of pod that will get replaced from old deployment when we change the
+    type: RollingUpdate                    #the code, same number of new pods will be created
+
+  selector:
+    matchExpressions:
+      - key: app 
+        operator: In 
+        values: 
+          - app
+          - app2
+          - app3
+
+  template: 
+    metadata: 
+      name: pod 
+      labels: 
+        app: app 
+    spec: 
+      containers:
+        - name: container
+          image: coolgourav147/nginx-custom       
+
+#---------------------------------------------------------------
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deploy2
+  labels: 
+    name: deploy2
+spec:
+  replicas: 10
+  strategy:
+    type: Recreate 
+  selector:
+    matchLabels:
+       app: app 
+  template: 
+    metadata: 
+      name: pod 
+      labels: 
+        app: app 
+    spec: 
+      containers:
+        - name: container
+          image: coolgourav147/nginx-custom
+
+
+
+
+#--------------------------POD LIMITS----------------------------------
+
+
+
+
+apiVersion: v1
+kind: Pod 
+
+metadata: 
+  name: pod2
+  labels: 
+     app: app
+     type: front
+spec: 
+  containers:
+    - name: firstcontainer
+      image: coolgourav147/nginx-custom
+      resources:
+        requests:
+          memory: 200Mi   
+          cpu: 100m
+        limits: 
+          memory: 300Mi
+          cpu: 300m  
+
+
+
+#-----------------------------LIMITS / QUATA in Namespace------------------------------
+
+
+apiVersion: v1
+kind: ResourceQuota
+metadata: 
+  name:  myquota   # Resource/ Object based Quata or limit
+spec:
+  hard:
+    pods: 2    # same can be applied to RC, RS, DEPLOYMENTS, SERVICES, JOBS AND Others.........
+
+
+
+apiVersion: v1                #this is the combine request/ limits of the pods or resoures in the namespace
+kind: ResourceQuota           # i.e. SUM of all pods/resorces must be within request and limit constraint. 
+
+metadata: 
+  name:  myquota1           
+spec:
+  hard:
+    requests.cpu: 0.5
+    requests.memory: 200Mi   # Compute Based Quata or limit
+    limits.cpu: 1
+    limits.memory: 1Gi
+
+                         # WE NEED TO DESCRIBE PODS REQUEST AND LIMIT PARAMETER IN POD SPECS/manifest....
+                                # if we describe only limits in pods manifest file , then pod will request 
+                                # the resources similar to limits. i.e. Request = Limits
+apiVersion: v1
+kind: ResourceQuota             #However, if we do not specify the limit in pod file and specify only request
+metadata:                         # then apply will ERROR out, as it will cross the limit set by quata file for NS.
+  name:  myquota1
+
+spec:
+  hard:
+    pods: 10               #putting limits of resourcs that can be created...
+    requests.cpu: 0.5
+    requests.memory: 200Mi               # to get rid of specifying the request and limit parameter in pod file
+    limits.cpu: 1                        # we can use limit range.................
+    limits.memory: 1Gi
+
+
+
+#-------------------LIMIT RANGE---------------------------
+   
+
+apiVersion: v1 
+kind:  LimitRange
+metadata:
+  name: testlimit
+  namespace: my-namespace
+spec:                             # type can be, Container, POd, Image, ImageStream ,PersistentVolumeClaim (pvc)
+  limits: 
+    - default:
+        cpu: 200m 
+        memory: 300Mi
+      type: Container   
+
+
+apiVersion: v1
+kind:  LimitRange
+metadata:
+  name: testlimit
+  namespace: my-namespace
+spec:
+  limits:
+    - default:
+        cpu: 500m
+        memory: 300Mi
+      defaultRequest:
+        cpu: 100m
+        memory: 150Mi
+
+      min: 
+        cpu: 80m
+        memory: 100Mi
+      max:   
+        cpu: 600m
+        memory: 500Mi
+      type: Container
+
+
+
+
+apiVersion: v1 
+kind:  LimitRange
+metadata: 
+  name: testlimit
+  namespace: my-namespace
+spec:
+  limits: 
+    - maxLimitRequestRatio: 
+        memory: 2
+      type: Container
+
+
+#---------------------------------CONFIG MAP-------------------------------------------------------------------
+
+
+#a)-----------------------------------------------------
+
+single property file: application.properties
+#databse_details
+database_ip="8.8.8.8"
+database_password="12345"
+database_username="swapnil"
+
+#super_admin_details
+username="swapnil"
+password="12345"
+
+
+>kubectl create cm <my-cm3> --from-file=application.properties   ---> from file (imperative)
+
+>kubectl create configmap my-cm1 --from-literal=db_ip="8.8.8.8"   ---> from literal
+-----------------------------------------------------------------------
+
+b)---------------------------------------------------------------------
+multiple properties file from folder : properties
+create needed number of properties file: 
+test1.properties
+test2.properties
+test3.properties
+
+>kubectl create configmap <my-cm1> --from-file=properties/   ---> from folder
+--------------------------------------------------------------------
+
+c)-----------------------config map from environmental file-----------
+file: env.sh
+
+var1=val1
+var2=val2
+var3=val3
+
+>kubectl create cm <my-cm5> --from-env-file=env.sh
+
+-----------------------------------------------------------------------------
+
+
+apiVersion: v1 
+kind: ConfigMap
+
+data:
+  key1: value1
+  key2: value2
+  key3: value3
+metadata: 
+  name: configmap1
+ 
+
+
+apiVersion: v1 
+kind: ConfigMap
+
+data:
+  key1: |
+    this is 
+    key1 data
+  key2: |
+    this is 
+    key2 data  in multiple
+    lines
+metadata: 
+  name: configmap2
+
+
+#----------------injecting config map into pod---------------------
+                  
+                # accessing single key value pair in pod... 
+
+apiVersion: v1
+kind: Pod 
+
+metadata: 
+  name: configpod2
+  labels:                                             #configMapKeyRef
+     name: swapnil
+spec: 
+  containers:
+    - name: container2
+      image: coolgourav147/nginx-custom
+
+      env:
+       - name: variable-cm1
+         valueFrom:
+           configMapKeyRef:   # value of key1 from cm configmap1 will be available in pod by the name variable-cm1
+             key: key1             
+             name: configmap1   # mane of configmap       
+                       
+       - name: variable-cm2
+         valueFrom:
+           configMapKeyRef: 
+             key: key2          
+             name: configmap2
+
+       - name: variable-cm3
+         valueFrom:
+           configMapKeyRef:   # all the VALUES of test3.properties file will be available under variable-cm3
+             key: test3.properties   # file inside the configmap       
+             name: my-cm4 
+
+
+
+apiVersion: v1             # accessing the entire config file.. configMapRef
+kind: Pod 
+
+metadata: 
+  name: configpod4l
+spec:                                       #configMapRef
+  containers:
+    - name: container4
+      image: nginx
+
+      envFrom:
+       - configMapRef:         
+          name: configmap1         
+                             # getting all the values of configmap into pod...
+
+
+#------------------------------------------
+                   
+                   # getting config as a file in to pod...
+apiVersion: v1
+kind: Pod 
+metadata: 
+  name: configpod5
+spec: 
+  containers:
+    - name: container5
+      image: nginx
+
+      volumeMounts:
+        - name: test
+          mountPath: "/config"  
+          readOnly: true
+
+  volumes:
+    - name: test
+      configMap: 
+        name: configmap1  # this will inject all the variable into pod as a individual file                                  
+                         
+                          # we can add following feild to get only selected vars as a file
+        items:
+          - key: var1
+            path: myvar1                   
+
+
+
+#-------------------------------------------SECRETS---------------------------------------- (uses Base64)
+
+
+>kubectl create secret generic <my-sec1> --from-literal=name=swapnil  --> direct from literals
+
+single property file: application.properties
+#databse_details
+database_ip="8.8.8.8"                                    # generic is encription method
+database_password="12345"                         # other are Docker registry and tls
+database_username="swapnil"
+
+>kubectl create secret generic <my-filesec> --from-file=application.properties  --> from file
+
+from env file: env.sh
+
+var1=val1
+var2=val2
+var3=val3
+
+>kubectl create secret generic <my-envsec> --from-env-file=env.sh
+
+
+apiVersion: v1
+kind: Secret
+                              
+data:
+  name: c3dhcG5pbA==               # first encrypt the data and then pass the value to manifest file.
+  password: c3dhcG5pbA==
+metadata:
+  name: my-secrete1
+                          #base64 value of swapnil i.e. we need to store encrypted values in yaml file.
+                          #to get base 64 value
+                          > echo -n <secrete> | base64
+
+>kubectl create -f sec1.yaml
+
+
+#-----injecting secret into pod------
+
+#a) Injecting as Env variable in to pod.......
+
+apiVersion: v1
+kind: Pod 
+metadata: 
+  name: secret1
+spec: 
+  containers:
+    - name: container5
+      image: nginx
+
+      env: 
+       - name: myvar1
+         valueFrom:
+          secretKeyRef:        #injecting single variable
+              key: name                    # from above file
+              name: my-secrete1 
+       - name: myvar2
+         valueFrom:
+          secretKeyRef:        #injecting single variable
+              key: password                   # from above file
+              name: my-secrete1 
+
+
+apiVersion: v1
+kind: Pod 
+metadata: 
+  name: secret1
+spec: 
+  containers:
+    - name: container5          
+      image: nginx
+      envFrom:                # injecting all varible from file
+       - secretRef: 
+          name: my-filesec
+
+
+
+ # injecting all varible as a file in to pod..
+
+apiVersion: v1
+kind: Pod 
+metadata: 
+  name: secret1
+spec: 
+  containers:
+    - name: container5          
+      image: nginx
+
+      volumeMounts:
+        - name: testvol
+          mountPath: "/secrets"  
+          readOnly: true
+
+  volumes:                      # match the name
+    - name: testvol               
+      secret: 
+        secretName: my-filesec
+
+            
+
+#--------------------------------------Taint and Toleration-----------------------------------------------   
+
+>refer, https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
+
+> kubectl taint node noddename mysize=large:NoSchedule
+
+if we taint the node , then only those pod which will tolerate the taint of node will get schedule on
+that node, else they wil get schedule on another node .i.e NOSCHEDULE on tainted node.
+
+we can assign taint to node using above commands. 
+above, we have tainted the node , that only those pod tolerate/will get schedule on that node who
+have condition/toleration attached to it. (mysize=large)
+
+
+apiVersion: v1                       
+kind: Pod                                             # Taint  :- Node
+metadata:                                             # Tolerate :- Pod
+  name: secret1         
+spec: 
+  containers:
+    - name: container1         
+      image: nginx
+      imagePullPolicy: Never
+
+  tolarations:                   > mysize=large:NoSchedule
+    - effect: "NoSchedule" 
+      key: "mysize"                        # attaching tolerations so that it will tolerate the tainted node.
+      operator: "equal"                    # it may also get schedule on non tainted available node.
+      value: "large"
+
+                              #operator : equal or exists
+                                               
+
+> kubectl taint node <noddename> mysize=large:PreferNoSchedule
+
+if we taint the node using above option , then the pod which will tolerate the taint of node will preferably
+schedule on that node.
+Howevewer other pods can also get schedule on it, even though it is not preferred node choice.
+i.e. it does not gaurtees that other pods will not get schedule on it.
+
+
+> kubectl taint node <noddename> mysize=large:NoExecute     
+if any pod is already previously (before tainting) running on the tainted node , 
+then that pod will also get deleted.
+
+#to delete taint on node
+>kubectl taint  node <nodename> mysize-          --> this (-) will delete the taint.
+
+>------------------------------
+
+> Different effect of the tolerations...............
+
+tolarations:
+    - effect: NoSchedule 
+      key: mysize                   --> if operator is not given, by default it will consider the                            
+      value: large                                equal operator
+
+
+tolarations:
+    - effect: ""         --> no matter what taint is, if effect is not specified, pod will tolerate all
+      key: "mysize"                           i.e. all 3 effects
+      operator: "equal"                             
+      value: "large"
+
+
+tolarations:
+    - effect: NoSchedule    --> this will check taint "mysize" is available or not". No matter what the value is.
+      key: mysize                    .i.e it do tell to schedule or not to schedule on node.           
+      operator: exists                             
+
+
+tolarations:
+    - effect: NoSchedule        --> it will tolerate everything
+      key: ""                          
+      operator: "Exists"                  
+
+
+tolarations:
+    - effect: ""          --> it will tolerate all
+      key: ""                          
+      operator: "Exists"                             
+      value: ""
+
+
+
+tolarations:
+    - effect: "NoExecute"     # noExecute     
+      key: "mysize"                          
+      operator: "equal"   --> if the pod is available or assigned on the node, as soon as taint is assigned to Node,                
+      value: "large"                 pod will tolerate the taint for 60 seconds, after that it will get Terminated
+      tolerationSeconds: 60            
+
+
+
+>----------------------------------Scheduling (NODE SCHEDULING)-------------------------------------------     
+ 
+>refer, https://kubernetes.io/docs/tasks/configure-pod-container/assign-pods-nodes-using-node-affinity/
+
+>NODE SELECTOR...................
+
+Assigning label to node_
+> kubectl label node <nodename> size=large
+
+apiVersion: v1
+kind: Pod                                                    # 
+metadata: 
+  name: secret1
+spec: 
+  containers:
+    - name: container5          
+      image: nginx
+      imagePullPolicy: Never
+
+  nodeSelector:
+      size: "large"    # all the pode with this selector will get schedule on the node with matching lable.
+
+>make sure that node with specified label exist,  if label is not attached to node and we in pod specification
+>gave the node selector then pod will remain in pending* state , as it will fails to find the node with label.  
+
+
+
+>NODE AFFINITY..............
+
+Assigning label to node_
+> kubectl label node <nodename> size=large
+
+apiVersion: v1
+kind: Pod                                                    # 
+metadata: 
+  name: secret1
+spec: 
+  containers:
+    - name: container5          
+      image: nginx
+      imagePullPolicy: Never
+ 
+  affinity:
+    nodeAffinity:                                   # preffered but not required
+      preferredDuringSchedulingIgnoredDuringExecution:          # is is called SOFT SCHEDULING
+        - preference:
+            matchExpressions :
+              - key: size
+                operator: In
+                values: 
+                  - large
+          weight : 1
+
+>--------------------------------------------
+
+apiVersion: v1
+kind: Pod                                                 
+metadata: 
+  name: secret1
+spec: 
+  containers:
+    - name: container5          
+      image: nginx
+      imagePullPolicy: Never
+ 
+  affinity:                                     # Required, not just preffered, it is HARD scheduling
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:     
+        nodeSelectorTerms:    
+          - matchExpressions :
+              - key: size
+                operator: In
+                values: 
+                  - large
+
+
+
+
+
+>-----------------------------------------k8s volumes--------------------------------------------------------                  
+
+>-------------emptyDir-----------------------
+
+>if we delete the CONTAINER data will be preserved , and when new container is created by pod, all
+>the data will be present in new container.
+
+>i.e data volmes is created inside the POD, and will be available to Container inside that pod
+
+apiVersion: v1
+kind: Pod                                                 
+metadata: 
+  name: vol1
+spec: 
+  containers:                     
+    - name: container5          
+      image: nginx
+      imagePullPolicy: IfNotPresent
+      volumeMounts:
+        - mountPath: /data
+          name: test-volume
+
+  volumes:
+    - name: test-volume  
+      emptyDir: {}   
+
+>data will remain inside the pod and will be available to the container inside that pod.
+>this data will not be available to othe rcontainers on other pod or othe pod on other machines.
+
+
+>-------------HostPath-------------------------------
+
+>if we delete the POD data will be preserved in directory in sync on Host Machine, 
+>and when new POD is created by pod, all
+>the data will be present in new POD inside the container.
+
+>i.e data volumes is created inside the Host Machine, and will be available to POD on that machine.
+
+apiVersion: v1
+kind: Pod                                                 
+metadata: 
+  name: vol2
+spec: 
+  containers:                
+    - name: container5          
+      image: nginx
+      imagePullPolicy: IfNotPresent
+      volumeMounts:
+        - mountPath: /data
+          name: test-volume
+
+  volumes:
+    - name: test-volume  
+      hostPath:
+        path: /tmp/data   # at this path on Host machine data will be synchronised with containers data
+                              # first, >minikube ssh , there /tmp folder path will be available.
+
+>if we delete the pod and if pod get scheduled on another machine, then that pod will not have access to data
+>available on previous machine.
+
+
+>-------------EKS ON AWS-------------------------------- > Persistance data.                             
+
+>In above two cases , if pod is get schedule on any machine , other than its original machine in cluster data will 
+>no longer be available to the pod.
+>In this all we need a volume which isavailable to the all the machines in the cluster, Here AWS EKS comes to rescu.
+
+>In this approch , we create a managed k8s cluster on aws eks, and create a ebs volume, which will remain
+>available to the all nodes.  (managed cluster .i.e. AWS ITSELF WILL MANAGED MASTER NODE/CONTROL PLANE)
+
+>If pod get schedule on a perticular node, then EBS volume will get attached to that node automatically and
+>if we delete and create the pod , on anothe rmachines in cluster, then that EBS volume will automatically get
+>attached to that machine. and this way pod will always have acces to the data.
+
+>Create EKS cluster on K8s_
+>1)install awscli
+>2)with help of IAM user log in to aws account.
+>3)start accessing aws services over awscli
+
+#to create EKS cluster_
+>eksctl create cluster --name <cluster-name> --node-type <type of ec2> --region <region> --node-zones <az>
+
+>eksctl create cluster --name my-cluster --node-type t2.small --region ap-south-1 --node-zones ap-south-1a
+
+apiVersion: v1
+kind: Pod                                                 
+metadata: 
+  name: vol2
+spec: 
+  containers:                
+    - name: container5          
+      image: nginx
+      imagePullPolicy: IfNotPresent
+      volumeMounts:
+        - mountPath: /data
+          name: test-volume
+
+  volumes:
+    - name: test-volume
+      awsElasticBlockStorage:                 # attach ebs volumes pod.
+          volumeID: "vol-02c13c4470d26d461"
+          fsType: ext4
+      
+
+>once our cluster get set up, it will also download the kube-config in to local machine. and we will 
+>able to directaly use the kubectl commands on eks, No manual configuration is needed.
+
+
+
+>----------------------------------------------------------------------------------------------------------
+>----------------------------------------------------------------------------------------------------------
+
+
+
+>--------------------POD LIVENESS AND READINESS PROBE-----------------------------
+> refer, https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+
+>--------------------------------Liveness Probe
+>The kubelet uses liveness probes to know when to restart a container.
+>The kubelet uses readiness probes to know when a container is ready to start accepting traffic.
+>A Pod is considered ready when all of its containers are ready, i.e. when it passes the liveness probe.
+
+apiVersion: v1
+kind: Pod                                                 
+metadata: 
+  name: live1
+spec: 
+  containers:                
+    - name: cont1          
+      image: nginx
+      args: 
+       - /bin/bash
+       - -c
+       - touch /tmp/test       # here , args will create a file test , this file will be checked by
+      #  - sleep 10            #liveness probe at aftet 5 sec of container is ready and at regular interval of 3 sec.
+      #  - rm -f /tmp/test     # as long this file is available for the probe to check, pod is consider as healthy.
+      #  - sleep 20            # if we delete the file, then probe will no longer have acces to file and at next check, 
+                               # probe will amrk pod as unhealthy.
+      livenessProbe:
+        exec:                  
+          command:
+            - cat 
+            - tmp/test
+        initialDelaySeconds: 5
+        timeoutSeconds: 3
+
+>If the command succeeds, it returns 0, and the kubelet considers the container to be alive and healthy. 
+>If the command returns a non-zero value, the kubelet kills the container and restarts it.    
+>Once, liveness probes have failed, and the failed containers will be killed and recreated.    
+
+> apart from "command" in liveness probe, we can also use "http" request and "TCP" socket for the probe.        
+> read on, Startup probe..........
+
+
+>--------------------------------Readiness Probe
+>even through pod is ready and live, it do not means that it is ready to serve the requests. App may take 
+>time to be ready to serve the traffic. we do readyness probe to check the same.
+
+>Note: Readiness probes runs on the container during its whole lifecycle.
+>Caution: Liveness probes do not wait for readiness probes to succeed. 
+>If you want to wait before executing a liveness probe you should use initialDelaySeconds or a startupProbe.
+
+apiVersion: v1
+kind: Pod                                                 
+metadata: 
+  name: live1
+spec: 
+  containers:                
+    - name: cont1          
+      image: nginx
+      args: 
+       - /bin/bash
+       - -c
+       - sleep 10
+       - touch /tmp/test
+                                  #liveness probe not necessary for readiness check.
+      livenessProbe:
+        exec:                  
+          command:
+            - cat 
+            - tmp/test
+        initialDelaySeconds: 15 # will check for liveness after 15 sec of pod creation
+        timeoutSeconds: 3
+
+      readinessProbe:
+        exec:
+          command:
+            - cat 
+            - /tmp/test
+        initialDelaySeconds: 25 # will check for readyness after 25 sec of pod creation
+        timeoutSeconds: 5 
+
+>--------------------------------------------------------------------------------------------        
