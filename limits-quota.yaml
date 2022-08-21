@@ -1,0 +1,185 @@
+>
+>Putting Hardware Resource restriction on Resources in Namespace
+>to check resource restriction on namespace : - >kubectl describe ns test-space
+
+>apply limit to testspace using quta manifest
+>kubectl apply -f <limit/quota.yml> -n <test-space-name>
+
+>read more in subsection :- https://kubernetes.io/docs/concepts/policy/
+
+>-------------------------------------------------------------------------------------
+
+>A) putting maximum pod limit for namespace. (Object Based Quota)
+    
+apiVersion: v1
+kind: ResourceQuota 
+
+metadata: 
+  name: nslimit
+
+spec:
+  hard:                
+    pods: 2
+
+>Similarly, applicable for_ (Object Based Quota)
+count/persistentvolumeclaims
+count/services
+count/secrets
+count/configmaps
+count/replicationcontrollers
+count/deployments.apps
+count/replicasets.apps
+count/statefulsets.apps
+count/jobs.batch
+count/cronjobs.batch
+
+>------------------------------------------------------------------------------------------------
+
+>B) putting maximum compute resource limit for namespace. (Compute Based Quota)
+
+apiVersion: v1
+kind: ResourceQuota 
+
+metadata: 
+  name: nslimit2
+
+spec:
+  hard: 
+    pods: 2                   # this will be the total request/limit for ALL the pods Combine in a ns.
+    requests.cpu: 0.5
+    requests.memory: 200Mi
+    limits.cpu: 1
+    limits.memory: 300Mi
+
+>even if we put the resource limit on namepace, we need to put individual limits on pod in pod def.
+> else pod creation will error out.
+
+>if we do not put requests in pod def and only describe limit , then pod will occupy the resources
+>equivalent to the max resource limit.
+
+>if we do not put limits in pod def and only describe requests , then pod creation will error out,
+>becouse, it will exceeds the Namespace limit(if specified)
+
+>----------------------------sample test pod--------------------------
+
+apiVersion: v1
+kind: Pod 
+
+metadata: 
+  name: pod2
+  labels: 
+     app: app
+     type: front
+spec: 
+  containers:
+    - name: firstcontainer
+      image: coolgourav147/nginx-custom
+      resources:
+        requests:
+          memory: 200Mi    #Applicable for this pod only.
+          cpu: 100m
+        limits: 
+          memory: 300Mi
+          cpu: 300m     
+>-------------------------------------------------------------------------------          
+
+> to get rid of specifying the request and limit parameter in pod file  
+> we can use limit range.................
+
+> kubectl get limit / limitrange
+> kubectl describe ns <test-space>
+
+>Type can also be _ Pod, Image, ImageStream, PersistanceVolumeClaim (pvc).
+
+apiVersion: v1
+kind: LimitRange
+
+metadata:
+  name: limtrange1
+  namespace: test-space
+spec: 
+  limits:                       # Applicable to Pod/Container inside Namespace, not Namespace.
+  - default: 
+      cpu: 200m                     >.i.e. Quota for entire Namespace 
+      memory: 500Mi                 >     Limit for the Container/pod
+    type: Container    
+      
+> above will set the default request equivalent to the default limit.
+> we can set the different default request by specifying the following..
+
+apiVersion: v1
+kind: LimitRange
+
+metadata:
+  name: limtrange2
+  namespace: test-space
+spec: 
+  limits:                      
+  - default: 
+      cpu: 200m          # this is default limit         
+      memory: 500Mi             
+
+    defaultRequest:
+      cpu: 100m            # this is default request
+      memory: 200Mi  
+
+    type: Container 
+
+>-----------------------------------------------------------------------------------
+>apart from setting default limit and default request we can also set the MAX and MIN limit
+>on the h/w resources to be used by pod/container. this will ensure that pod/container must/at least get
+>resource h/w allocation defined by MIN AND MAX.
+
+> This will be helpful, if any pod , contains very service, that have a minimum requirement of h/w resources. MAX/MIN 
+> will ensure that , container for that service will get the resources it needed.
+
+apiVersion: v1
+kind: LimitRange
+
+metadata:
+  name: limtrange3
+  namespace: test-space
+spec: 
+  limits:                      
+  - default: 
+      cpu: 150m          # this is default limit         
+      memory: 500Mi             
+
+    defaultRequest:
+      cpu: 100m            # this is default request
+      memory: 200Mi  
+
+    min: 
+      cpu: 80m       # must be smaller than  default request
+      memory: 150Mi
+    max: 
+      cpu: 200m       # must be larger than default Limit
+      memory: 600Mi 
+
+    type: Container
+
+>------------------------------------------------------------------------------    
+
+> we can also set the POD's/Containers's max Limit and Request in term of Ratio, as following
+
+
+apiVersion: v1
+kind: LimitRange
+
+metadata:
+  name: limtrange3
+  namespace: test-space
+spec: 
+  limits:
+  - maxLimitRequestRatio: 
+        memory: 2          # set accordingly...
+    type: Container  
+
+
+> this specifies that pod's , limit/request must not exeed 2. 
+> i.e. max request of pod must be less than or equivalent to half of the limit.
+
+so, if memory limit is 500Mi then request must not be more than 250Mi, which ensure the ration of 2.
+>----------------------
+
+

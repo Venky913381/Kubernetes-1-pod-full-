@@ -1,0 +1,101 @@
+>
+> 1. Creating volumr inside pod, i.e. alongside container (EmptyDir)
+
+apiVersion: v1 
+kind: Pod
+metadata: 
+  name: pod1 
+
+spec:
+  containers:
+    - name: vol1 
+      image: nginx 
+      volumeMounts:
+        - mountPath: /data 
+          name: test-vol
+
+  volumes:
+    - name: test-vol
+      emptyDir: {}        
+
+>data will remain inside the pod and will be available to the container inside that pod.
+>this data will not be available to othe rcontainers on other pod or othe pod on other machines.
+
+
+
+
+> 2. Creating volume outside of pod, i.e. on Node machine. (HOstPath)
+
+>if we delete the POD data will be preserved in directory in sync on Host Machine, 
+>and when new POD is created by pod, all
+>the data will be present in new POD inside the container.
+
+>i.e data volumes is created inside the Host Machine, and will be available to POD on that machine.
+
+apiVersion: v1 
+kind: Pod
+metadata: 
+  name: pod2
+
+spec:
+  containers:
+    - name: vol1 
+      image: nginx
+      volumeMounts:
+        - name: test-vol2
+          mountPath: /data
+
+  volumes:
+    - name: test-vol2
+      hostPath:
+          path: /tmp/data    
+
+
+
+>-------------EKS ON AWS-------------------------------- > Persistance data.                             
+
+>In above two cases , if pod is get schedule on any machine , other than its original machine in cluster data will 
+>no longer be available to the pod.
+>In this all we need a volume which isavailable to the all the machines in the cluster, Here AWS EKS comes to rescu.
+
+>In this approch , we create a managed k8s cluster on aws eks, and create a ebs volume, which will remain
+>available to the all nodes.  (managed cluster .i.e. AWS ITSELF WILL MANAGED MASTER NODE/CONTROL PLANE)
+
+>If pod get schedule on a perticular node, then EBS volume will get attached to that node automatically and
+>if we delete and create the pod , on anothe rmachines in cluster, then that EBS volume will automatically get
+>attached to that machine. and this way pod will always have acces to the data.
+
+>Create EKS cluster on K8s_
+>1)install awscli
+>2)with help of IAM user log in to aws account.
+>3)start accessing aws services over awscli
+
+#to create EKS cluster_
+>eksctl create cluster --name <cluster-name> --node-type <type of ec2> --region <region> --node-zones <az>
+
+>eksctl create cluster --name my-cluster --node-type t2.small --region ap-south-1 --node-zones ap-south-1a
+
+apiVersion: v1
+kind: Pod                                                 
+metadata: 
+  name: vol2
+spec: 
+  containers:                
+    - name: container5          
+      image: nginx
+      imagePullPolicy: IfNotPresent
+      volumeMounts:
+        - mountPath: /data
+          name: test-volume
+
+  volumes:
+    - name: test-volume
+      awsElasticBlockStorage:                 # attach ebs volumes pod.
+          volumeID: "vol-02c13c4470d26d461"
+          fsType: ext4
+      
+
+>once our cluster get set up, it will also download the kube-config in to local machine. and we will 
+>able to directaly use the kubectl commands on eks, No manual configuration is needed.
+
+ 

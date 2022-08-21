@@ -1,0 +1,62 @@
+>
+>read: https://kubernetes.io/docs/concepts/workloads/controllers/replicationcontroller/
+
+apiVersion: v1
+kind: ReplicationController
+
+metadata:
+  name: rc1            
+  labels: 
+    controllername: appcontroller
+spec:
+  replicas: 4
+  template:                                  # USES ONLY EQUILITY BASED SELECTOR.
+    metadata:
+      name: servicepod    # by default it will the use containers label to match with service, if we do not declare
+      labels:                  #the selector explicitaly
+         appname: myapp  # to math with be service / selector
+    spec: 
+      containers:
+        - image: coolgourav147/nginx-custom
+          imagePullPolicy: Never
+          name: contone
+
+
+>kubectl apply -f <rc.yaml>                   --> repeatative usage for declaratibe object config.
+>kubectl get rc  -o-wide / --show-labels
+
+>kubectl delete -f <rc.yaml>
+>kubectl delete rc <rcname>
+
+#manual scalling__
+>kubectl scale rc --replicas=<n> <rc-name>   --->imperative command
+>kubectl edit rc <rc-name>                   ---> imperative object configuration 
+>edit in this yaml file                      ---> declarative object configuration 
+
+
+
+
+apiVersion: v1
+kind: ReplicationController
+
+metadata:
+  name: rc1            
+  labels: 
+    controllername: appcontroller
+
+spec:
+  replicas: 4
+  selector:
+    appname: myapp         #explicitaly giving the selector , service will match to this selector    
+
+  template:
+    metadata:
+      name: servicepod    
+      labels:                  
+         appname: myapp 
+    spec: 
+      containers:
+        - image: coolgourav147/nginx-custom
+          imagePullPolicy: Never
+          name: contone
+

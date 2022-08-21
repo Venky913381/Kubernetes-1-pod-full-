@@ -1,0 +1,37 @@
+>
+>Namespace is like seperate virtual space within kubernetes.
+>kubernetes cluster may have multiple application deployed within same cluster. In this we can use seperate 
+>namespaces for each application deployement, which introduced layer of isolation between them.
+
+>Using namespavce we can put limit on resource usage, which ensure that each application have enough resources, 
+>not all resources is consumed by one application only.
+
+>kubectl api-resources
+>kubectl create ns <ns-name>      ---> ns/namespace
+>kubectl apply -f <foo.yml> -n <name-space>
+
+> kubectl <option> <resource> *<name>  -n <ns-name>    ---> -n / --namespace, options:- get, delete, apply, ...
+
+to set custon Namespace as defualt
+> kubectl config set-context --current --namespace=<ns-name>
+
+To access service in another namespace 
+> <*servicename>.<*namespacename>.svc.cluster.local  -->curl it
+#----------------------------------------------------------------------------------------------------------------
+>to set namespace in yml_
+
+apiVersion: v1
+kind: Pod 
+
+metadata: 
+  name: pod1
+  labels: 
+     appname: app
+  namespace: my-namespace     #setting namespace in manifest file.
+spec: 
+  containers:
+    - name: firstcontainer
+      image: coolgourav147/nginx-custom
+
+
+

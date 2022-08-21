@@ -1,0 +1,79 @@
+>
+read more on services: https://kubernetes.io/docs/concepts/services-networking/service/
+>----------------------------NodePort----------------------------
+apiVersion: v1
+kind: Service 
+metadata:
+  name: nginxservice
+  labels: 
+    name: service1
+spec:
+  type: NodePort
+  ports:                                                http://ip:80---->9000---->32000
+  - nodePort: 32000  > on container , inside container
+    port: 9000       > on pod , machine port will mapped to this port on pod
+    targetPort: 80   > on machine / browser / ip:port / this is endpoint
+  selector:
+    appname: myapp 
+
+
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: servicepod
+  labels: 
+    appname: myapp
+spec: 
+  containers:
+    - image: coolgourav147/nginx-custom
+      imagePullPolicy: Never
+      name: servicecontainer 
+
+
+
+
+>---------------------------ClusterIP---------------------------------
+
+apiVersion: v1
+kind: Service 
+
+metadata:
+  name: servone
+  labels: 
+    name: service1
+
+spec:                                  #can be used with above pod too..
+  type: ClusterIP
+  selector:
+    appname: myapp
+  ports:
+  - name: my-servicee
+    port: 9000              > pod port
+    protocol: TCP
+                                                  
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginxcustom
+  labels: 
+    appname: myapp
+spec: 
+  containers:
+    - image: coolgourav147/nginx-custom
+      imagePullPolicy: Never
+      name: servicecontainer  
+      ports:
+        - containerPort: 80        > 
+          name: my-service         > service will be available on this port name
+
+>-------------------------------------------------
+
+>kubectl expose pod <podname> --type=<NodePort/ClusterIP> --port=<port> --target-port=<port> --name <svcName>
+
+>kubectl apply -f <filename.yaml>  / --dry-run=client
+>kubectl get service/svc    -o wide / --show-labels
+
+>kubectl port-forward --address 0.0.0.0 svc/<serviceName> <OnHost>:<OnPod>
+>kubectl port-forward --address 0.0.0.0 svc/<Service-Name> --namespace <NameSpace Name> Machine/HostPort:PodPort

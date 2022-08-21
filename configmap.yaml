@@ -1,0 +1,165 @@
+
+
+#a)----------------------necessicities for demo -------------------------------
+>
+>we use config map to decouple the application specific properties from application image. and we pass
+>this apllication specific properties as environmental variable during pod creation. 
+>However, this is not secure way to pass the data.
+
+>kubectl get cm  <cm-name>
+>kubectl describe cm  <cm-name
+
+>kubectl create configmap <cm-name> --from-literal=db_ip="8.8.8.8"   ---> from literal , directaly from cmd.
+>kubectl create configmap <cm-name> --from-literal=param1="value1"  --from-literal=param2="value2" --fro....
+
+single property file: application.properties
+#databse_details
+database_ip="8.8.8.8"
+database_password="12345"
+database_username="swapnil"
+
+#super_admin_details
+username="swapnil"
+password="12345"
+
+>kubectl create cm <cm0-name> --from-file=application.properties   ---> from file (imperative)
+>kubectl create cm <cm0-name> --from-file=file1 --from-file=file2 --from-file=file3 --fr.......
+>-------------------------------------------------------------------------------------------------
+
+b)---------------------------------------------------------------------
+multiple properties file from folder (create any folder): /properties 
+create/add needed number of properties file in it: 
+test1.properties
+test2.properties
+test3.properties
+
+>kubectl create configmap <my-cm1> --from-file=properties/   ---> from folder (/)
+>----------------------------------------------------------------------------------------------------
+
+c)-----------------------config map from environmental file-----------
+file: env.sh
+
+var1=val1    #this is different from above i.e --from-file, 
+var2=val2    # in the sense that it do not consider spaces or comments in it.
+var3=val3
+
+>kubectl create cm <my-cm5> --from-env-file=env.sh
+>---------------------------------------------------------------------------------------------------
+
+> creating configmap using manifest file.
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: configmap1
+
+data:
+  my-key1: my-value1
+  my-key2: my-value2
+  my-key3: my-value3
+  my-key4: my-value4
+  my-key5: my-value5
+
+>--------------------------------------------------------
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: configmap2
+  
+data:
+  application.properties: |
+    database_ip="8.8.8.8"
+    database_password="12345"
+    database_username="swapnil"
+
+  admin.properties: |
+    username="swapnil"
+    password="12345"
+  
+>----------------------------------------INJECTING CONFIG MAP--------------------------------------
+
+>1. using a map as envirmonemt variable inside pod.
+
+apiVersion: v1
+kind: Pod 
+metadata: 
+  name: firstpod
+spec: 
+  containers:
+    - image: nginx
+      name: cont1
+      env:
+       - name: variable-cm1
+         valueFrom:
+          configMapKeyRef: 
+            key: application.properties        
+            name: configmap2  
+
+       - name: variable-cm2      #value of key in cm will be avauilable in this var inside container.
+         valueFrom:
+          configMapKeyRef: 
+            key: my-key1       # key in config map    
+            name: configmap1   # name of config map      
+
+
+>2.accessing entire map inside container.
+
+apiVersion: v1
+kind: Pod 
+metadata: 
+  name: firstpod
+spec: 
+  containers:
+    - image: nginx
+      name: cont1
+      envFrom:
+      - configMapRef: 
+          name: configmap2  # all values will be available as files.
+
+        
+>3.Getting all map variables as a files inside container.
+
+apiVersion: v1
+kind: Pod 
+metadata: 
+  name: firstpod
+spec: 
+  containers:
+    - image: nginx
+      name: cont1
+
+      volumeMounts:
+        - name: my-data
+          mountPath: "/configdata"
+
+  volumes:
+    - name: my-data
+      configMap:           
+        name: configmap2      
+
+
+>3.Getting selected individual map variables as a files inside container.
+
+apiVersion: v1
+kind: Pod 
+metadata: 
+  name: firstpod
+spec: 
+  containers:
+    - image: nginx
+      name: cont1
+
+      volumeMounts:
+        - name: my-data
+          mountPath: "/configdata"
+
+  volumes:
+    - name: my-data
+      configMap:           
+        name: configmap2  
+        items:
+        - key: application.properties
+          path: "variable-1"  
+        - key: admin.properties
+          path: "variable-2"          

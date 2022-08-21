@@ -1,0 +1,89 @@
+>
+
+apiVersion: apps/v1
+kind: ReplicaSet
+
+metadata:
+  name: rs
+  labels:
+    type: frontend
+
+spec: 
+  replicas: 3                  > if we specify multiple matchLabels, and if existing pods do not match all labels 
+  selector:                     > then all new pods with multiple labels will be created.
+    matchLabels: 
+      appname: app            #lables must match to the container lable, else will give error
+  template:                       # able to match only one label , with existing pods.
+    metadata: 
+      name: pod1
+      labels: 
+        appname: app            
+    spec:    
+      containers:
+      - name: container 
+        image: coolgourav147/nginx-custom
+
+>-------------------------------------------------------------------------
+
+apiVersion: v1
+kind: Pod
+
+metadata:                 >sample pod
+  name: pod
+  labels: 
+    appname: app
+    type: frontend
+spec:
+  containers:
+  - image: coolgourav147/nginx-custom
+    name:  my-name   
+
+
+>-----------------------------------------------------------------------
+
+apiVersion: apps/v1
+kind: ReplicaSet
+
+metadata:
+  name: rs
+  labels:
+    type: frontend
+
+spec: 
+  replicas: 5                  
+  selector:                   
+    matchExpressions:
+    - key: appname
+      operator: In 
+      values:
+        - app              >pod must have all labels, .i.e. appname and type. only one will not work.
+        - app2
+                          > will select all pod having Labels, appname-->app,app2 and type-->frontend
+    - key: type            > but, it will not select any app, app2 with type backend.
+      operator: In 
+      values:
+        - frontend
+
+    - key: type
+      operator: NotIn 
+      values:
+        - backend 
+
+
+  template:                    
+    metadata: 
+      name: pod3
+      labels: 
+        appname: app            
+    spec:    
+      containers:
+      - name: container 
+        image: coolgourav147/nginx-custom    
+
+
+> kubectl get rs   -o wide/ --show-labels
+> kubectl apply -f <rs.yaml>
+> kubectl delete -f <rs.yaml>
+> kubectl delete rs <rs-name>      
+
+>----------------------------------------------------------------------------------

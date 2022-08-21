@@ -1,0 +1,84 @@
+>
+apiVersion: v1
+kind: Pod
+
+metadata: 
+  name: podone
+  labels: 
+    owner: swapnil
+    appname: app1
+spec:
+  containers:
+  - image: nginx
+    name: appContainer
+    imagePullPolicy: IfNotPresent
+>------------------------------------------------- 1
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: podtree
+  labels: 
+    name: pod
+    appname: app2
+spec:
+  containers:                            > kubectl exec podtree -c containerone -it -- bash
+    - imagePullPolicy: IfNotPresent      > kubectl exec podtree -c containertwo -it -- bash
+      image: coolgourav147/nginx-custom
+      name: containerone
+      env:
+        - name: name
+          value: swapnil 
+        - name: city
+          value: pune  
+      args: ["sleep", "300"]          
+    - name: containertwo
+      image: nginx
+      imagePullPolicy: IfNotPresent
+      env:
+        - name: name
+          value: nisha 
+      args: ["sleep", "300"]     
+>-------------------------------------------------- 2
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: podtree
+  labels: 
+    name: pod
+    appname: app2
+spec:
+  containers:
+    - imagePullPolicy: IfNotPresent
+      image: coolgourav147/nginx-custom
+      name: containerone
+      args: ["sleep", "120" ]
+>-------------------------------------------------- 3
+
+apiVersion: v1
+kind: Pod
+
+metadata: 
+  name: podone
+  labels: 
+    owner: swapnil
+    appname: app1
+spec:
+  containers:
+  - image: nginx
+    name: appContainer
+    imagePullPolicy: IfNotPresent
+  initContainers:
+  - name: init1container
+    image: nginx
+    args: 
+      - /bin/bash
+      - -c
+      - sleep 20
+
+>-------------------------------------------------- 4
+
+>kubectl apply -f <filename.yaml>  / --dry-run=client
+>kubectl get pod / -o wide / --show-labels
+>kubectl exec <podname> -c <containerName> -it -- <command>

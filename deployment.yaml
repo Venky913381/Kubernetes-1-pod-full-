@@ -1,0 +1,168 @@
+>
+apiVersion: apps/v1
+kind: Deployment 
+
+metadata:
+  name: deploy1
+  labels: 
+    label1: dep1 
+spec:
+  replicas: 5
+  selector: 
+    matchLabels:
+      appname: app
+  template:   
+      metadata:
+        name: pod1
+        labels: 
+          appname: app
+      spec:
+        containers:
+        - name: cont1
+          image: coolgourav147/nginx-custom            # image: coolgourav147/nginx-custom:v2
+
+> if we update the above deployment with another image, (there may also be chnage in replicas) and monitor the changes
+> with below command, then , it is observed that as older deployment will gradually get replaced by newer deployments.
+> the process will complated, only after all the older deployments gradually get replaced with newer deployments.
+> this strategy is called as Rolling Update strategy and there is zero downtime, it is default startegy.
+
+
+apiVersion: apps/v1
+kind: Deployment 
+
+metadata:
+  name: deploy1
+  labels: 
+    label1: dep1 
+  annotations:
+    kubernetes.io/change-cause: "personalize chnage text"   
+
+
+spec: 
+  replicas: 10              > previous, replica is 7       
+  minReadySeconds: 20     > this is the time we given for our container to be ready to accept traffic
+
+  revisionHistoryLimit: 15   > default is 10
+
+  strategy: 
+    rollingUpdate:       > here we are explictly given the RollingUpdate strategy. 
+      maxSurge: 0         
+      maxUnavailable: 1     > max unavailable, suggest that during replacemnt of older deployments, at a time
+    type: RollingUpdate      > only 1 pod will remain unavailable. i.e. pod will get replaced one by one. 
+                            > if we gave value as 3 , then at a time 3 pods will get replaced by new pod. this 
+  selector:               > strategy will amked sure that, 10 replicas as given (old+new),will always remain available
+    matchLabels:
+      appname: app
+ 
+  template:   
+      metadata:
+        name: pod1
+        labels: 
+          appname: app
+      spec:
+        containers:
+        - name: cont1
+          image: coolgourav147/nginx-custom         
+
+>-----------------------------------------------------------------------------------------
+
+apiVersion: apps/v1
+kind: Deployment 
+
+metadata:
+  name: deploy1
+  labels: 
+    label1: dep1 
+
+spec:
+  replicas: 10                    
+  minReadySeconds: 20   
+
+  strategy: 
+    rollingUpdate:                > (10-1+4 = 13), so we may get 13 or 14(max)/10(min) pod active simultaneously.
+      maxSurge: 4              
+      maxUnavailable: 1            >max surge , are the number of pod that will get created on the top of
+    type: RollingUpdate           > described replicas of pod, while replacing the older deployment.
+                               > in above, as deployment ,ideally has to maintain 10 pods, but with surge , it can  
+  selector:                  > create 4 pods at a time , while only 1 pod from older deployment will get unavailable.
+    matchLabels:        > this way we get continuity of services. 
+      appname: app
+  template:   
+      metadata:
+        name: pod1
+        labels: 
+          appname: app
+      spec:
+        containers:
+        - name: cont1
+          image: coolgourav147/nginx-custom:v2 
+
+> if we explicity , do not gave the values of maxUnavailable or maxSurge, by default its value  will
+> be 25% MaxUnavailable and 25% for MaxSurge
+
+
+
+>--------------------------------------------------------------------------------
+> kubectl apply -f <deploy.yaml>  ;  watch "kubectl get rs -o wide"
+> kubectl rollout status deployment <deploy-name>          
+> kubectl delete -f <.yml>
+> kubectl delete deploy <deploy-name>
+> kubectl rollout history deployment <deployment-name
+#------------------------------------------------------------------------------------------
+> kubectl rollout history deployment <deployment-name>   --> will give all revision history, however this will
+                                                           > not keep any explicit details of deployment.
+> to keep deployment record, run a command as_
+>  kubectl apply -f <deploy.yaml> --record, But this not add any custom massage.
+
+> to add custom massage for deployment, add to yml file the following in metadata of deployemnt..
+> under annotation , kubernetes.io/change-cause: <personalize text>  
+> afte adding annotation, there is no need to use --record flag
+#-------------------------------------------------------------------------------------------
+> ROLLBACK_TO_SPECIFIC_REVISION_IN_HISTORY__
+> kubectl rollout undo --to-revision=<specific-rev-number>  deployement  <deploy-name> 
+
+> if specific revision number is not specified, by default it will choose most recent last revision. 
+> .i.e. -->    kubectl rollout undo  deployement  <deploy-name>
+#------------------------------------------------------------------------------------------
+
+> by default, it will k8s , will keep the last 10 deployment record in memory, we can change this by using
+> "revisionHistoryLimit: <n>" unser spec of deployment.
+
+>--------------------------------------------------------------------------------
+
+>--------------------------------------RECREATE STARTEGY--------------------------------------------
+
+> in this startegy, all the pods from old deployemnt will simulateneously get replaced by pods from
+> new deployment. this will cause the downtime, but new pods will get deployed faster.
+> this startegy, generally not get used in production, but for testinf , this will save the time.
+
+apiVersion: apps/v1
+kind: Deployment 
+
+metadata:
+  name: deploy1
+  labels: 
+    label1: dep1 
+
+
+spec:
+  replicas: 10                    
+  minReadySeconds: 20   
+
+  strategy: 
+    type: Recreate
+
+  selector: 
+    matchLabels:
+      appname: app
+
+
+  template:   
+      metadata:
+        name: pod1
+        labels: 
+          appname: app
+      spec:
+        containers:
+        - name: cont1
+          image: coolgourav147/nginx-custom:v2          
