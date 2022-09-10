@@ -3,7 +3,7 @@
 #a)----------------------necessicities for demo -------------------------------
 >
 >we use config map to decouple the application specific properties from application image. and we pass
->this apllication specific properties as environmental variable during pod creation. 
+>this aplication specific properties as environmental variable during pod creation. 
 >However, this is not secure way to pass the data.
 
 >kubectl get cm  <cm-name>

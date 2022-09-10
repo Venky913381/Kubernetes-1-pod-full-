@@ -34,3 +34,6 @@ spec:
 
 > if, due to traffic load or for any reason, if pod requires more momory / cpu, repeatedly , then state of pod will
 > changes state to OOM, Out Of Memory. and pod will be destroyed.
+
+> A limit can never be lower than the request. Kubernetes will error out if you attempt to do this. 
+> If a container’s request is higher than a node’s capacity, Kubernetes will never schedule that container.

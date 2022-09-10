@@ -2,13 +2,13 @@
 >Putting Hardware Resource restriction on Resources in Namespace
 >to check resource restriction on namespace : - >kubectl describe ns test-space
 
->apply limit to testspace using quta manifest
+>apply limit to namespace using quota manifest
 >kubectl apply -f <limit/quota.yml> -n <test-space-name>
 
 >read more in subsection :- https://kubernetes.io/docs/concepts/policy/
 
 >-------------------------------------------------------------------------------------
-
+Object Based Quota
 >A) putting maximum pod limit for namespace. (Object Based Quota)
     
 apiVersion: v1
@@ -21,20 +21,24 @@ spec:
   hard:                
     pods: 2
 
+>kubectl apply -f <limit/quota.yml> -n <test-space-name>   --> if ns is not specified in metadata.
+
+
+
 >Similarly, applicable for_ (Object Based Quota)
-count/persistentvolumeclaims
-count/services
-count/secrets
-count/configmaps
-count/replicationcontrollers
-count/deployments.apps
-count/replicasets.apps
-count/statefulsets.apps
-count/jobs.batch
-count/cronjobs.batch
+persistentvolumeclaims
+services
+secrets
+configmaps
+replicationcontrollers
+deployments
+replicasets
+statefulsets
+jobs
+cronjobs
 
 >------------------------------------------------------------------------------------------------
-
+Compute Based Quota
 >B) putting maximum compute resource limit for namespace. (Compute Based Quota)
 
 apiVersion: v1
@@ -47,11 +51,11 @@ spec:
   hard: 
     pods: 2                   # this will be the total request/limit for ALL the pods Combine in a ns.
     requests.cpu: 0.5
-    requests.memory: 200Mi
+    requests.memory: 500Mi
     limits.cpu: 1
-    limits.memory: 300Mi
+    limits.memory: 600Mi
 
->even if we put the resource limit on namepace, we need to put individual limits on pod in pod def.
+> even if we put the resource limit on namepace, we need to put individual limits on pod in pod def.
 > else pod creation will error out.
 
 >if we do not put requests in pod def and only describe limit , then pod will occupy the resources
@@ -95,23 +99,23 @@ apiVersion: v1
 kind: LimitRange
 
 metadata:
-  name: limtrange1
+  name: limitrange1
   namespace: test-space
 spec: 
   limits:                       # Applicable to Pod/Container inside Namespace, not Namespace.
   - default: 
       cpu: 200m                     >.i.e. Quota for entire Namespace 
-      memory: 500Mi                 >     Limit for the Container/pod
+      memory: 500Mi                 >      Limit for the Container/pod
     type: Container    
       
-> above will set the default request equivalent to the default limit.
+> above will set the default Request equivalent to the default limit.
 > we can set the different default request by specifying the following..
 
 apiVersion: v1
 kind: LimitRange
 
 metadata:
-  name: limtrange2
+  name: limitrange2
   namespace: test-space
 spec: 
   limits:                      

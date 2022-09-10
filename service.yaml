@@ -77,3 +77,46 @@ spec:
 
 >kubectl port-forward --address 0.0.0.0 svc/<serviceName> <OnHost>:<OnPod>
 >kubectl port-forward --address 0.0.0.0 svc/<Service-Name> --namespace <NameSpace Name> Machine/HostPort:PodPort
+
+
+
+
+>-------------------------------------------------------------
+
+apiVersion: v1
+kind: Service 
+metadata:
+  name: nginxservice
+  labels: 
+    name: service1
+spec:
+  type: NodePort
+
+  ports:                                                http://ip:80---->9000---->32000
+  - nodePort: 32000 
+    port: 9000      
+    targetPort: 80  
+    name: my-service
+    protocol: tcp
+  selector:
+    appname: myapp 
+
+
+>-------------------------------------------------------------
+
+>1) http://ip:8080 ---->9000---->32000
+>2) http://ip:8080 ---->9000---->my-service
+
+  ports:                                               
+  - nodePort: 8080
+    port: 9000      
+    targetPort: 32000  
+
+    name: my-service
+    protocol: tcp   
+
+> for using "name" container specs must mentioned the Port attributes with containerport and its name in container
+> spec as below.....
+ports:
+- containerPort: 32000        
+  name: my-service      

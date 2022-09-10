@@ -6,17 +6,23 @@
 >Using namespavce we can put limit on resource usage, which ensure that each application have enough resources, 
 >not all resources is consumed by one application only.
 
+to get the k8s resourses which supports namespaces
 >kubectl api-resources
->kubectl create ns <ns-name>      ---> ns/namespace
->kubectl apply -f <foo.yml> -n <name-space>
 
-> kubectl <option> <resource> *<name>  -n <ns-name>    ---> -n / --namespace, options:- get, delete, apply, ...
+to create different namespace
+>kubectl create ns <ns-name>      ---> ns/namespace
+
+to create a resource in a namespace other than default ns
+>kubectl apply -f <k8s_res.yml> -n <name-space>
+
+>kubectl <option> <resource> *<name>  -n <ns-name>    ---> -n / --namespace, options:- get, delete, apply, ...
 
 to set custon Namespace as defualt
 > kubectl config set-context --current --namespace=<ns-name>
 
 To access service in another namespace 
 > <*servicename>.<*namespacename>.svc.cluster.local  -->curl it
+
 #----------------------------------------------------------------------------------------------------------------
 >to set namespace in yml_
 

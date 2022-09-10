@@ -1,5 +1,4 @@
 >
-
 apiVersion: apps/v1
 kind: ReplicaSet
 
@@ -10,9 +9,9 @@ metadata:
 
 spec: 
   replicas: 3                  > if we specify multiple matchLabels, and if existing pods do not match all labels 
-  selector:                     > then all new pods with multiple labels will be created.
+  selector:                     # then all new pods with multiple labels will be created.
     matchLabels: 
-      appname: app            #lables must match to the container lable, else will give error
+      appname: app            #labels must match to the container label, else will give error
   template:                       # able to match only one label , with existing pods.
     metadata: 
       name: pod1
@@ -58,7 +57,7 @@ spec:
       values:
         - app              >pod must have all labels, .i.e. appname and type. only one will not work.
         - app2
-                          > will select all pod having Labels, appname-->app,app2 and type-->frontend
+                          # will select all pod having Labels, appname-->app,app2 and type-->frontend
     - key: type            > but, it will not select any app, app2 with type backend.
       operator: In 
       values:

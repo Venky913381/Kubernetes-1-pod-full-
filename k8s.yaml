@@ -1,36 +1,46 @@
 >
 >--------------------------------------COMMON-CLI-INSTRUCTIONS----------------------------------------------------
 
+>kubectl get <type>  
 >kubectl get <type> <name>
->kubectl get <type> <name> -o wide/yaml/json
+>kubectl get <type> <name> -o wide/yaml/json  > .yaml/.json
 
->kubectl run <podname> --image=<image:version>  
->kubectl apply -f <manifest.yaml>
->kubectl create -f <manifest.yaml>
+>kubectl get logs <type> <name>
+
+>kubectl run <podname> --image=<image:version>     ---> Imperative command
+>kubectl apply -f <manifest.yaml>                  ---> declarative object configuration
+>kubectl create -f <manifest.yaml>                 ---> Imperative object configuration
+>kubectl edit <type> <name>                        ---> imperative object configuration
+
+>kubectl apply -f ./   ---> to apply all yaml manifests in folder
 
 >kubectl explain <k8s resource>
 >kubectl describe <type> <name>
->kubectl edit <type> <name>        ----> imperative object configuration
 
 >kubectl apply -f <manifest.yaml> --dry-run=client
 
 >kubectl label <type> <name> label1=value1
 >kubectl label --override <type> <name> label1=value2   --->to override the existing label
->kubectl label <type> <name> label1-   ---> to delete the lable
+>kubectl label <type> <name> label1-   ---> (-) to delete the lable
 >kubectl get <type> <name> --show-labels / -o wide
 
 >kubectl delete <type> <name>
->kubectl delete -f <manifest.yaml>
+>kubectl delete -f <manifest.yaml>    ---> will delete all the resources declared in manifest file.
 
->kubectl explain --recursive <type> | less   ---> to get all resource details
+>kubectl explain --recursive <type> | less   ---> to get all resource attributes for writting manifest
 
 >kubectl get nodes
 >kubectl cluster-info
 >kubectl api-resources
+
 >minikube --help   ---> for miikube commands.
+
+
+
 
 >-------------------------------------------POD------------------------------------------------
 >read : https://kubernetes.io/docs/concepts/workloads/pods/
+>kubectl run <podname> --image=<image:version>     ---> Imperative command
 
 apiVersion: v1
 kind: Pod 
@@ -40,6 +50,7 @@ metadata:
   labels: 
      env: prod
      name: swapnil
+  namespace: test-space   
 spec: 
   containers:
     - name: firstcontainer
@@ -71,9 +82,13 @@ spec:
 >kubectl apply -f <filename.yaml>  / --dry-run=client
 >kubectl get pod / -o wide / --show-labels
 >kubectl exec <podname> -c <containerName> -it -- <command>     --> executing command inside the container.
+>                       -- container -it -- <bash/cmd>
 
-#---------------------service--------------------------------
+#------------------------------------------service---------------------------------------------------
 read more on services: https://kubernetes.io/docs/concepts/services-networking/service/
+
+>service is k8s resource used to expose the pod/containers for it to accept the otside traffic. 
+>Using service we open the port on the pod.
 
 apiVersion: v1
 kind: Service
@@ -84,16 +99,13 @@ metadata:
         servicelabel: label1
 spec:
       type: NodePort
+      selector:
+          type: app
       port:
         - nodePort: 32000
           port: 9000
           targetPort: 80
-      selector:
-          type: app
-
-
-
-
+      
  #--------------------------------POD AND SERVICE------------------
 
 apiVersion: v1
@@ -123,6 +135,30 @@ spec:
       selector:
           type: app  # this must be same as pods label
 
+>-----------------------------------------------------------------------------
+
+>1) http://ip:8080 ---->9000---->32000 --->app (selector)
+>2) http://ip:8080 ---->9000---->my-service  --->app (selector)
+
+
+  selector:
+          type: app
+  ports:                                               
+  - nodePort: 8080
+    port: 9000      
+    targetPort: 32000  
+
+    name: my-service _ read below
+    protocol: tcp
+
+> for using "name" container specs must mentioned the Port attributes with containerport and its name in container
+> spec as below.....
+ports:
+- containerPort: 32000        
+  name: my-service  
+
+
+
 >kubectl expose pod <podname> --type=<NodePort/ClusterIP> --port=<port> --target-port=<port> --name <svcName>
 >kubectl apply -f <filename.yaml>  / --dry-run=client
 >kubectl get service/svc    -o wide / --show-labels
@@ -134,11 +170,11 @@ spec:
 >----------------------------------------------------------------------------------------------------------------
 
 #-----------------------------------------ReplicationController-----------------------------------------------
-
 >read: https://kubernetes.io/docs/concepts/workloads/controllers/replicationcontroller/
 
+>USES ONLY EQUILITY BASED SELECTOR.
 
-apiVersion: v1                      # USES ONLY EQUILITY BASED SELECTOR.
+apiVersion: v1                      
 kind: ReplicationController
 
 metadata:
@@ -167,7 +203,7 @@ spec:
 >kubectl apply -f <rc.yaml>                --> repeatative usage for declaratibe object config.
 >kubectl get rc  -o-wide / --show-labels
 
->kubectl delete -f <rc.yaml> / --cascade=false
+>kubectl delete -f <rc.yaml> / --cascade=false  ---> flag to keep recources in rc after deletion of rc.
 >kubectl delete rc <rcname>  / --cascade=false
 
 #manual scalling__
@@ -193,8 +229,9 @@ metadata:
 spec:
     replicas: 5
     selector:  
-        matchLabels: 
-          type: app # Services use this label for identification/ Mapping
+        matchLabels:  
+          type: app   # Services use this label for identification/ Mapping   <label: key>
+
     template:
         metadata: 
           name: firstpod
@@ -209,7 +246,7 @@ spec:
                 - name: owner
                   value: swapnil
 
-                 #--------------rs_2------------------------
+#--------------rs_2------------------------
 
 apiVersion: apps/v1
 kind: ReplicaSet
@@ -255,13 +292,17 @@ spec:
       - key: app 
         operator: In 
         values: 
-          - app       # RS will consider these pods having labels as app, app2, frontend
+          - app       # RS will consider the existing pods having labels as app, app2, frontend
           - app2
-          - frontend
+
+      - key: type
+        operator: In 
+        values:             # RS will not consider the existing pods having labels as backend and test
+          - frontend   
 
       - key: type
         operator: NotIn 
-        values:             # RS will not consider these pods having labels as backend and test
+        values:             # RS will not consider the existing pods having labels as backend and test
           - backend
           - test    
 
@@ -280,6 +321,8 @@ spec:
 > kubectl apply -f <rs.yaml>
 > kubectl delete -f <rs.yaml>
 > kubectl delete rs <rs-name>    
+
+
 
 #--------------------------------Deployment-------------------------------------
 
@@ -330,11 +373,13 @@ metadata:
 spec:
   replicas: 10
   minReadySeconds: 5  # this defines a time we give for our pod/app to ready after creation
+
   strategy:
+    type: RollingUpdate 
     rollingUpdate:
       maxSurge: 0  #
       maxUnavailable: 2 # is the number of pod that will get replaced from old deployment when we change the
-    type: RollingUpdate                    #the code, same number of new pods will be created
+                         #the code, same number of new pods will be created
 
   selector:
     matchExpressions:
@@ -343,7 +388,6 @@ spec:
         values: 
           - app
           - app2
-          - app3
 
   template: 
     metadata: 
@@ -422,10 +466,10 @@ spec:
           image: coolgourav147/nginx-custom
 
 
+>-----------------------------------------------------------------------------------------------
 
-
-#--------------------------POD LIMITS----------------------------------
-
+#--------------------------POD's resource LIMITS------------------------------------------------
+>putting resource limits in the pods specs itself.
 
 apiVersion: v1
 kind: Pod 
@@ -447,16 +491,20 @@ spec:
           memory: 300Mi
           cpu: 300m  
 
+>requests :- if we define only requests, then pod will occupy the minimum resources as given in its request,
+>            however , it may also occupy all the available resources as , limits are not defined.
 
+> A limit can never be lower than the request. Kubernetes will error out if you attempt to do this. 
+> If a container’s request is higher than a node’s capacity, Kubernetes will never schedule that container.
 
 #-----------------------------LIMITS/ QUATA in Namespace------------------------------
 
 >Namespace is like seperate virtual space within kubernetes.
->kubernetes cluster may have multiple application deployed within same cluster. In this we can use seperate 
+>kubernetes cluster may have multiple application deployed within same cluster. In this case, we can use seperate 
 >namespaces for each application deployement, which introduced layer of isolation between them.
 
->Using namespavce we can put limit on resource usage, which ensure that each application have enough resources, 
->not all resources is consumed by one application only.
+>Using namespace we can put limit on resource usage at namespace level, which ensure that each application 
+>have enough resources, not all resources is consumed by one application only.
 
 >kubectl api-resources
 >kubectl create ns <ns-name>      ---> ns/namespace
@@ -468,19 +516,33 @@ to set custon Namespace as defualt
 
 To access service in another namespace 
 > <*servicename>.<*namespacename>.svc.cluster.local  -->curl it
->--------------------------------------------------------------------------------------------
->to set namespace in yml_
+
+
+> there are two types of quota/limits, 
+>1) OBJECT BASED QUOTA, where we limit the number of Object that can be created inside the namespace.
+>2) COMPUTE BASED QUOTA, where we limit the node resiources to be used by k8s resource.
+>----------------------------------------------------------------------------------------------
+
+1) OBJECT BASED QUOTA
+>to set limits and quota in namespace in yml_
+
 apiVersion: v1
 kind: ResourceQuota
 metadata: 
   name:  myquota   # Resource/ Object based Quata or limit
+  namespace: my-namespace
+  labels: 
+    label2: key1
 spec:
   hard:
     pods: 2    # same can be applied to RC, RS, DEPLOYMENTS, SERVICES, JOBS AND Others.........
 
->--------------------------------------------------------------
+> this will limit the namespace for creation of only two pods in it.
 
-apiVersion: v1                #this is the combine request/ limits of the pods or resoures in the namespace
+>----------------------------------------------------------------------------------------------
+2) COMPUTE BASED QUOTA
+
+apiVersion: v1                # this is the combine request/ limits of the pods or resoures in the namespace
 kind: ResourceQuota           # i.e. SUM of all pods/resorces must be within request and limit constraint. 
 
 metadata: 
@@ -584,19 +646,18 @@ database_username="swapnil"
 username="swapnil"
 password="12345"
 
->kubectl create cm <my-cm3> --from-file=application.properties   ---> from file (imperative)
-
->kubectl create configmap my-cm1 --from-literal=db_ip="8.8.8.8"   ---> from literal
+>kubectl create configmap my-cm1 --from-literal=db_ip="8.8.8.8"   ---> from literal o cli
+>kubectl create cm <my-cm3> --from-file=application.properties    ---> from file (imperative)
 -----------------------------------------------------------------------
 
 b)---------------------------------------------------------------------
 multiple properties file from folder : properties
-create needed number of properties file: 
+create needed number of properties file's inside folder: 
 test1.properties
 test2.properties
 test3.properties
 
->kubectl create configmap <my-cm1> --from-file=properties/   ---> from folder
+>kubectl create configmap <my-cm1> --from-file=properties/       ---> from folder
 --------------------------------------------------------------------
 
 c)-----------------------config map from environmental file-----------
@@ -721,19 +782,21 @@ spec:
 
 
 
-#-------------------------------------------SECRETS---------------------------------------- (uses Base64)
+#-------------------------------------------SECRETS----------------------------- (uses Base64 encryption)
 
 
 >kubectl create secret generic <my-sec1> --from-literal=name=swapnil  --> direct from literals
 
+> generic is encryption method, other are Docker registry and tls
+
 single property file: application.properties
 #databse_details
-database_ip="8.8.8.8"                                    # generic is encription method
-database_password="12345"                         # other are Docker registry and tls
+database_ip="8.8.8.8"                                    
+database_password="12345"                                
 database_username="swapnil"
 
 >kubectl create secret generic <my-filesec> --from-file=application.properties  --> from file
-
+>kubectl create secret generic <my-filesec> --from-file=properties/             --> from folder
 from env file: env.sh
 
 var1=val1
@@ -749,6 +812,7 @@ kind: Secret
 data:
   name: c3dhcG5pbA==               # first encrypt the data and then pass the value to manifest file.
   password: c3dhcG5pbA==
+
 metadata:
   name: my-secrete1
                           #base64 value of swapnil i.e. we need to store encrypted values in yaml file.
@@ -822,13 +886,15 @@ spec:
             
 
 #--------------------------------------Taint and Toleration-----------------------------------------------   
->refer, https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
 
-> kubectl taint node <node-name> <key>=<taint>:<NoSchedule> /PreferNoSchedule / NoExecute
-> kubectl taint node noddename mysize=large:NoSchedule / PreferNoSchedule / NoExecute
+> refer, https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
 
-if we taint the node , then only those pod which will tolerate the taint of node will get schedule on
-that node, else they wil get schedule on another node .i.e NOSCHEDULE on tainted node.
+> kubectl taint node <node-name> <key>=<taint>:<effect>    --> NoSchedule /PreferNoSchedule / NoExecute
+> eg,  kubectl taint node nodename mysize=large:NoSchedule        / PreferNoSchedule / NoExecute
+
+Taint is putting the conditions on node for k8s resources to get scheduled on it.
+if we taint the node , then only those pod, which can tolerate the taint of node will get schedule on
+that node, else they will get schedule on another node .i.e NOSCHEDULE on tainted node.
 
 we can assign taint to node using above commands. 
 above, we have tainted the node ,that these node is of large size,
@@ -847,8 +913,8 @@ spec:
       image: nginx
       imagePullPolicy: Never
 
-  tolarations:                   > mysize=large:NoSchedule
-    - effect: "NoSchedule"       > it will tolerate the NoSchedule taint on node.
+  tolarations:                   # mysize=large:NoSchedule
+    - effect: "NoSchedule"       # it will tolerate the NoSchedule taint on node.
       key: "mysize"                        # attaching tolerations so that it will tolerate the tainted node.
       operator: "equal"                    # it may also get schedule on non tainted available nodes.
       value: "large"
@@ -872,16 +938,16 @@ if any pod is already previously (before tainting) running on the tainted node ,
 then that pod will also get deleted.
 
 #to delete taint on node
->kubectl taint  node <nodename> mysize-          --> this (-) will delete the taint.
-
->------------------------------
+>kubectl taint node <nodename> <taint>-          --> this (-) will delete the taint.
+>kubectl taint node worker01 mysize-
+>---------------------------------------------------------------------------
 
 > Different effect of the tolerations...............
 
 tolarations:
     - effect: NoSchedule 
       key: mysize             --> if operator is not given, by default it will consider the                            
-      value: large                                equal operator
+      value: large                                "equal" operator
 
 
 tolarations:
@@ -892,9 +958,9 @@ tolarations:
 
 
 tolarations:
-    - effect: NoSchedule    --> this will check taint "mysize" is available or not". No matter what the value is.
+    - effect: NoSchedule    --> this will check taint "mysize" is available or not". No matter what the "value" is.
       key: mysize                    .i.e it do not tell to schedule or not to schedule on node.           
-      operator: exists          >pod can get schedule on any available node, including tainted one.                
+      operator: Exists        > pod can get schedule on any available node, including tainted one.                
 
 
 tolarations:
@@ -920,7 +986,8 @@ tolarations:
 
 
 
->----------------------------------Scheduling (NODE SCHEDULING)-------------------------------------------      
+>----------------------------------Scheduling (NODE SCHEDULING)----------------------------------------- 
+
 >refer, https://kubernetes.io/docs/tasks/configure-pod-container/assign-pods-nodes-using-node-affinity/
 
 >NODE SELECTOR...................
@@ -929,8 +996,12 @@ Assigning label to node_
 > kubectl label node <nodename> <label>=<value>
 > kubectl label node worker01 size=large
 
+deleting the Node label
+> kubectl label node <nodename> <label>-
+> kubectl label node worker01 size-
+
 apiVersion: v1
-kind: Pod                                                    # 
+kind: Pod                                                    
 metadata: 
   name: secret1
 spec: 
@@ -940,10 +1011,11 @@ spec:
       imagePullPolicy: Never
 
   nodeSelector:
-      size: "large"    # all the pode with this selector will get schedule on the node with matching lable.
+      size: "large"    # all the pode with this selector will get schedule on the node with matching labels.
 
 >make sure that node with specified label exist,  if label is not attached to node and we in pod specification
 >gave the node selector then pod will remain in pending* state , as it will fails to find the node with label.  
+
 
 >------------------------------------------AFFINITY--------------------------------
 >There are two types of Affinity, 
@@ -976,9 +1048,12 @@ spec:
                   - large             #array, multiple values can be given
           weight : 1
 
-> weight :- Weight is used to define the prefference of node selection, when we give multiple Match Expressions.
+> weight :- Weight is used to define the prefference of node selection, when we give multiple Match Expressions and 
+>           and there are multiple nodes that satisfies the affinity conditions. so K8S rates the nodes and based 
+>           on its values assign weight to it.
 >           its value varies between 1 to 100, based on weight it "preffered" the node to get schedule.
->                (only for preffered)
+>           (only for preffered). K8S schedule the pod on a node with heighest total weight score.
+
 >--------------------------------------------2>
 
 apiVersion: v1
@@ -1011,8 +1086,33 @@ spec:                                          #NODE AFFINITY
 >preferredDuringSchedulingIgnoredDuringExecution  --> exist in k8s
 >requiredDuringSchedulingIgnoredDuringExecution   --> exist in k8s
 
+>--------------------------------
+
+apiVersion: v1
+kind: Pod                                                 
+metadata: 
+  name: secret1 
+spec:                                          
+  containers:
+    - name: container5          
+      image: nginx 
+      imagePullPolicy: Never
+                                 #pod affinity
+  affinity:
+    podAffinity: 
+      requiredDuringSchedulingIgnoredDuringExecution: 
+        - labelSelector:
+            matchExpressions: 
+              - key: large
+                operator: In
+                values: 
+                 - large    
+
+
+
 >---------------------------ANTI-Affinity---------------------------------
-> Using affinity , we can tell k8s egine, where to schedule the pod, but using AntiAffinity we can place 
+
+> Using affinity , we can tell k8s engine, where to schedule the pod, but using AntiAffinity we can place 
 > the condition to tell where to Schedule and Where to not Schedule the pods.
 
 
@@ -1043,13 +1143,14 @@ spec:
 #-------------------------------------------------------------------------------------------------
 
 >-----------------------------------------k8s volumes--------------------------------------------------------                  
+> Three types of volumes are :-> EmptyDir, HostPath, PersistantDisk.
 
->-------------emptyDir-----------------------
+>1)-------------emptyDir-----------------------
 
 >if we delete the CONTAINER data will be preserved , and when new container is created by pod, all
 >the data will be present in new container.
 
->i.e data volmes is created inside the POD, and will be available to Container inside that pod
+>i.e data volumes is created inside the POD, and will be available to Container inside that pod
 
 apiVersion: v1
 kind: Pod                                                 
@@ -1060,6 +1161,7 @@ spec:
     - name: container5          
       image: nginx
       imagePullPolicy: IfNotPresent
+
       volumeMounts:
         - mountPath: /data
           name: test-volume
@@ -1069,13 +1171,13 @@ spec:
       emptyDir: {}   
 
 >data will remain inside the pod and will be available to the container inside that pod.
->this data will not be available to othe rcontainers on other pod or othe pod on other machines.
+>this data will not be available to other containers on other pod or other pod on other machines.
 
 
->-------------HostPath-------------------------------
+>2)-------------HostPath-------------------------------
 
 >if we delete the POD data will be preserved in directory in sync on Host Machine, 
->and when new POD is created by pod, all
+>and when new POD is created it will have access to the data stored in dirctory on host.
 >the data will be present in new POD inside the container.
 
 >i.e data volumes is created inside the Host Machine, and will be available to POD on that machine.
@@ -1089,6 +1191,7 @@ spec:
     - name: container5          
       image: nginx
       imagePullPolicy: IfNotPresent
+
       volumeMounts:
         - mountPath: /data
           name: test-volume
@@ -1103,11 +1206,11 @@ spec:
 >available on previous machine.
 
 
->-------------EKS ON AWS-------------------------------- > Persistance data.                             
+>3)-------------EKS ON AWS-------------------------------- > Persistance data.                             
 
 >In above two cases , if pod is get schedule on any machine , other than its original machine in cluster data will 
 >no longer be available to the pod.
->In this all we need a volume which isavailable to the all the machines in the cluster, Here AWS EKS comes to rescu.
+>In this all we need a volume which is available to the all the machines in the cluster, Here AWS EKS comes to rescu.
 
 >In this approch , we create a managed k8s cluster on aws eks, and create a ebs volume, which will remain
 >available to the all nodes.  (managed cluster .i.e. AWS ITSELF WILL MANAGED MASTER NODE/CONTROL PLANE)
@@ -1154,12 +1257,12 @@ spec:
 >----------------------------------------------------------------------------------------------------------
 >----------------------------------------------------------------------------------------------------------
 
-
-
 >--------------------POD LIVENESS AND READINESS PROBE-----------------------------
+
 > refer, https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
 
->--------------------------------Liveness Probe
+#--------------------------------Liveness Probe---------------------------------
+
 >The kubelet uses liveness probes to know when to restart a container.
 >The kubelet uses readiness probes to know when a container is ready to start accepting traffic.
 >A Pod is considered ready when all of its containers are ready, i.e. when it passes the liveness probe.
@@ -1172,14 +1275,15 @@ spec:
   containers:                
     - name: cont1          
       image: nginx
+      restartPolicy: Always        >Always(default), OnFailure, Never
       args: 
        - /bin/bash
        - -c
        - touch /tmp/test       # here , args will create a file test , this file will be checked by
-      #  - sleep 10            # liveness probe at aftet 5 sec of container is ready and at regular interval of 3 sec.
+      #  - sleep 10            # liveness probe at after 5 sec of container is ready and at regular interval of 3 sec.
       #  - rm -f /tmp/test     # as long this file is available for the probe to check, pod is consider as healthy.
       #  - sleep 20            # if we delete the file, then probe will no longer have acces to file and at next check, 
-                               # probe will amrk pod as unhealthy.
+                               # probe will mark pod as unhealthy.
       livenessProbe:
         exec:                  
           command:
@@ -1195,10 +1299,14 @@ spec:
 > apart from "command" in liveness probe, we can also use "http" request and "TCP" socket for the probe.        
 > read on, Startup probe..........
 
+>If the liveness probe fails, the kubelet kills the container, and the container is subjected to its restart policy.
+>If a container does not provide a liveness probe, the default state is Success. 
 
->--------------------------------Readiness Probe
->even through pod is ready and live, it do not means that it is ready to serve the requests. App may take 
->time to be ready to serve the traffic. we do readyness probe to check the same.
+
+#--------------------------------Readiness Probe-------------------------------
+
+>even through pod is created and live, it do not means that it is ready to serve the requests. App may take 
+>time to be ready to serve the traffic. we do readiness probe to check the same.
 
 >Note: Readiness probes runs on the container during its whole lifecycle.
 >Caution: Liveness probes do not wait for readiness probes to succeed. 
@@ -1223,7 +1331,7 @@ spec:
           command:
             - cat 
             - tmp/test
-        initialDelaySeconds: 10 # will check for liveness after 15 sec of pod creation
+        initialDelaySeconds: 10    # will check for liveness after 10 sec of pod creation, every 3 seconds.
         timeoutSeconds: 3
 
       readinessProbe:
@@ -1231,7 +1339,13 @@ spec:
           command:
             - cat 
             - /tmp/test
-        initialDelaySeconds: 20 # will check for readyness after 25 sec of pod creation
+        initialDelaySeconds: 20 # will check for readiness after 20 sec of pod creation every 5 seconds.
         timeoutSeconds: 5 
 
+>If the readiness probe fails, the endpoints controller removes the Pod's IP 
+>address from the endpoints of all Services that match the Pod.
+
+>The default state of readiness before the initial delay is Failure . 
+>If a container does not provide a readiness probe, the default state is Success 
+      
 >--------------------------------------------------------------------------------------------        

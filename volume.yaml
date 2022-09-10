@@ -1,4 +1,6 @@
 >
+> Three types of volumes are :-> EmptyDir, HostPath, PersistantDisk.
+
 > 1. Creating volumr inside pod, i.e. alongside container (EmptyDir)
 
 apiVersion: v1 
@@ -19,7 +21,7 @@ spec:
       emptyDir: {}        
 
 >data will remain inside the pod and will be available to the container inside that pod.
->this data will not be available to othe rcontainers on other pod or othe pod on other machines.
+>this data will not be available to other containers on other pod or other pod on other machines.
 
 
 
@@ -42,11 +44,11 @@ spec:
     - name: vol1 
       image: nginx
       volumeMounts:
-        - name: test-vol2
+        - name: test-vol2           # on container
           mountPath: /data
 
-  volumes:
-    - name: test-vol2
+  volumes:                 # valoume on host machine
+    - name: test-vol2          
       hostPath:
           path: /tmp/data    
 

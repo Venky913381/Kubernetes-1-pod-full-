@@ -1,0 +1,134 @@
+>
+> ingress support path based routing, which have advantage over other exposing services like node port, cluster ip ,
+> Load Balancer.
+
+
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: minimal-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx-example
+  rules:
+  - http:
+      paths:
+      - path: /testpath-1
+        pathType: Prefix
+        backend:
+          service:
+            name: test-1
+            port:
+              number: 80
+
+      - path: /testpath-2
+        pathType: Prefix
+        backend:
+          service:
+            name: test-2
+            port:
+              number: 90        
+
+
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress1
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /testpath
+        pathType: Prefix
+        backend:
+          service:
+            name: servone
+            port:
+              number: 9000
+
+
+>-----------------------------------app--------------------------------------
+apiVersion: v1
+kind: Pod
+metadata :
+  name: app1 
+  labels: 
+    appname: app1 
+spec: 
+  containers:
+    - image: nginx
+      name: nginxapp2
+
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: app1service
+spec:
+  selector:
+    appname: app1
+    type: NodePort
+    ports:
+    - nodePort: 9000
+      port:  80
+      targetPort:  8080      
+
+>---------------------------------
+apiVersion: v1
+kind: Pod
+metadata :
+  name: app2
+  labels: 
+    appname: app2
+spec: 
+  containers:
+    - image: coolgourav147/nginx-custom
+      name: nginxapp2                    
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: app2service
+spec:
+  selector:
+    appname: app2
+    type: NodePort
+    ports:
+    - nodePort: 9000
+      port:  80
+      targetPort:  8080 
+
+>---------------------------------------
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-test
+spec:
+  rules:  
+  - host: 8.8.8.8:6060
+      paths:
+
+      - path: /test1
+        pathType: Prefix               # 8.8.8.8:6060/test1 --> app1service --> app1
+        backend:
+          service:
+            name: app1service
+            port:
+              number: 9000
+
+      - path: /test2
+        pathType: Prefix               # 8.8.8.8:6060/test2 --> app2service --> app2
+        backend:                      
+          service:
+            name: app2service
+            port:
+              number: 9000 
+>-------------------------------------------------------------------------
+
+

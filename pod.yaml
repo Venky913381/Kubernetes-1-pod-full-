@@ -1,4 +1,9 @@
 >
+>-------------------------------------------POD-----------------------------------------
+>read : https://kubernetes.io/docs/concepts/workloads/pods/
+>kubectl run <podname> --image=<image:version>     ---> Imperative command
+
+
 apiVersion: v1
 kind: Pod
 
@@ -44,7 +49,7 @@ spec:
 apiVersion: v1
 kind: Pod
 metadata:
-  name: podtree
+  name: podthree
   labels: 
     name: pod
     appname: app2

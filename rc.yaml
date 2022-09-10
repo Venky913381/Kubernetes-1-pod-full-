@@ -12,9 +12,9 @@ spec:
   replicas: 4
   template:                                  # USES ONLY EQUILITY BASED SELECTOR.
     metadata:
-      name: servicepod    # by default it will the use containers label to match with service, if we do not declare
-      labels:                  #the selector explicitaly
-         appname: myapp  # to math with be service / selector
+      name: servicepod         # by default it will the use containers label to match with service, if we do not declare
+      labels:                  # the selector explicitaly
+         appname: myapp        # to math with be service / selector
     spec: 
       containers:
         - image: coolgourav147/nginx-custom
@@ -22,14 +22,14 @@ spec:
           name: contone
 
 
->kubectl apply -f <rc.yaml>                   --> repeatative usage for declaratibe object config.
+>kubectl apply -f <rc.yaml>                  ---> repeatative usage for declarative object config.
 >kubectl get rc  -o-wide / --show-labels
 
 >kubectl delete -f <rc.yaml>
 >kubectl delete rc <rcname>
 
 #manual scalling__
->kubectl scale rc --replicas=<n> <rc-name>   --->imperative command
+>kubectl scale rc --replicas=<n> <rc-name>   ---> imperative command
 >kubectl edit rc <rc-name>                   ---> imperative object configuration 
 >edit in this yaml file                      ---> declarative object configuration 
 
@@ -54,9 +54,13 @@ spec:
       name: servicepod    
       labels:                  
          appname: myapp 
+         type: frontend
     spec: 
       containers:
         - image: coolgourav147/nginx-custom
           imagePullPolicy: Never
           name: contone
 
+# selector value and pods label needed to match,  even if selector is given
+# pod label is must. If selector attribute  is not provided
+# then pods label is taken as default selector for rc.

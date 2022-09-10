@@ -1,0 +1,37 @@
+version: "3.9"
+services:
+  web1:
+    build: 
+      context: .
+      dockerfile: Dockefile
+      args: 
+       - PYTHON_VERSION:3.4-alpine
+    image: custom-image
+    ports:
+       - "5000:5000"
+    network:
+       - appnetwork
+
+  redis1:
+    image: "redis:alpine"
+    volume:
+       - myredisdata1:/data
+    network:
+      - appnetwork
+
+  redis2:
+    image: "redis:alpine"
+    volume:
+       - myredisdata2:/data
+    network:
+      - appnetwork2  
+
+  networks:
+      appnetwork1
+      appnetwork2
+  volumes: 
+      myredisdata1 
+      myredisdata2
+                               
+
+ 
