@@ -1,0 +1,43 @@
+>
+>there are various ways to schedule a pod on node or selecta Node to schedule/ececute the pod,
+>these are_
+      1.Node Name and Node Selector
+      2.Node Affinity and Node-Anti-Affinity
+      3.Pod Affinity and Pod-Anti-Affinity
+      4.Taints and Tolerations
+
+>kubernetes user normally do not need to choose a node to execute their pod, Instead , selection of appropriate
+>pod is automatically handled by kubernetes scheduler.
+
+>k8s schedules watches for the newly created pod that have no Node assigned and for everyy such pod scheduler
+>becomes responsible for finding the best node for that pod to run on.
+
+>Automatic node scheduling prevents user from scheduling pod on unhealthy node.
+>However, k8s provide the flexibility , to allow user to select the node, so that certain condition like RAM, SSD
+>is fullfilled for execution of certain pod that need such specifications.
+
+>-----------------------------------------------------------------------------------------------------------------
+
+# Node Affinty and Node antiAffinity_
+
+>In Node Affinty and Node antiAffinity , Pod will select the the proper Node based on the rules defined under
+>Node affinity and AntiAffinity in pod spec manifest file.
+
+>Node Affinity_
+
+>
+
+
+
+
+
+
+>-----------------------------------------------------------------------------------------------------------------
+
+>Node AntiAffinity_
+
+
+
+
+
+>-----------------------------------------------------------------------------------------------------------------

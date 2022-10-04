@@ -1,6 +1,8 @@
 >
 >-------------------------------------------POD-----------------------------------------
+
 >read : https://kubernetes.io/docs/concepts/workloads/pods/
+
 >kubectl run <podname> --image=<image:version>     ---> Imperative command
 
 
@@ -17,6 +19,7 @@ spec:
   - image: nginx
     name: appContainer
     imagePullPolicy: IfNotPresent
+
 >------------------------------------------------- 1
 
 apiVersion: v1
@@ -27,23 +30,28 @@ metadata:
     name: pod
     appname: app2
 spec:
-  containers:                            > kubectl exec podtree -c containerone -it -- bash
-    - imagePullPolicy: IfNotPresent      > kubectl exec podtree -c containertwo -it -- bash
+  containers:                           
+    - name: containerone
+      imagePullPolicy: IfNotPresent
       image: coolgourav147/nginx-custom
-      name: containerone
       env:
         - name: name
           value: swapnil 
         - name: city
           value: pune  
-      args: ["sleep", "300"]          
+      args: ["sleep", "300"]  
+              
     - name: containertwo
       image: nginx
       imagePullPolicy: IfNotPresent
       env:
         - name: name
           value: nisha 
-      args: ["sleep", "300"]     
+      args: ["sleep", "50"] 
+
+
+ > kubectl exec podtree -c containerone -it -- bash
+
 >-------------------------------------------------- 2
 
 apiVersion: v1
@@ -59,6 +67,7 @@ spec:
       image: coolgourav147/nginx-custom
       name: containerone
       args: ["sleep", "120" ]
+
 >-------------------------------------------------- 3
 
 apiVersion: v1
@@ -82,8 +91,281 @@ spec:
       - -c
       - sleep 20
 
+
+>while having init containers in a manifest/pod, care needed to be taken that init cotainers must exist , after
+>complating their task, failing to do so, will keep the init container running , which will prevent the main 
+>containers from being running.
+
+
 >-------------------------------------------------- 4
 
+>kubectl explain --recursive pod | less
 >kubectl apply -f <filename.yaml>  / --dry-run=client
->kubectl get pod / -o wide / --show-labels
+>kubectl get pod / -o wide / --show-labels / -w (to monitor in realtime)
+
+>kubectl delete pod <pod_name> / -f <manifest>
+>kubectl delete -f <pod_manifest.yml>
+
 >kubectl exec <podname> -c <containerName> -it -- <command>
+>kubectl describe pod <pod_name>
+>kubectl label pod <name> label1=value1
+
+>kubectl logs <pod_name> -c <container_name> / -f      for containuous logs
+>kubectl logs <container_name>
+>kubectl logs -f <pod_name> --all-containers
+
+>----------------------------------------------------5
+
+>in multicontainer pod, if we are opening any port on perticular container, then same port will be open on 
+>another container in pod. i.e. containers in a pod uses shared network and can be accessible on localhost.
+
+>we can telnet between the containers_  >telnet localhost <port>
+>netstat -nltp         : to check open ports on container
+>netcat -l -p  <port>  : to open port on container
+
+>-------------------------------------------------------6--------------------------------------------------------
+
+> read more on_ Types of Containers in K8S_
+
+  1. sidecar container           (log exporter)        --> send the logs created by main container to buckets
+  2. ambassador/envoy container  (proxy pattern)       --> proxies-database connection
+  3. adapter container           (log format changer)  --> simplifies monitoring output for service 
+  4. init container              (initilazation for main container) --> Do initialization works for main container
+  5. Ephemeral containers        (debugging container for main container build with distroless image)
+  6. Main App Container          (container for main app or microservice)
+ 
+
+>having a one container in one pod is desirable, however , there may arise a condition where we need to
+>define multiple container in a single pod, either to assist/initilize/ot to do extra works, the main container. 
+>Or in a case, where application/microservices are tightly coupled and needed to be in vicinity of each other.
+
+>When it comes to container security, Distroless or Minimal base images, like alpine, reduces the attack surface.
+>Container images are composed of several layer of instructions. and each layer may be the source of vulnerability.
+>So scanning the each layer is very crucial operation in DevSecOps.
+
+>container scanning, is the process of identifying vulnerabilities within containers by using scanning tools
+>like Synk, Anchore etc.
+
+>it is key to container security and enables developers and cyber security teams to fix security threats in 
+>containerized application before deployments.
+
+
+#Smaller Docker Images
+
+>container images should be small and lightweight.
+>They should pack only the application code and its dependancies. Rest everything to be scrapped off to bring down 
+>its size including the build dependancies.
+>the  smaller the images the lesser is the attack on the surface to the container to the containeramd morever
+>are easy to distribute and deploy.
+
+>larges images can have more sodtware vulnerabilities in the form of vulnerable dependencies 
+>including potential security holes.
+
+>better to use alpine images like, FROM golang:alpine or FROM node:alpine
+>alpine images are smaller and light weighted as they are have many files and programm removed, leaving only
+>the dependancies just enough to run your app.
+
+>So, in a nutshell, Even though it is always prefferable to use latest updated images, but it is not always 
+>advisable to use latest images n DevSecOps. 
+
+>Best practices for Building docker images
+
+ 1.Do not run the container as a ROOT 
+ 2.Avoid copying unnecessary files, use .dockerignore to ignore the files 
+ 3.Merge layers
+ 4.Using Alpine or Distroless images as base image 
+ 5.Using MultiStage Builds
+ 6.Health Checks
+ 7.Avoid exposing unecessary ports
+ 8.Hardcoding the credentials.
+
+>{watch euphemeral container video again......vimp}
+
+>-------------------------------------------------------------------------------------------------------- 
+
+>1. Init Container_
+
+> init container will execute to perform activities that are needed in order for
+> successful execution of main app container. it executes to its completion and once
+> executed it will not run again. untile init container executions completes, other main
+> container will not start and remains in pending state.
+
+>init containers contains Utilities or custom code for setup that are not present in an app image.
+>like, sed, awk, python or dig during setup, also functions like cloning a git repo in to volume.
+
+>if pods, init containers fails, k8s repeatedly restart the pod until the init container succeeds.
+>however, if we set the restart policy for init container, then it will behave accordingly.
+
+>init containers supports all the features of the app containers. features like, resource limit, 
+>volumes, security. However, resource limits and requests are handled differently as init container
+>do not persistanly.
+
+>init containers do not supports probes like liveness, readyness, startup probes.
+>init container executes in an order they are defined in a manifest file.
+>once execution of init container is done, it will be removed from pod, with exit status as zero.
+
+>use cases : 1. to clone the directory which is not present in image.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp
+  labels:
+    name: myapp
+spec:
+  initContainers:
+  - name: clone
+    image: nginx
+    command:
+      - git
+      - clone
+      - url
+      - /usr/share/nginx/html
+    volumeMounts:
+      - name: mount
+        mountpath: "/usr/share/nginx/html"
+
+  containers:
+  - name: myapp
+    image: <Image>
+    ports: 
+      - name: http 
+        containerPort: 80
+    volumeMounts:
+      - name: mount
+        mountpath: "/usr/share/nginx/html"
+
+  volumes: 
+    - name: mount
+      emptyDir: {}          
+
+
+>use cases : 2. to delay the application start/ or to know if application database is ready or not.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp
+  labels:
+    name: myapp
+spec:
+  initContainers:
+  - name: clone             #db service in another pod
+    image: busybox:1.28
+    command: ['sh','-c','until nslookup mydb; do echo waiting for mydb service to be up, 'sleep 2; done']
+  containers: 
+  - name: main
+    image: busybox:1.28 
+    command: ['sh', '-c','echo app is running! && sleep 3600']  
+
+>[nslookup utility will resolve the dns]
+>[name_of_service.namepsace_name.svc.cluster.local]   ..fqdn i.e. internal ip/ service referenece
+
+>--------------------------------------------------------------------------------------------------------
+
+>2. SideCar Container_
+
+>in realtime deployments, it is not advised to burden main application container with additional responsiblities,
+>and we try to keep application image as small as possible, which reduces the surface attack on application.
+
+>sidecar pattern , uses helper container to enhance or extend the functionality of main container.
+>this way developer can work on application seperatly and other responsibilities 
+>can be delegated to sidecar container
+
+>failures in sidecar container will not impact the main application container.
+
+>sidecar container is just like any other container, it will work in conjuction with main container, 
+>so that load on main container can be reduced.
+
+eg. A logging agent that collects logs and send them to the data aggregation system 
+    and sync it to the monitoring agent.
+
+
+kind: apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp
+  labels:
+    app: nginx 
+
+spec:
+  containers:
+  - name: sidecar
+    image: nginx
+    command:
+      - /bin/bash
+    args: 
+      - c
+      - while true; do echo 'this is from `hostname` on `date -u` >> /var/log/index.html; sleep 1; done
+    volumeMounts:
+      - name: temp
+        mountPath: /var/log
+
+    - name: application
+      image: nginx
+      ports: 
+      - containterPort: 80
+      volumeMounts:
+      - name: temp
+        mountPath: /usr/share/nginx/html
+
+  volumes: 
+    - name: temp
+      emptyDir: {}      
+
+    
+>--------------------------------------------------------------------------------------------------------
+
+>3. Ambassador/Envoy Container_
+
+>The Ambassador pattern employs a proxy for the main application container to talk to external word.
+
+>they handle request/response to/from the server or external services, so it acts like a proxy or
+>buffer container between external traffic and main application.
+
+>it hides the complexity of calling external services by providing simple endpoints , like accessing 
+>database servers.
+
+>Istio uses envoy proxy containers for traffic management, mTLS, dark releases, canary deployments,
+>Blue-green deployements and A/B rollout.
+
+
+>{watch video again......vimp}
+
+
+>--------------------------------------------------------------------------------------------------------
+
+>4. Adapter Container_
+
+>Some application can not be integrated with standard system due to compatibility issues.
+>the adapter pattern standerdizes the hetrogeneous applications by modifying the output to match the target system.
+
+>eg, sending logs to central logging server that accepts logs in only a specific format.
+
+>it is similar to sidecar patter, it also extends the functionality of main container, but works
+>to improve compatibilirt issues.
+
+>{watch video again......vimp}
+
+>--------------------------------------------------------------------------------------------------------
+
+>5. Ephemeral Container
+
+>when we build multistage images using Distroless images, it does not provide us with utilities like ping,
+>bash, sh etc. so it is impossible to exec in to that container for the purpose of debugging it.
+
+>so, in such case, Ephemeral containers come in to picture, Ephemeral containers are those 
+>container which run in same pod as main app pod and contains the Debugging utilities like bash, sh, ping, curl etc.
+>we can also  debug pod in CrashLoopBackOff state.
+
+>Ephemeral Container share the process space with main app container. so they have a full view of the processes
+>which are going on in main app container build with distroless images.
+
+>Ephemeral container can not be restarted. they do not have any port opened or any probes to perform.
+>we can not specify ephemeral container in any manifest file, we have to activate it using commands, below..
+
+> >kubectl explain pod.spec.ephemeralContainers
+> >minikube start --feature-gates=EphemeralContainers=true
+> >kubectl debug -it <podname> --image=busybox:1.28 --target=<podname>
+
+>{watch euphemeral container video again......Vimp}
+
+>--------------------------------------------------------------------------------------------------------

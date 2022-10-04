@@ -1,44 +1,57 @@
 >
->--------------------------------------COMMON-CLI-INSTRUCTIONS----------------------------------------------------
+>--------------------------------------BASIC-K8S-CLI-INSTRUCTIONS-----------------------------------------------
 
 >kubectl get <type>  
 >kubectl get <type> <name>
->kubectl get <type> <name> -o wide/yaml/json  > .yaml/.json
+>kubectl get <type> <name> -o wide/yaml/json  > foo.yaml/yoo.json
 
->kubectl get logs <type> <name>
+>kubectl logs <pod_name>  -f                       ---> to get logs of the k8s pod/container
+>kubectl logs <container_name>                     ---> to get logs of the k8s pod
+>kubectl logs <pod_name> -c <container_name>       ---> -f for continuos logs
+>kubectl logs -f <pod_name> --all-containers
+
+>kubectl exec <podname> -c <container_name> -it -- <command>   ---> to execute into running pod/container
 
 >kubectl run <podname> --image=<image:version>     ---> Imperative command
->kubectl apply -f <manifest.yaml>                  ---> declarative object configuration
 >kubectl create -f <manifest.yaml>                 ---> Imperative object configuration
 >kubectl edit <type> <name>                        ---> imperative object configuration
 
->kubectl apply -f ./   ---> to apply all yaml manifests in folder
+>kubectl apply -f <manifest.yaml>                     ---> declarative object configuration
+>kubectl apply -f ./ or < relative path>              ---> to apply all yaml manifests in folder
+>kubectl apply -f <manifest.yaml> --dry-run=client    ---> to test/dryrun the current configurations
 
->kubectl explain <k8s resource>
->kubectl describe <type> <name>
-
->kubectl apply -f <manifest.yaml> --dry-run=client
+>kubectl explain <k8s resource>              ---> to get basic manifest component details
+>kubectl explain --recursive <type> | less   ---> to get all resource attributes for writting manifest
+>kubectl describe <type> <name>              ---> to get more details on the k8s resource
 
 >kubectl label <type> <name> label1=value1
->kubectl label --override <type> <name> label1=value2   --->to override the existing label
->kubectl label <type> <name> label1-   ---> (-) to delete the lable
+>kubectl label --override <type> <name> label1=value2   ---> to override the existing label
+>kubectl label <type> --all label1=value1               ---> to label all resource type in one go
+>kubectl label <type> <name> label1-                    ---> (-) to delete the lable
 >kubectl get <type> <name> --show-labels / -o wide
 
 >kubectl delete <type> <name>
 >kubectl delete -f <manifest.yaml>    ---> will delete all the resources declared in manifest file.
+>kubectl delete -f ./path             ---> will delete all the resources declared in manifest folder.
+>kubectl delete all --all             ---> will delete all k8s resources running
 
->kubectl explain --recursive <type> | less   ---> to get all resource attributes for writting manifest
+>kubectl get nodes -o wide    ---> to get details on the node participating in cluster
+>kubectl cluster-info         ---> gives the cluster details
+>kubectl api-resources        ---> gives the lost of resources, short names, namespace support,version, kind etc.
 
->kubectl get nodes
->kubectl cluster-info
->kubectl api-resources
+>minikube --help           ---> for minikube commands.
+>minikube start --force    ---> to start minikube on booted/restarted machine
+>minikube status           ---> Gets the status of a local Kubernetes cluster
+>minikube stop             ---> Stops a running local Kubernetes cluster
+>minikube delete           ---> Deletes a local Kubernetes cluster
+>minikube dashboard        ---> Access the Kubernetes dashboard running within the minikube cluster
+>minikube pause            ---> pause Kubernetes
+>minikube unpause          ---> unpause Kubernetes
+>minikube ip               ---> to get cluster ip
 
->minikube --help   ---> for miikube commands.
 
+#-------------------------------------------POD------------------------------------------------
 
-
-
->-------------------------------------------POD------------------------------------------------
 >read : https://kubernetes.io/docs/concepts/workloads/pods/
 >kubectl run <podname> --image=<image:version>     ---> Imperative command
 
@@ -70,6 +83,7 @@ spec:
           name: city 
           value: nagpur
       args: ["sleep","15"] 
+
     - name: init2container
       image: coolgourav147/nginx-custom
       env: 
@@ -80,14 +94,15 @@ spec:
       args: ["sleep","15"]
 
 >kubectl apply -f <filename.yaml>  / --dry-run=client
->kubectl get pod / -o wide / --show-labels
+>kubectl get pod / -o wide / --show-labels / -w
 >kubectl exec <podname> -c <containerName> -it -- <command>     --> executing command inside the container.
->                       -- container -it -- <bash/cmd>
+>                       --container <containerName> -it -- <bash/cmd>
 
 #------------------------------------------service---------------------------------------------------
+
 read more on services: https://kubernetes.io/docs/concepts/services-networking/service/
 
->service is k8s resource used to expose the pod/containers for it to accept the otside traffic. 
+>service is k8s resource used to expose the pod/containers for it to accept the outside/internet traffic. 
 >Using service we open the port on the pod.
 
 apiVersion: v1
@@ -133,7 +148,7 @@ spec:
           port: 9000       > on pod , machine port will mapped to this port on pod
           targetPort: 80   > on machine / browser / ip:port / this is endpoint
       selector:
-          type: app  # this must be same as pods label
+          type: app  # this must be same as pods label, key-value pair
 
 >-----------------------------------------------------------------------------
 
@@ -159,7 +174,7 @@ ports:
 
 
 
->kubectl expose pod <podname> --type=<NodePort/ClusterIP> --port=<port> --target-port=<port> --name <svcName>
+>kubectl expose pod <podname> --type=<NodePort/ClusterIP/lb> --port=<port> --target-port=<port> --name <svcName>
 >kubectl apply -f <filename.yaml>  / --dry-run=client
 >kubectl get service/svc    -o wide / --show-labels
 
@@ -167,9 +182,9 @@ ports:
 >kubectl port-forward --address 0.0.0.0 svc/<serviceName> <OnHost>:<OnPod>
 >kubectl port-forward --address 0.0.0.0 svc/<Service-Name> --namespace <NameSpace Name> <Machine/HostPort:PodPort>
 
->----------------------------------------------------------------------------------------------------------------
 
 #-----------------------------------------ReplicationController-----------------------------------------------
+
 >read: https://kubernetes.io/docs/concepts/workloads/controllers/replicationcontroller/
 
 >USES ONLY EQUILITY BASED SELECTOR.
@@ -213,6 +228,7 @@ spec:
 
 
 #-------------------------------------------------ReplicaSet----------------------------------------------------
+
 > we can consider, ReplicaSet as a further advancement of Replication Controller. It have advancement in
 > selectors over the Replica set.
 > USES EQUILITY BASED SELECTOR AS WELL AS SET BASED SELECTOR.
@@ -292,7 +308,7 @@ spec:
       - key: app 
         operator: In 
         values: 
-          - app       # RS will consider the existing pods having labels as app, app2, frontend
+          - app1       # RS will consider the existing pods having labels as app, app2, frontend
           - app2
 
       - key: type
@@ -311,7 +327,7 @@ spec:
       name: pod 
       labels: 
         app: app 
-        type: middleware  # this will be considered as it does  ot fall in NotIn type
+        type: middleware  # this will be considered as it does  not fall in NotIn type
     spec: 
       containers:
         - name: container
@@ -324,7 +340,7 @@ spec:
 
 
 
-#--------------------------------Deployment-------------------------------------
+#------------------------------------------------Deployment----------------------------------------------------
 
 > we can consider,  Deployment as a further advancement of ReplicaSet. using which we can define different 
 > startegies for deployment of our application, ensuring zero downtown. it allows us to rollback our deployment 
@@ -378,8 +394,8 @@ spec:
     type: RollingUpdate 
     rollingUpdate:
       maxSurge: 0  #
-      maxUnavailable: 2 # is the number of pod that will get replaced from old deployment when we change the
-                         #the code, same number of new pods will be created
+      maxUnavailable: 2  # is the number of pod that will get replaced from old deployment when we change the
+                         # the code, same number of new pods will be created
 
   selector:
     matchExpressions:
@@ -466,9 +482,10 @@ spec:
           image: coolgourav147/nginx-custom
 
 
->-----------------------------------------------------------------------------------------------
+>--------------------------------------------------------------------------------------------------------------
 
-#--------------------------POD's resource LIMITS------------------------------------------------
+#--------------------------POD's resource REQUESTS and LIMITS------------------------------------------------
+
 >putting resource limits in the pods specs itself.
 
 apiVersion: v1
@@ -497,7 +514,7 @@ spec:
 > A limit can never be lower than the request. Kubernetes will error out if you attempt to do this. 
 > If a container’s request is higher than a node’s capacity, Kubernetes will never schedule that container.
 
-#-----------------------------LIMITS/ QUATA in Namespace------------------------------
+#------------------------------------LIMITS/ QUATA in Namespace-------------------------------------
 
 >Namespace is like seperate virtual space within kubernetes.
 >kubernetes cluster may have multiple application deployed within same cluster. In this case, we can use seperate 
@@ -510,6 +527,7 @@ spec:
 >kubectl create ns <ns-name>      ---> ns/namespace
 
 > kubectl <option> <resource> *<name>  -n <ns-name>    ---> -n / --namespace
+eg  kubectl get pod mypod -n testspace
 
 to set custon Namespace as defualt
 > kubectl config set-context --current --namespace=<ns-name>
@@ -521,9 +539,11 @@ To access service in another namespace
 > there are two types of quota/limits, 
 >1) OBJECT BASED QUOTA, where we limit the number of Object that can be created inside the namespace.
 >2) COMPUTE BASED QUOTA, where we limit the node resiources to be used by k8s resource.
+
 >----------------------------------------------------------------------------------------------
 
 1) OBJECT BASED QUOTA
+
 >to set limits and quota in namespace in yml_
 
 apiVersion: v1
@@ -540,13 +560,15 @@ spec:
 > this will limit the namespace for creation of only two pods in it.
 
 >----------------------------------------------------------------------------------------------
+
 2) COMPUTE BASED QUOTA
 
 apiVersion: v1                # this is the combine request/ limits of the pods or resoures in the namespace
 kind: ResourceQuota           # i.e. SUM of all pods/resorces must be within request and limit constraint. 
 
 metadata: 
-  name:  myquota1           
+  name:  myquota1 
+  namespace: my-namespace          
 spec:
   hard:
     requests.cpu: 0.5
@@ -570,7 +592,8 @@ spec:
     limits.cpu: 1                       
 
 
-#-------------------LIMIT RANGE---------------------------
+#---------------------------------------LIMIT RANGE--------------------------------------------
+
 > to get rid of specifying the request and limit parameter in pod file  
 > we can use limit range.................
 
@@ -634,7 +657,7 @@ spec:
 #---------------------------------CONFIG MAP---------------------------------------------------------
 
 
-#a)-----------------------------------------------------
+a)-----------------------------------------------------
 
 single property file: application.properties
 #databse_details
@@ -986,11 +1009,27 @@ tolarations:
 
 
 
->----------------------------------Scheduling (NODE SCHEDULING)----------------------------------------- 
+#----------------------------------Scheduling (NODE SCHEDULING)----------------------------------------- 
+
+>there are various ways to schedule a pod on node or selecta Node to schedule/ececute the pod,
+>these are_
+      1.Node Name and Node Selector
+      2.Node Affinity and Node-Anti-Affinity
+      3.Pod Affinity and Pod-Anti-Affinity
+      4.Taints and Tolerations
 
 >refer, https://kubernetes.io/docs/tasks/configure-pod-container/assign-pods-nodes-using-node-affinity/
 
->NODE SELECTOR...................
+
+>NODE SELECTOR_
+
+>nodeSelector is a feild in pod spec, which defines the node on which we wants pod to get 
+>schedule using lables attached to the node.
+
+>it is the simplest form of recommandation for node selection constraint.
+
+>it uses labels to select matching node on to which pod can be scheduled.  if the defined label does not exist
+>pod will go in to pending state forever.
 
 Assigning label to node_
 > kubectl label node <nodename> <label>=<value>
@@ -1016,12 +1055,51 @@ spec:
 >make sure that node with specified label exist,  if label is not attached to node and we in pod specification
 >gave the node selector then pod will remain in pending* state , as it will fails to find the node with label.  
 
+#-------------------------------------------------------
 
->------------------------------------------AFFINITY--------------------------------
+>Node Name_
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp
+  labels:
+    name: myapp
+spec:
+  containers:
+  - name: myapp
+    image: nginx
+    ports:
+      - containerPort: 80 
+
+  nodeName: <node_name>    
+
+
+>nodeName is a feild in pod spec, which defines the node name on which we wants pod to get schedule.
+>it is simplest way to schedule the pod on perticular node using node selection constraiunts, but due
+>to its limitations it is typuically not used.
+>we can also assign the pod to master node using this method.
+
+>if the named node does not exist in cluster, the pod will not run and in some cases may be automatically deleted.
+>like in eks cluster, we do not have choice for selecting node names.
+
+>the the named node does not have a resource to accommodate the pod , the pod will fail.
+
+>node name in cloud enevironments like eks or gke are not always predictable or stable.
+
+to get names of the nodes in our k8s cluster.
+>kubectl get nodes -o wide
+
+
+
+
+#--------------------------------------------------AFFINITY---------------------------------------------------
+
 >There are two types of Affinity, 
 >NODE AFFINITY and POD AFFINITY, which is again divided in Affinity and AntiAffinity. (read on link below)
 
 >refer, https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity
+
 
 >NODE AFFINITY..............1>
 # Assigning label to node_
@@ -1038,13 +1116,13 @@ spec:
       imagePullPolicy: Never           
  
   affinity:
-    nodeAffinity:                                           # preffered but not required
+    nodeAffinity:                                               # preffered but not required
       preferredDuringSchedulingIgnoredDuringExecution:          # is is called SOFT SCHEDULING
         - preference:
             matchExpressions :
               - key: size
                 operator: In           > operator can be, In/NotIn/Exist/NotExist etc...
-                values:                        > size=large
+                values:                        >label size=large
                   - large             #array, multiple values can be given
           weight : 1
 
@@ -1052,7 +1130,9 @@ spec:
 >           and there are multiple nodes that satisfies the affinity conditions. so K8S rates the nodes and based 
 >           on its values assign weight to it.
 >           its value varies between 1 to 100, based on weight it "preffered" the node to get schedule.
->           (only for preffered). K8S schedule the pod on a node with heighest total weight score.
+>           (only for preffered). 
+>           K8S will schedule the pod on a node with Highest total weight score. 
+>           i.e weight 80 is more desirable than weight 40.
 
 >--------------------------------------------2>
 
@@ -1083,66 +1163,161 @@ spec:                                          #NODE AFFINITY
 >requiredDuringSchedulingRequiredDuringExecution  --> do not exist in current k8s version 
 >preferredDuringSchedulingRequiredDuringExecution --> do not exist in current k8s version   
 
->preferredDuringSchedulingIgnoredDuringExecution  --> exist in k8s
->requiredDuringSchedulingIgnoredDuringExecution   --> exist in k8s
+>preferredDuringSchedulingIgnoredDuringExecution  --> exist in k8s (soft scheduling)
+>requiredDuringSchedulingIgnoredDuringExecution   --> exist in k8s (hard scheduling)
 
->--------------------------------
+
+
+#--------------------------------------------POD-AFFINITY---------------------------------------------------
+
+# Pod Affinty and Pod antiAffinity_
+
+>In pod Affinty and Pod antiAffinity , Node will select , How the perticular Pod will be placed Relative to other 
+>pods based on the rules defined under Node affinity and AntiAffinity in pod spec manifest file.
+>i.e. Node will select the pod , which it wants to execute/run on it.
+
+>In pod Affinty and Pod antiAffinity , allows you to specify rules about How pods should be placed relative to
+>other pods running on perticular node.
+
+>Pod Affinity, can tell the scheduler to locate a new pod on the same node as 'Other Pod', 
+>if the label selector on the new pod matches the label on current pod.
+>i.e. it will check the label of existing pod, so that new pod will get schedule on the 
+>same node as existing pod is. so that both pods will be on same node.
+
+>Pod Anti Affinity, can Prevent the scheduler from locating a new pod on the same node as pod with the same label,
+>if the label selector on the new pod matches the label on the current pod.
+
+
+
+>Pod Affinity_
 
 apiVersion: v1
-kind: Pod                                                 
-metadata: 
-  name: secret1 
-spec:                                          
+kind: Pod                                  # this is old/already existing pod
+metadata:
+  name: nginx-with-node-affinity
+  labels:
+    app: nginx
+spec:
   containers:
-    - name: container5          
-      image: nginx 
-      imagePullPolicy: Never
-                                 #pod affinity
-  affinity:
-    podAffinity: 
+  - name: nginx
+    image: nginx
+
+  affinity: 
+    nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution: 
-        - labelSelector:
-            matchExpressions: 
-              - key: large
-                operator: In
-                values: 
-                 - large    
+        nodeSelectorTerms: 
+          - matchExpressions:
+            - key: gpu 
+              operator: Exists 
+            #  value: amd  
+
+>above node affinity, will schedule the pod on the node having label as 'gpu' , no matters whats its value
+>may be. so out of multiple node having label 'gpu' , it will schedule the pod on any of those nodes.
+
+
+apiVersion: v1
+kind: Pod                           # this is new pod, and it will colocate with existing pod.
+metadata:
+  name: nginx-with-pod-affinity
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+
+  affinity: 
+    podAffinity: 
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector: 
+          matchExpressions:  
+            key: app
+            operator: Exists        # this will match the expression with labels of the existing pod.
+            value: 
+              - nginx
+        topologyKey: gpu            # it will look for the node with label 'gpu', so that pods will colocate. 
+   
+
+
+>This pod affinity rule deploys the pod on Node , if it has GPU as the KEY and if it is already running a
+>Pod that has labels mentioned as a labelSelector. 
+>SO THAT NEW POD AND OLD POD WILL BE COLOCATE ON THE SAME NODE. IT WILL FIRST SEARCH FOR OLD POD WITH 
+>ITS LABELS AND THEN IT WILL ALSO CHECK ITS TOPOLOGYKEY.
+
+
+>topologyKey is the key for the node label. any label can be topologykey. 
 
 
 
->---------------------------ANTI-Affinity---------------------------------
+#-------------------------------------------POD-ANTI-Affinity----------------------------------------------
 
 > Using affinity , we can tell k8s engine, where to schedule the pod, but using AntiAffinity we can place 
 > the condition to tell where to Schedule and Where to not Schedule the pods.
 
+>Using AntiAffinity rule, we basically tell the k8s engine , where to not schedule the pod. so k8s engine will
+>not schedule the pod as per labels/rules defined in antiaffinity rules.
+
+
+>Pod AntiAffinity_
 
 apiVersion: v1
-kind: Pod                                                 
-metadata: 
-  name: secret1
-spec:                                          
+kind: Pod
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
   containers:
-    - name: container5          
-      image: nginx 
-      imagePullPolicy: Never
-                                                #POD AntiAffinity
-  affinity:   
-    podAntiAffinity:
-       requiredDuringSchedulingIgnoredDuringExecution:
-          podAffinityTerms:
-           - labelSelector:    
-                - matchExpressions :                         # size=large
-                    - key: size
-                      operator: In
-                      values: 
-                        - large
-             topologyKey: minikube.k8s.io/name    
+  - name: nginx
+    image: nginx
+    
+>this pod will get schedule on any node, as we have not defined any rules for this pod to get schedule.
 
-> The above anti-affinity rule says that the scheduler should try to avoid scheduling 
-> the Pod onto a node that has label "size=large".
-#-------------------------------------------------------------------------------------------------
+apiVersion: v1
+kind: Pod                           # this is new pod, and it will not-colocate with existing pod.
+metadata:
+  name: nginx-with-pod-anti-affinity
+spec:
+  containers:
+  - name: nginx
+    image: nginx
 
->-----------------------------------------k8s volumes--------------------------------------------------------                  
+  affinity: 
+    podAntiAffinity: 
+      prefferedDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm: 
+          labelSelector:
+            matchExpressions:  
+            -  key: app
+               operator: In        # this will match the expression with labels of the existing pod.
+               value: 
+                - nginx
+          topologyKey: any-common-lable #kubernetes.io/hostname      
+                                               
+>                                               #we use common label, which every pod will have, becouse,  
+>                                               #we do know the node on which our first pod will get deployed.
+
+
+>Above Anti Affinity, rule states that , if the existing pod is already deployed on the node, then the pod with
+>Anti Affinity rules must not get schedule on that node.
+
+>This is achieved using Labels, in anti Affinity rules, we are defining the matchExpression rules,
+>which searches for the the node, for the pod with matching label, if it found that pod is on that node,
+>then the new pod will nt get scheduled on it.
+
+
+>WE CAN USE BOTH AFFINITY AND ANTI-AFFINITY RULES TOGETHER, SO THAT DIFFERENT CONDITIONS CAN BE SATISFIED.
+1.In general, we use AntiAffinity rules, when we do Not wants two pods to be co-located. So Anti Affinity
+  will Repele Similar pods.
+2.In general, we use Affinity rules, when we do wants two pods to be co-located. So Anti Affinity
+  will Attracts Similar pods.
+
+>-------end----
+
+
+
+
+#-----------------------------------------k8s volumes-------------------------------------------------------- 
+
 > Three types of volumes are :-> EmptyDir, HostPath, PersistantDisk.
 
 >1)-------------emptyDir-----------------------
@@ -1252,16 +1427,14 @@ spec:
 >once our cluster get set up, it will also download the kube-config in to local machine. and we will 
 >able to directaly use the kubectl commands on eks, No manual configuration is needed.
 
-
-
->----------------------------------------------------------------------------------------------------------
 >----------------------------------------------------------------------------------------------------------
 
->--------------------POD LIVENESS AND READINESS PROBE-----------------------------
+
+#--------------------POD LIVENESS AND READINESS PROBE-----------------------------
 
 > refer, https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
 
-#--------------------------------Liveness Probe---------------------------------
+>--------------------------------Liveness Probe---------------------------------
 
 >The kubelet uses liveness probes to know when to restart a container.
 >The kubelet uses readiness probes to know when a container is ready to start accepting traffic.
@@ -1303,7 +1476,7 @@ spec:
 >If a container does not provide a liveness probe, the default state is Success. 
 
 
-#--------------------------------Readiness Probe-------------------------------
+>--------------------------------Readiness Probe-------------------------------
 
 >even through pod is created and live, it do not means that it is ready to serve the requests. App may take 
 >time to be ready to serve the traffic. we do readiness probe to check the same.
@@ -1349,3 +1522,40 @@ spec:
 >If a container does not provide a readiness probe, the default state is Success 
       
 >--------------------------------------------------------------------------------------------        
+
+
+>read more_
+
+>a)Containers_
+1. Sidecar Container 
+2. Ambassador Container 
+3. Adapter Containers 
+4. Init Containers 
+5. Ephemeral Containers 
+
+>b)Volumes_
+1. Persistant Volume 
+2. Persistant Volume Claim
+3. EmptyDir
+4. Host Path 
+
+
+>c)Services_
+  1. NodePort      (expose service out of cluser)
+  2. LoadBalancer  (expose service out of cluser)
+  3. ClusterIP     (expose service only within cluser)
+
+  4. Ingress/Ingress_Resources/Ingress_Rule
+  5. Ingress Controller 
+  
+  6. Port Forwarding
+  7. External IP Service
+  8. External Name Service
+  9. Headless Service 
+
+>d) K8S AutoScalling
+>e) Kubernetes DashBoard
+>f) Steteful Sets
+>g) Service Account
+>h) Role Based Access Control
+>i) 

@@ -1,8 +1,4 @@
 >
-> ingress support path based routing, which have advantage over other exposing services like node port, cluster ip ,
-> Load Balancer.
-
-
 
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -13,7 +9,8 @@ metadata:
 spec:
   ingressClassName: nginx-example
   rules:
-  - http:
+  - host: 
+    http:
       paths:
       - path: /testpath-1
         pathType: Prefix
@@ -31,23 +28,6 @@ spec:
             port:
               number: 90        
 
-
-
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: ingress1
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /testpath
-        pathType: Prefix
-        backend:
-          service:
-            name: servone
-            port:
-              number: 9000
 
 
 >-----------------------------------app--------------------------------------
@@ -129,6 +109,123 @@ spec:
             name: app2service
             port:
               number: 9000 
->-------------------------------------------------------------------------
 
+>----------------------------------------------------***----------------------------------------------------------    
+
+>ingress support path based routing, which have advantage over other exposing services like node port, cluster ip ,
+>Load Balancer.
+
+>Instead of exposing each service independently , we use ingress controller to expose the multiple services 
+>using same ip address. 
+
+>Ingress controller, typically do not eliminates the need for external load balancer, 
+>but it add extra layer of routing and control behind the load balalncer.
+
+>we only pay for one Load balancer or ip priovided by cloud provider and Ingress controller is smart enough to
+>route various requests using simple Host or URL based routing.
+
+>Ingress controller allows us to map multiple DNS names to single IP and using routing rules, we can can route
+>the traffic to the proper service based on its DNS names.
+
+
+> Ingress/Ingress_Resources/Ingress_Rule :--> 
+    is an API object that manages external access to the service in the cluster, Typically HTTP.
+    it provides Load balancing, SSL termination, and name based virtual hosting. It exposes HTTP and HTTPS 
+    routes from outsidethe cluster to service within the cluster.
+
+    Traffic routing is controlled by rules defined by Ingress Rules.An ingress does not expose 
+    arbitrary port or protocol.Exposing services are done using NodePort or LoadBalancer.
+
+    > There are two types of Ingress Rules
+      1. Path Based Routing
+      2. Host Based Routing
+
+> Ingress Controller :--> 
+    is the one that is responsible for implementing all the ingress rules, usually with 
+    load balalncer to help handle traffic.
+    Ingress controller route the traffic only through DNS names, not through IP address, as tll the routing
+    rules are defined in Ingress Controller. i.e.Application are only accessible by DNS names and not through IP. 
+
+>Ingress Class :-->
+    Ingresses can be implemented by different controller , such as Nginx, Traefik etc. often with 
+    different configuration.
+
+    Each ingess should specify a class, a reference to an 'IngressClass' resource that contains additional configuration
+    including the name of the controller that should implement the class.
+
+
+>----------------------------------------------------------------------------------------------------------------- 
+
+>Ingress exposes HTTPS and  HTTPS routes from outside the cluster to service within the cluster.
+>Traffic routing is controlled by rules defined in ingress resource.
+
+>Ingress resource can  ot do anything on their own, we need to have an Ingress controller in order for ingress 
+>resource to work. Thus, Ingress Controller implements the rules defined by Ingress Resource.
+
+
+
+>Path based routing
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: path_based_ingress_example
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: 
+    http:
+      paths:
+
+      - path: /testpath-1
+        pathType: Prefix
+        backend:
+          service:
+            name: test-1
+            port:
+              number: 80
+
+      - path: /testpath-2
+        pathType: Prefix
+        backend:
+          service:
+            name: test-2
+            port:
+              number: 90  
+
+>-----------------------------------------------------------------------------------------------------------------
+
+>Host based routing
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: host_based_ingress_example
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+
+  - host: nginx-app.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: test-1
+            port:
+              number: 80 
+
+  - host: flask-app.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: test-2
+            port:
+              number: 80   
+
+>-----------------------------------------------------------------------------------------------------------------
 

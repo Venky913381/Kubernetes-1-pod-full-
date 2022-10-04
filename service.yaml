@@ -1,6 +1,7 @@
 >
 read more on services: https://kubernetes.io/docs/concepts/services-networking/service/
->----------------------------NodePort----------------------------
+
+>--------------------------------------------------NodePort----------------------------------------------------
 apiVersion: v1
 kind: Service 
 metadata:
@@ -10,9 +11,9 @@ metadata:
 spec:
   type: NodePort
   ports:                                                http://ip:80---->9000---->32000
-  - nodePort: 32000  > on container , inside container
+  - nodePort: 32000  > on node , on nodes port, with web ip / browser / ip:port / this is endpoint
     port: 9000       > on pod , machine port will mapped to this port on pod
-    targetPort: 80   > on machine / browser / ip:port / this is endpoint
+    targetPort: 80   > on container, container port
   selector:
     appname: myapp 
 
@@ -33,7 +34,7 @@ spec:
 
 
 
->---------------------------ClusterIP---------------------------------
+>--------------------------------------------------ClusterIP---------------------------------------------------
 
 apiVersion: v1
 kind: Service 
@@ -49,7 +50,7 @@ spec:                                  #can be used with above pod too..
     appname: myapp
   ports:
   - name: my-servicee
-    port: 9000              > pod port
+    port: 9000              > pod port/listening port
     protocol: TCP
                                                   
 
@@ -65,7 +66,7 @@ spec:
       imagePullPolicy: Never
       name: servicecontainer  
       ports:
-        - containerPort: 80        > 
+        - containerPort: 80        > target port
           name: my-service         > service will be available on this port name
 
 >-------------------------------------------------
@@ -81,7 +82,7 @@ spec:
 
 
 
->-------------------------------------------------------------
+>----------------------------------------------------
 
 apiVersion: v1
 kind: Service 
@@ -92,7 +93,7 @@ metadata:
 spec:
   type: NodePort
 
-  ports:                                                http://ip:80---->9000---->32000
+  ports:                                                http://ip:32000---->9000---->80
   - nodePort: 32000 
     port: 9000      
     targetPort: 80  
@@ -120,3 +121,94 @@ spec:
 ports:
 - containerPort: 32000        
   name: my-service      
+
+
+>---------------------------------------------------------------------------------------------------------------
+
+> Read_More_
+
+  1. NodePort      (expose service out of cluser)
+  2. LoadBalancer  (expose service out of cluser)
+  3. ClusterIP     (expose service only within cluser)
+
+  4. Ingress/Ingress_Resources/Ingress_Rule
+  5. Ingress Controller 
+  
+  6. Port Forwarding
+  7. External IP Service
+  8. External Name Service
+  9. Headless Service 
+  
+>---------------------------------------------------------------------------------------------------------------
+
+>There are two types of applications 1.Stateless application  and  2.Statefull application.
+
+Stateless : it will do not store anything (data) or retrieve anything, eg . Nginx
+Statfull  : this type of application stores state, so whenever application crashes or if any issue arises
+            or app lost connection, whenever, it comes back it from the same state as data is stored. 
+            this type of application can not always start from scratch.
+
+
+> Headless Service_
+
+The default behaviour of the k8s is to assign internal ip address to the service.
+Through this ip address, the service will proxy all the client requests 
+and load balance them to the pods behind it.
+
+If we, DNS query the service name via utilities like nslookup, k8s returns the service but not the ip's 
+of the pod it manages.
+
+if we are running the single instance of the database pod like mangodb , 
+we do not need to load balalnce as only one replica is available. Also, we need the dns query of service 
+name to return the ip address of mangodb pod but not of service.
+
+to achieve this , we explicitly set the '.spec.clusterIP' of the service to 'None' to instruct k8s not to
+assign any IP to the service  or to Load balance the requests. 
+This type of service is knows as Headless Service.
+
+if a headless service manages more than one pod, service dns name will return a lists of pods managed
+by the service. The requests will accept the first IP address returned.
+
+>Headless services are more useful when_
+1. Pod to pod communication
+2. Master-slave configuration, where slaves needs to be aware of the mastrer pod like Clustered databases.
+
+
+>Service: Headless
+
+>a headless service is a service with service ip but , insted of load balancing it will return the ips of our
+>associated pods, this allows us to interact directaly with pods insted of proxy. it is as simple as specifying
+>None for '.spec.clusterIP' and can be utilized with or without selectors.
+
+>Headless service allows us to reach pod directaly, rather than the service acting as a load balancer or
+>proxy. this can have many use cases.
+
+
+apiVersion : v1
+kind: Service 
+metadata:
+  name: headless-service
+
+spec:
+
+  clusterIP: None  <-------
+
+  ports: 
+    - name: http 
+      port: 80
+      targetPort: 5000
+      protocol: TCP
+  selector: 
+      app: frontend    
+
+>headless services are needed for stateful set application.
+
+>---------------------------------------------------------------------------------------------------------------
+
+>Ingress Controller 
+
+
+
+
+>---------------------------------------------------------------------------------------------------------------
+>Ingress Resources

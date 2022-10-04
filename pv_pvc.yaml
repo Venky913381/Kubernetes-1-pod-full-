@@ -1,0 +1,154 @@
+>
+
+>What problems does it solve?
+    Containers running inside the pod can not share the files with each other.
+    All the files inside the container are temporary which means if you terminate the container,
+    you are going to lose all your files.
+    Secondly if in any case, your container crashes then there is no way to recover files.
+    Kuberenetes provides volume plugin as Persistent Volume to address the above problems.
+
+    The lifecycle of these volumes are independent of the lifecycle of pods.
+    So if PODs are terminated then volumes are unmounted and detached keeping the data intact.
+
+>What is Persistent Volume(PV)?
+    In simple terms, it's storage available within your Kubernetes cluster. 
+    This storage can be provisioned by you or Kubernetes administrator.
+
+    It's basically a directory with some data in it and all the containers running inside the pods can access it. 
+    But Persistent Volumes are independent of the POD life cycle.
+
+    So if PODs live or die, persistent volume does get affected and it can be reused by some other PODs.
+
+
+  >  Kubernetes provides many volume plugins based on the cloud service provider you are using ___
+        awsElasticBlockStore, azureDisk, azureFile, cephfs, cinder, configMap, csi, downwardAPI, 
+        emptyDir, fc (fibre channel), flexVolume, flocker, gcePersistentDisk, gitRepo (deprecated), 
+        glusterfs, hostPath, iscsi, local, nfs, persistentVolumeClaim, projected, portworxVolume, 
+        quobyte, rbd, scaleIO, secret, storageos, vsphereVolume
+
+
+>What is Persistent Volume claim?
+    Persistent volume provides you an abstraction between the consumption of the storage 
+    and implementation of the storage.
+    In the nutshell you can say, its a request for storage on behalf of an application which is running on cluster.
+
+
+>---------------------------------------------------------------------------------------------------------------
+
+>flow :-   POD------>PVC------->PV
+1. create/execute manifest for volume i.e PV 
+2. bind the volume to PVC i.e. execute manifest for pvc 
+3. Create the pod 
+
+
+>POD_
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: jhooq-pod-with-pvc
+  labels:
+    name: jhooq-pod-with-pvc
+spec:
+  containers:
+  - name: jhooq-pod-with-pvc
+    image: rahulwagh17/kubernetes:jhooq-k8s-springboot
+    ports:
+      - containerPort: 8080
+        name: www
+
+    volumeMounts:
+      - name: www-persistent-storage
+        mountPath: /home/vagrant/storage
+
+  volumes:
+    - name: www-persistent-storage
+      persistentVolumeClaim:
+        claimName: jhooq-pvc
+
+>PVC_
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jhooq-pvc
+spec:
+  volumeName: jhooq-demo-pv
+  storageClassName: local-storage
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+
+>PV_
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: jhooq-demo-pv
+
+spec:
+  capacity:
+    storage: 1Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  local:
+    path: /home/vagrant/storage
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - node1
+
+
+>kubectl get pv
+>kubectl get pvc
+>kubectl describe pv <pv_name>
+>kubectl describe pvc <pvc_name>
+
+>--------------------------------------------------------------------------------------------------------------- 
+
+
+>Pros and Cons_
+  After using the persistent volume and persistent volume claim, 
+  I must say its always beneficial to use both when you are working in the production environment because
+  you can not just delete the data after the end of the POD cycle.
+
+  The most favorable use case which I can see setting up the database such as
+  MySQL, Oracle, Postgress inside the persistent volume so that it is always there irrespective 
+  of your POD life cycle.
+
+>Pros_
+  Storing and archiving the logs
+  Setting up the database
+  Useful for application handling a large number of batch jobs
+  Storing configs of application
+  Independent from PODs life-cycle
+  Easy to use
+  Easy to backup
+
+>Cons_
+  Can not be used to store transnational data for performance-intensive application
+  You need to set up your own backup policies
+  Couldn't be used for HA(High Availability)
+
+>Conclusion_
+  If you are reading this part of the blog post then I must say you have at least 
+  implemented PV and PVC inside your Kubernetes cluster. But to conclude it here is recap of what we did -
+
+  Gone through the concepts of "What is Persistent Volume and Persistent Volume Claim"
+  Then we created a Persistent Volume .i.e - jhooq-demo-pv with 1 Gi of storage
+  Created the Persistent Volume Claim .i.e. - jhooq-pvc to use persistent volume jhooq-demo-pv
+  Finally created the POD and deployed spring boot microservice.
+
+
+>---------------------------------------------------------------------------------------------------------------
