@@ -23,6 +23,20 @@ to set custon Namespace as defualt
 To access service in another namespace 
 > <*servicename>.<*namespacename>.svc.cluster.local  -->curl it
 
+
+>we can controll resources in custom namespace in two different ways_(check limit-quota for more)
+1> ResourceQuota
+>this will set the limits on the number of k8s objects that can be created in given namespace.
+
+2> LimitRange
+>This will set the combine limit on the quantity of the compute resource like RAM and CPU
+>that can be used by thr k8s object in the given namespace.
+
+> there are two types of quota/limits, 
+1) OBJECT BASED QUOTA, where we limit the number of Object that can be created inside the namespace.
+2) COMPUTE BASED QUOTA, where we limit the node resources to be used by k8s resource.
+
+
 #----------------------------------------------------------------------------------------------------------------
 >to set namespace in yml_
 

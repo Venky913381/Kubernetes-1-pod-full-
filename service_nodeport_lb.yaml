@@ -1,0 +1,29 @@
+>
+>Service in k8s
+
+>we need a services for enabling the pod-to-pod communication=, also to enable external traffic to access 
+>microservice/app deployed in k8s pod.
+
+>services can be defined through yaml manifest files or using imperative command. and can be deployed using 
+>kubectl apply -f <service_file.yaml> command.
+
+>Port :- port in service manifest file, represents the actual port that service listen on. if service listens 
+>        on port 3000, we can access the service through its <service_name>:3000
+
+>Target Port :- target port represents the actual Container Port of the pod. it should match the container port
+>               in the podmanifest file.
+
+>Node Port: Node port represents the port of the Node , from which external traffic access the service. 
+>           It is used with Ip address of the node/ec2 , and serice will be accessible.
+>           NodePort Ranges from port 30000 to port 32767.
+
+>type : type represent the type of the service.
+
+>flow :  <ip_address>:NodePort ------>  Port ------> TargetPort   {for nodePort service}
+
+>kubectl get service -l label=value  ---> to get service details filtered by labels.
+>--------------------------------------------------------------------------------------------------------------
+
+>NodePort_
+
+>

@@ -1,7 +1,10 @@
 >
-> Three types of volumes are :-> EmptyDir, HostPath, PersistantDisk.
+> Three types of volumes are :-> 
+1> EmptyDir
+2> HostPath
+3> PersistantDisk
 
-> 1. Creating volumr inside pod, i.e. alongside container (EmptyDir)
+# 1.EMPTYDIR ( Creating volume inside pod, i.e. alongside container (EmptyDir) )
 
 apiVersion: v1 
 kind: Pod
@@ -23,10 +26,21 @@ spec:
 >data will remain inside the pod and will be available to the container inside that pod.
 >this data will not be available to other containers on other pod or other pod on other machines.
 
+>emptyDir is a temporary storage and it have a lifecycle similar to pod. i.e. once pod is deleted
+>volume and data will also be lost.
 
+>it is initially empty, emptydir volumes rae stored on whatever medium is backing the node, that is
+>it might be disk or n/w storage or RAM (emptyDir.medium feild to Memory)
 
+>all containers in the pod can read and write to this volume by mounting the volume at some path in their
+>file system.
 
-> 2. Creating volume outside of pod, i.e. on Node machine. (HOstPath)
+>when pod is removed from node, data will be lost for ever, it is mainly used to store cache or temporary
+>data to be processed.
+
+>--------------------------------------------------------------------------------------------------------
+
+# 2.HostPath ( Creating volume outside of pod, i.e. on Node machine. (HOstPath) )
 
 >if we delete the POD data will be preserved in directory in sync on Host Machine, 
 >and when new POD is created by pod, all
@@ -54,7 +68,19 @@ spec:
 
 
 
->-------------EKS ON AWS-------------------------------- > Persistance data.                             
+>this type of volume mounts a file or directory created on node where pod is running.
+
+>hostpath directory referes to directory created on node where pod is running.
+
+>use it with caution becouse when pod are schedule on multiple nodes , each node gets own hostPath 
+>storage volume. these may not be in sync with each other and different pods might be using a different data.
+
+>when node become unstable, the pod might fails to access the hostpath directory and eventually gets terminated.
+
+
+>-------------------------------------------------------------------------------------------------------------
+
+# EKS ON AWS  ( Persistance data )                             
 
 >In above two cases , if pod is get schedule on any machine , other than its original machine in cluster data will 
 >no longer be available to the pod.
@@ -101,3 +127,4 @@ spec:
 >able to directaly use the kubectl commands on eks, No manual configuration is needed.
 
  
+>-------------------------------------------------------------------------------------------------------------

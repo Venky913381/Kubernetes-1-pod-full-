@@ -2,6 +2,7 @@
 read more on services: https://kubernetes.io/docs/concepts/services-networking/service/
 
 >--------------------------------------------------NodePort----------------------------------------------------
+
 apiVersion: v1
 kind: Service 
 metadata:
@@ -35,6 +36,7 @@ spec:
 
 
 >--------------------------------------------------ClusterIP---------------------------------------------------
+
 
 apiVersion: v1
 kind: Service 
@@ -71,15 +73,16 @@ spec:
 
 >-------------------------------------------------
 
+>kubectl expose <type> <name> --type=<NodePort/ClusterIP> --port=<port> --target-port=<port> --name <svcName>
 >kubectl expose pod <podname> --type=<NodePort/ClusterIP> --port=<port> --target-port=<port> --name <svcName>
 
 >kubectl apply -f <filename.yaml>  / --dry-run=client
 >kubectl get service/svc    -o wide / --show-labels
 
->kubectl port-forward --address 0.0.0.0 svc/<serviceName> <OnHost>:<OnPod>
+>kubectl port-forward --address 0.0.0.0 svc/<serviceName> <PortOnHost>:<PortOnPod>
 >kubectl port-forward --address 0.0.0.0 svc/<Service-Name> --namespace <NameSpace Name> Machine/HostPort:PodPort
 
-
+>curl <servicename>.<ns_name>.svc.cluster.local   ---> to access service in another namespace
 
 
 >----------------------------------------------------
@@ -130,14 +133,14 @@ ports:
   1. NodePort      (expose service out of cluser)
   2. LoadBalancer  (expose service out of cluser)
   3. ClusterIP     (expose service only within cluser)
+  4. External Name Service
+  5. Headless Service
+  6. External IP Service
 
-  4. Ingress/Ingress_Resources/Ingress_Rule
-  5. Ingress Controller 
-  
-  6. Port Forwarding
-  7. External IP Service
-  8. External Name Service
-  9. Headless Service 
+  7. Port Forwarding
+
+  8. Ingress/Ingress_Resources/Ingress_Rule
+  9. Ingress Controller 
   
 >---------------------------------------------------------------------------------------------------------------
 
@@ -169,12 +172,26 @@ This type of service is knows as Headless Service.
 if a headless service manages more than one pod, service dns name will return a lists of pods managed
 by the service. The requests will accept the first IP address returned.
 
+One of the misconception with Headless service is that, it do not Load Balances the request.
+Even though headless service return the ip addresses of the pods, it will still load balances the 
+requests to the pods and this type of load balancing is called as DNS ROUND ROBIN LOAD BALANCING.
+> Headless service will Not always forward the reuest to first pod.
+
+>curl <headless_service_name>:<container_port>  ---> this request is directaly forwaed to backend pod through
+>    DNS ROUND ROBIN LOAD BALANCING mechanism and for each dns quesy/request it will result in new ip address
+>    as headless service is load balancing the requests. 
+
+>However, headless service , whenused with StatefulSets provides a 
+>unique identity to each pod managed by StatefulSet
+
+
 >Headless services are more useful when_
-1. Pod to pod communication
+1. Pod to pod communication.
+>   pod to pod communication , where we do not wants request to be load balance by service and insted of 
+>   returning the service ip, we wants to dynamically fetch the ips of pods to be return.
 2. Master-slave configuration, where slaves needs to be aware of the mastrer pod like Clustered databases.
 
 
->Service: Headless
 
 >a headless service is a service with service ip but , insted of load balancing it will return the ips of our
 >associated pods, this allows us to interact directaly with pods insted of proxy. it is as simple as specifying
@@ -191,7 +208,7 @@ metadata:
 
 spec:
 
-  clusterIP: None  <-------
+  clusterIP: None  <------- explicitly, declare the ClusterIP as None
 
   ports: 
     - name: http 
@@ -206,9 +223,4 @@ spec:
 >---------------------------------------------------------------------------------------------------------------
 
 >Ingress Controller 
-
-
-
-
->---------------------------------------------------------------------------------------------------------------
->Ingress Resources
+>Ingress Resources         #check ingress yaml file.

@@ -80,7 +80,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 1Gi
+      storage: 1Gi   # 1gib out of 10gib provisioned by pv.
 
 
 >PV_
@@ -92,14 +92,15 @@ metadata:
 
 spec:
   capacity:
-    storage: 1Gi
+    storage: 10Gi
   volumeMode: Filesystem
   accessModes:
   - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
+  persistentVolumeReclaimPolicy: Retain     #other, Delete
   storageClassName: local-storage
-  local:
-    path: /home/vagrant/storage
+  local:                                    #or-->  hostPath:
+    path: /home/vagrant/storage             #          path: "/path"
+
   nodeAffinity:
     required:
       nodeSelectorTerms:
@@ -114,6 +115,26 @@ spec:
 >kubectl get pvc
 >kubectl describe pv <pv_name>
 >kubectl describe pvc <pvc_name>
+
+>If their of multiple PV's and if we do exclusively mentioned the volumeName in pvc, 
+>then k8s will check, what pv will satisfy the storage need as per pvc and automatically those will
+>be bind together.
+
+
+> accessModes, can be_
+     ReadWriteOnce (RWO) : only single worker node can mount the volume for reading and writing at same time.
+                           this mode will still allow multiple pods to access the volume when pods are running
+                           on same node.
+
+     ReadOnlyMany (ROX)  : the volume can be mounted as read-only by many nodes at the same time
+     ReadWriteMany (RWX) : the volume can be mounted as read-write by many nodes at the same time
+
+
+>persistentVolumeReclaimPolicy, can be_
+     Retain  : it deletes volume content and makes the voulme available to be claimed again as 
+               soon as pvc gets deleted. 
+     Delete  : pv content will be persisted after pvc is deleted and it can not be reused, until
+               administrator reclaim the volume manually.
 
 >--------------------------------------------------------------------------------------------------------------- 
 
@@ -152,3 +173,41 @@ spec:
 
 
 >---------------------------------------------------------------------------------------------------------------
+
+>Admin creates a pool of persistant volumes/PV's for user to choose from. pv can have varying properties, 
+>such a performance for different problems.
+>it is a cluster wide resource used to store /persist data beyond the lifetime of a pod.
+
+>pv's are not backed by any locally attached storage on worker node but by networked storage system 
+>such as cloud providers storage or NFS or distributed filesystem like Ceph or GlusterFS.
+
+>PV provide a file system that can be mounted on to the cluster, without being associated with any perticular
+>node.
+
+>it act as an abstraction layer to save the user from going in to the details of storage is managed
+>and provisioned by each cloud provider. This api object captures the details of the implemantation
+>of the storage , be that NFS, iSCSI or cloud provider specific storage system.
+
+>advantage of pv is that, it can be shared not only between pods of single node but 
+>among the pods of multiple nodes. this means pv can be scaled by expanding their sizes, However reducing 
+>size is not possible.
+
+>Statefulset are the most frequent users of the pv since they need a permanant storage for their pods.
+
+
+
+>There are two ways to provisioned the persistant volume_
+
+1> statically :- a cluster admin creates a numer of pv's , they carry the details of the real storage,
+                 which is available for use by cluster users.
+
+2> Dynamically :- When none of the admin created pv matches the users pvc, then the cluster 
+                  may try to dynamically provisioned the volume/pv, specially for the pvc. 
+                  This provisioning is based on StorageClasses, the pv must request a storage class 
+                  and the admin must have created and configured that class for dynamic provisioning to occure.
+
+                  to enable dynamic storage provisioning , we have to enable the DefaultStorageClass admission'
+                  controller on the k8s API server.
+
+>some pending, check screenshots
+>-----------------------------------------------------------------------------------------------------------------

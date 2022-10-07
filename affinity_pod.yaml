@@ -1,20 +1,20 @@
 >
->there are various ways to schedule a pod on node or selecta Node to schedule/ececute the pod,
+>there are various ways to schedule a pod on node or select a Node to schedule/execute the pod,
 >these are_
       1.Node Name and Node Selector
       2.Node Affinity and Node-Anti-Affinity
       3.Pod Affinity and Pod-Anti-Affinity
       4.Taints and Tolerations
 
->kubernetes user normally do not need to choose a node to execute their pod, Instead , selection of appropriate
+>kubernetes User normally do not need to choose a node to execute their pod, Instead , selection of appropriate
 >pod is automatically handled by kubernetes scheduler.
 
->k8s schedules watches for the newly created pod that have no Node assigned and for everyy such pod scheduler
+>k8s scheduler watches for the newly created pod that have no Node assigned and for every such pod, scheduler
 >becomes responsible for finding the best node for that pod to run on.
 
 >Automatic node scheduling prevents user from scheduling pod on unhealthy node.
 >However, k8s provide the flexibility , to allow user to select the node, so that certain condition like RAM, SSD
->is fullfilled for execution of certain pod that need such specifications.
+>co-location is fullfilled for execution of certain pod that need such specifications.
 
 
 >-----------------------------------------------------------------------------------------------------------------
@@ -23,18 +23,18 @@
 
 >In pod Affinty and Pod antiAffinity , Node will select , How the perticular Pod will be placed Relative to other 
 >pods based on the rules defined under Node affinity and AntiAffinity in pod spec manifest file.
->i.e. Node will select the pod , which it wants to execute/run on it.
+>i.e. Pod will select the Node , based on the type Pod which is already running on that node.
 
 >In pod Affinty and Pod antiAffinity , allows you to specify rules about How pods should be placed relative to
 >other pods running on perticular node.
 
->Pod Affinity, can tell the scheduler to locate a new pod on the same node as 'Other Pod', 
+>Pod Affinity, can tell the scheduler to co-locate a new pod on the same node as 'Other Pod', 
 >if the label selector on the new pod matches the label on current pod.
 >i.e. it will check the label of existing pod, so that new pod will get schedule on the 
 >same node as existing pod is. so that both pods will be on same node.
 
->Pod Anti Affinity, can Prevent the scheduler from locating a new pod on the same node as pod with the same label,
->if the label selector on the new pod matches the label on the current pod.
+>Pod Anti Affinity, can Prevent the scheduler from co-locating a new pod on the same node 
+>as pod with the same label, if the label selector on the new pod matches the label on the current pod.
 
 
 
@@ -62,7 +62,7 @@ spec:
               operator: Exists 
             #  value: amd  
 
->above node affinity, will schedule the pod on the node having label as 'gpu' , no matters whats its value
+>above node affinity, will schedule the pod on the node having label as 'gpu' , no matter whats its value
 >may be. so out of multiple node having label 'gpu' , it will schedule the pod on any of those nodes.
 
 
@@ -90,11 +90,11 @@ spec:
 
 >This pod affinity rule deploys the pod on Node , if it has GPU as the KEY and if it is already running a
 >Pod that has labels mentioned as a labelSelector. 
+
 >SO THAT NEW POD AND OLD POD WILL BE COLOCATE ON THE SAME NODE. IT WILL FIRST SEARCH FOR OLD POD WITH 
 >ITS LABELS AND THEN IT WILL ALSO CHECK ITS TOPOLOGYKEY.
 
-
->topologyKey is the key for the node label. any label can be topologykey.
+>topologyKey is the key for the node label. any node label can be topologykey.
 
 
 >-----------------------------------------------------------------------------------------------------------------
@@ -150,7 +150,7 @@ spec:
 
 >WE CAN USE BOTH AFFINITY AND ANTI-AFFINITY RULES TOGETHER, SO THAT DIFFERENT CONDITIONS CAN BE SATISFIED.
 1.In general, we use AntiAffinity rules, when we do Not wants two pods to be co-located. So Anti Affinity
-  will Repele Similar pods.
+  will Repel Similar pods.
 2.In general, we use Affinity rules, when we do wants two pods to be co-located. So Anti Affinity
   will Attracts Similar pods.
 
@@ -172,7 +172,7 @@ spec:
 >In below example, we are trying to schedule a pod on node in a such way that, No two Redis pod will get
 >schedule on same node, also, No two flask pod will get schedule on same node. At the same time , 
 >we are also trying to schedule the pod in a such a way that , one redis pod and one flask pod will
->get schedule on same node.
+>get schedule on same node i.e. one redis and one flask pod must be co-located.
 
 
 apiVersion: apps/v1
@@ -201,7 +201,7 @@ spec:
               matchExpressions:  
                 key: app
                 operator: In 
-                value: 
+                value:               
                   - cache
             topologyKey: kubernetes.io/hostname
 

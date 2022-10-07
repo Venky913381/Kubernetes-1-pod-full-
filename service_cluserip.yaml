@@ -1,0 +1,189 @@
+>
+>Service in k8s
+
+>we need a services for enabling the pod-to-pod communication=, also to enable external traffic to access 
+>microservice/app deployed in k8s pod.
+
+>services can be defined through yaml manifest files or using imperative command. and can be deployed using 
+>kubectl apply -f <service_file.yaml> command.
+
+>Port :- port in service manifest file, represents the actual port that service listen on. if service listens 
+>        on port 3000, we can access the service through its <service_name>:3000
+
+>Target Port :- target port represents the actual Container Port of the pod. it should match the container port
+>               in the podmanifest file.
+
+>Node Port: Node port represents the port of the Node , from which external traffic access the service. 
+>           It is used with Ip address of the node/ec2 , and serice will be accessible.
+
+>type : type represent the type of the service.
+
+>flow :  <ip_address>:NodePort ------>  Port ------> TargetPort   {for nodePort service}
+
+>--------------------------------------------------------------------------------------------------------------
+
+>Cluster IP_
+
+>cluster IP makes the service available within the cluser, So that pod to pod communication becomes possible.
+>ClusterIp service is available within cluser only, to access application out of cluster we need to for other
+>types of services. 
+
+
+>service_for_pod_
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-cluserip-service
+
+spec:
+  type: clusterIP
+  ports:
+  - name: http
+    port: 80            #port of pod/ on this port service will listen
+    targetPort: 5000    #containers port, we need to open this port on container using 'containerPort'
+    protocol: TCP
+
+  selector:
+    app: myapp  
+
+>pod for service_
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp
+  labels:
+    name: myapp
+spec:
+  containers:
+  - name: myapp
+    image: nginx
+
+    ports:
+      - containerPort: 5000  #service will target this port to access microservice in container.
+
+>--------------------------------------------------------------------------------------------------------------
+
+>End Points
+
+>endpoints tracks the ip addresses of the object,the service send traffic to.
+
+>when a service selector matches a pod label, that ip added to your endpoints.
+> i.e EnsPoints are the final termination point of your microservice deployed in pod.
+
+>the endpoints for a service can be found by
+kubectl describe svc <service name>
+kubectl get ep <service name>
+
+>--------------------------------------------------------------------------------------------------------------
+
+>for multicontainer deployment , we may need a service which exposes the multiple ports for each container.
+
+
+>multi-port service_
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-cluserip-service
+
+spec:
+  type: clusterIP
+  ports:
+  - name: http
+    port: 80            
+    targetPort: 5000    
+    protocol: TCP
+
+  - name: https
+    port: 443         
+    targetPort: 7000    
+    protocol: TCP  
+
+  selector:
+    app: myapp  
+
+>multi-container pod
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp
+  labels:
+    name: myapp
+spec:
+  containers:
+  - name: frontend
+    image: nginx
+    ports:
+      - containerPort: 5000 
+
+  - name: backend
+    image: nginx
+    ports:
+      - containerPort: 7000        
+
+
+>--------------------------------------------------------------------------------------------------------------      
+
+
+>Port Forwarding_ 
+
+>Often times, we wants to be able to Temporarily Communicates with applications in your cluster without
+>exposing them to the public internet for security reasons.
+
+>to achieve this, the port-forwarding command allows us to securely forward a port on your local machine
+>through the k8s API server to a pod running in your cluster.
+
+>you can use this method to investigate issues and adjust your services locally without the need 
+>to expose them beforhand
+
+>kubectl port-forward , give us a direct network access to port of a pod for test purpose.
+>it establishes a tunnel from the target pod to your localhost.
+>The command requires yout o define the type or name of the rsource as well as local and remote port numbers.
+
+>syntax_
+kubectl port-forward --address <local-IP> <res-type>/<res-name> <local-port>:<resource-port> -n <namespace-name> 
+
+>eg_
+>kubectl port-forward --address 0.0.0.0 svc/<serviceName> <PortOnHost>:<PortOnPod>
+>kubectl port-forward --address 0.0.0.0 svc/<Service-Name> --namespace <NameSpace Name> Machine/HostPort:PodPort
+
+>--------------------------------------------------------------------------------------------------------------
+
+>pod-to-pod communication_ (without Service)
+
+>address syntax
+  <pod's_ip_address>.<namespace_name>.pod.cluster-<domain.example>   ---->fqdn
+>eg_
+  172-17-0-3.default.pod.cluster.local 
+
+>for pod to pod communication, we can use A/AAAA DNS record types.   
+
+>pod in k8s are ephemeral , as even if we deletes/dies the pod, the deployment object will recreates the pod,
+>and the ip address of the pod will get changed. i.e. IP's addresses of pod is not stable.
+>So communication through ip address is not prefferable. That is why , we preffer communication via DNS address.
+
+>However, DNS resolution just by pod name is not possible in k8s. In case of clusterIP service 
+>it is possible, as name of clusterIP resolves to clusterIP service itself.
+
+>Pod to pod communication without service do not load balances the requests.
+
+
+>pod-to-pod communication_ (with Service {ClusterIP})
+
+>pod-to-pod communication with Service each service gets its own IP address.
+>each service will have incoming port and target port i.e containers port.
+>It always load balalnces the requests.
+
+>service acts like a proxy placed before the pod. and pods are mapped to service with help of labels.
+
+>syntax_
+  http://<service_name>.<namespace_name>.svc.cluster.local:<Port>    ---->fqdn
+>the above fqdn will resolve to the ip address of clusterIP service.
+
+
+>--------------------------------------------------------------------------------------------------------------
+
+
