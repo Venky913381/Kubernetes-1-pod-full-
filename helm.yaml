@@ -1,0 +1,43 @@
+>
+>HELM CHARTS_
+
+
+>Below is the default project directory structure of the helm chart project.
+sample_project
+|
+├── Chart.yaml
+├── charts
+├── index.yaml
+├── templates
+│   ├── NOTES.txt
+│   ├── _helpers.tpl
+│   ├── deployment.yaml
+│   ├── hpa.yaml            #horizontal pod autoscaller
+│   ├── ingress.yaml
+│   ├── service.yaml
+│   ├── serviceaccount.yaml
+│   └── tests
+│           └── test-connection.yaml
+└── values.yaml
+└── requirements.yaml
+└── readme.md
+└── LICENCE
+
+
+>charts
+manually managed chart dependancies can be placed in this directory.
+
+>templates
+this directory contains templates file like deployments, service and many more as shown above.
+
+>charts.yaml
+A yaml file with metadata about teh chart, such as chart name and version, maintainer information,
+a relevant website and search keyword.
+
+>requirements.yaml
+in this yml filr we define charts dependancies, so that it can be download dynamically.
+
+>values.yaml
+a yaml file of default configuration values for the chart.
+
+

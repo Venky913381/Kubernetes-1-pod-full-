@@ -3,6 +3,7 @@
 
 >kubectl get <type>  
 >kubectl get <type> <name>
+>kubectl get all                           --->to get all the current resources in the cluster
 >kubectl get <type> <name> -o wide/yaml/json  > foo.yaml/yoo.json
 
 >kubectl logs <pod_name>                              ---> to get logs of the k8s pod
@@ -40,6 +41,13 @@
 >kubectl get nodes -o wide    ---> to get details on the node participating in cluster
 >kubectl cluster-info         ---> gives the cluster details
 >kubectl api-resources        ---> gives the lost of resources, short names, namespace support,version, kind etc.
+>kubectl config view          ---> to view the configuration file. (--minify, to minify o/p)
+>kubectl congig get-clusters  ---> (--help)
+
+
+>kubectl api-resources --namespaced=true/false  ---> to filetr the obects supporting namespace.
+>kubectl top nodes/pods                         ---> to get resource usage matrices (need matrics server installed)
+>kubectl -n kube-system top nodes
 
 >minikube --help           ---> for minikube commands.
 >minikube start --force    ---> to start minikube on booted/restarted machine
@@ -51,8 +59,14 @@
 >minikube unpause          ---> unpause Kubernetes
 >minikube ip               ---> to get cluster ip
 
+>snap install kubectx --classic   ---> to install kubectx and kubens
+>kubens                           ---> to list the available namespaces
+>kubens <namepsace_name>          ---> to switch the context to namespace i.e to make ns default
+>kubens -                         ---> to switch the context back to default namespace
+>kubectx                          ---> to list context
+>kubectx <nameof_context>         ---> to change the context
 
-#-------------------------------------------POD------------------------------------------------
+#----------------------------------------------------POD---------------------------------------------------------
 
 >read : https://kubernetes.io/docs/concepts/workloads/pods/
 
@@ -364,6 +378,8 @@ spec:
 > read : https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
 > refer, dedicated deplyment code ....
 
+>kubectl create deploy <name> --image=<image_name>
+
 apiVersion: apps/v1
 kind: Deployment
 
@@ -471,9 +487,41 @@ spec:
 > if we explicity , do not gave the values of maxUnavailable or maxSurge, by default its value  will
 > be 25% MaxUnavailable and 25% for MaxSurge
 
-#---------------------------------------------------------------
+
+>--------------------------------------------------------------------------------
+> kubectl apply -f <deploy.yaml>  ;  watch "kubectl get rs -o wide"
+> kubectl rollout status deployment <deploy-name>          
+> kubectl delete -f <.yml>
+> kubectl delete deployment <deploy-name>
+> kubectl rollout history deployment <deployment-name>
+#------------------------------------------------------------------------------------------
+> kubectl rollout history deployment <deployment-name>   --> will give all revision history, however this will
+                                                           > not keep any explicit details of deployment.
+> to keep deployment record, run a command as_
+>  kubectl apply -f <deploy.yaml> --record, But this not add any custom massage.
+
+> to add custom massage for deployment, add to yml file the following in metadata of deployemnt..
+> under annotation , kubernetes.io/change-cause: <personalize text>  
+> afte adding annotation, there is no need to use --record flag
+#-------------------------------------------------------------------------------------------
+> ROLLBACK_TO_SPECIFIC_REVISION_IN_HISTORY__
+> kubectl rollout undo --to-revision=<specific-rev-number>  deployement  <deploy-name> 
+
+> if specific revision number is not specified, by default it will choose most recent last revision. 
+> .i.e. -->    kubectl rollout undo  deployement  <deploy-name>
+#------------------------------------------------------------------------------------------
+
+> by default, it will k8s , will keep the last "10" deployment record in memory, we can change this by using
+> "revisionHistoryLimit: <n>"    , user spec of deployment.
+
+>--------------------------------------------------------------------------------
+
 
 >strategy:  Recreate
+
+> in this startegy, all the pods from old deployemnt will simulateneously get replaced by pods from
+> new deployment. this will cause the downtime, but new pods will get deployed faster.
+> this startegy, generally not get used in production, but for testing , this will save the time.
 
 apiVersion: apps/v1
 kind: Deployment
@@ -501,6 +549,8 @@ spec:
 
 
 >--------------------------------------------------------------------------------------------------------------
+
+
 
 #--------------------------POD's resource REQUESTS and LIMITS------------------------------------------------
 
@@ -1494,7 +1544,7 @@ spec:
 >----------------------------------------------------------------------------------------------------------
 
 
-#--------------------POD LIVENESS AND READINESS PROBE-----------------------------
+#--------------------POD LIVENESS ,READINESS PROBE and STARTUP PROBE-----------------------------
 
 > refer, https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
 
@@ -1696,9 +1746,165 @@ Defaults to 1 second. Minimum value is 1.
   8. External Name Service
   9. Headless Service 
 
->d) K8S AutoScalling
+>d) K8S AutoScalling (HPA)
 >e) Kubernetes DashBoard
 >f) Steteful Sets
 >g) Service Account
->h) Role Based Access Control
->i) Pod/Node Affinity/AntiAffinity
+>h) Cluster Role and Role Binding
+>i) Role Based Access Control
+>j) Pod/Node Affinity/AntiAffinity
+
+>----------------------------------------------------------------------------------------------------------
+
+>Kubernetes Krew plugin manager for kubectl
+
+>ref, https://krew.sigs.k8s.io/docs/
+
+In devops environment, we may have to manage multiple k8s multiple k8s resources, across multiple
+clusters.
+we may also have different kubeconfig file for each environment or we hay have single kubeconfig
+file multiple context and cluster.
+
+>kubectl is a command line utitlity used to communicates with k8s API server to create , read, 
+>update , delete (CRUD) workload within k8s.
+
+>kubeconfig file is file used to configure access to the kubernetes cluster, when used in conjunction
+>with kubectl command line tool.
+
+>by default, kubectl looks for a file in  $HOME/.kube directory. we can specify other kubeconfig files by 
+>setting the KUBECONFIG environment variable or by setting the --kubeconfig flag while running kubectl commands_
+  kubectl --kubeconfig /pathto_/kube.config get pods
+
+>to get context_
+kubectl config get context
+
+>to change context_
+kubectl config use-context <contect-name>
+
+>to change namespace
+kubectl config set-context --current --namespace=<ns_name>
+
+>krew_
+1.krew is a plugin manager for kubectl command line tool
+2.it discovers and installs kubectl plugins
+3.there are 154 kubectl plugins currently distributed on krew
+4.it works across all major platforms ,like Macos, linux and windows.
+
+#Follow -> {google-->krew github -->documentation-->krew docs-->quickstart-->install&setup krew}
+
+>install krew on Bash or ZSH shells
+ Make sure that git is installed.
+
+Run this command to download and install krew :
+
+(
+  set -x; cd "$(mktemp -d)" &&
+  OS="$(uname | tr '[:upper:]' '[:lower:]')" &&
+  ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" &&
+  KREW="krew-${OS}_${ARCH}" &&
+  curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/latest/download/${KREW}.tar.gz" &&
+  tar zxvf "${KREW}.tar.gz" &&
+  ./"${KREW}" install krew
+)
+
+>Add the $HOME/.krew/bin directory to your PATH environment variable.
+To do this, update your .bashrc or .zshrc file and append the following line 
+>export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
+and restart your shell.
+
+Run 
+>kubectl krew 
+to check the installation.
+
+>Usage :-
+  kubectl krew [command]
+
+>Available Commands :-
+  completion  generate the autocompletion script for the specified shell
+  help        Help about any command
+  index       Manage custom plugin indexes
+  info        Show information about an available plugin
+  install     Install kubectl plugins
+  list        List installed kubectl plugins
+  search      Discover kubectl plugins
+  uninstall   Uninstall plugins
+  update      Update the local copy of the plugin index
+  upgrade     Upgrade installed plugins to newer versions
+  version     Show krew version and diagnostics
+
+
+>snap install kubectx --classic    ---> to install kubectx and kubens
+
+# using ctx (context)              ---> k8s context utility
+
+>kubectx                           ---> to list context
+>kubectx -                         ---> to switch to the previous context
+>kubectx <nameof_context>          ---> to change the context
+>kubectx --help
+
+# kubens (namespace)               ---> k8s namespace utility
+
+>kubens                            ---> to list the available namespaces
+>kubens <namepsace_name>           ---> to switch the context to namespace i.e to make ns default
+>kubens -                          ---> t switch to the previous namespace in the current context
+>kubens --help
+
+
+#installing plugin with krew
+
+>kubectl krew search <plugin_name>
+eg1_ kubectl krew search score
+
+>kubectl krew install <plugin_name>
+eg1_ kubectl krew install score
+
+>kubectl score <manifest.yaml>
+eg1_ kubectl score pod1.yaml
+eg1_ helm template bitnami/nginx | kubectl score -
+
+-->score is a plugin for static code analysis for k8s object definations, it checks , if n/w policies are in place, 
+   resource are set, affinity rules, probes, container security/context is set or not. 
+
+
+eg2_ pod lense :- it will show pod related info like, namespace, service, node, secrets, cofigmaps etc.
+
+>kubectl krew install pod-lens
+>kubectl pod-lens <pod_name/deployment_name>
+
+
+eg3_ prune-unused :- prune unused secrets/configmaps from current namespace
+     checks against all resorces from mounted volume, env, and envFrom and imagePullSecrets.
+
+>kubectl krew install prune-unused
+>kubectl prune-unused secrets / configmaps --dry-run  
+
+eg4_ neat :- neat removes clutter from k8s manifest file like creationtimestamps, resource ids, 
+             status information to make them more readable.
+
+>kubectl krew install neat
+>kubectl get pod <pod_name> -o wide | kubectl neat
+
+eg5_ tree :- tree explores the ownership relationships between kubernetes objects 
+              through owners references on them.
+
+>kubectl krew install tree
+>kubectl tree <resource> <name>              
+
+
+eg6_ tail :- tail streams a logs from all containers of all matched pods and can match pods by service,
+             replicaset, deployment and others.
+>kubectl krew install tail
+>kubectl tail -p <name_of_pod>
+
+>-l : --label , -p : --pod, -n : --ns ,-svc , -rc, -rs, -d, -sts            
+
+eg7_ popeye :- scans live k8s cluster and reports potential issues with deployed resources and configurations.
+               it detects misconfigurations and helps us to ensure that best prectices are in place, thus
+               preventing future headaches.
+
+>kubectl krew install popeye
+>kubectl popeye                 
+it will scans the cluster and give details report on it.
+      
+
+>----------------------------------------------------------------------------------------------------------

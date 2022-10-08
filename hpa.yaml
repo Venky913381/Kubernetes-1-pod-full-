@@ -1,0 +1,122 @@
+>
+>ref, https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale-walkthrough/
+>ref, https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
+
+
+A HorizontalPodAutoscaler (HPA for short) automatically updates a workload resource 
+such as a Pods, Deployment or StatefulSet, with the aim of automatically scaling the workload to match demand.
+
+Horizontal scaling means that the response to increased load is to deploy more Pods. 
+This is different from vertical scaling, which for Kubernetes would mean assigning more resources 
+for example, memory or CPU) to the Pods that are already running for the workload.
+
+If the load decreases, and the number of Pods is above the configured minimum, 
+the HorizontalPodAutoscaler instructs the workload resource 
+the Deployment, StatefulSet, or other similar resource to scale back down.
+
+
+>Pod_
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: php-apache
+spec:
+  selector:
+    matchLabels:
+      run: php-apache
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: php-apache
+    spec:
+      containers:
+      - name: php-apache
+        image: registry.k8s.io/hpa-example
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            cpu: "200m"
+          limits:
+            cpu: "500m"
+          
+>Service_
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: php-apache
+  labels:
+    run: php-apache
+spec:
+  ports:
+  - port: 80
+  selector:
+    run: php-apache
+
+
+
+>HPA_
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: php-apache
+
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: php-apache
+  minReplicas: 1
+  maxReplicas: 10
+
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50
+          
+  status:                                    #optional
+    observedGeneration: 1
+    lastScaleTime: <some-time>
+    currentReplicas: 1
+    desiredReplicas: 1
+    currentMetrics:
+    - type: Resource
+      resource:
+        name: cpu
+        current:
+          averageUtilization: 0
+          averageValue: 0
+
+  behavior:                                   #optional
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+      - type: Pods
+        value: 4
+        periodSeconds: 15
+      selectPolicy: Max        
+
+
+
+>Kubernetes implements horizontal pod autoscaling as a control loop that runs intermittently 
+>(it is not a continuous process). The interval is set by the --horizontal-pod-autoscaler-sync-period 
+>parameter to the kube-controller-manager (and the default interval is 15 seconds).      
+
+>

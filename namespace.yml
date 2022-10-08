@@ -47,7 +47,7 @@ metadata:
   name: pod1
   labels: 
      appname: app
-  namespace: my-namespace     #setting namespace in manifest file.
+  namespace: my-namespace     #setting namespace in pods manifest file.
 spec: 
   containers:
     - name: firstcontainer
@@ -56,3 +56,84 @@ spec:
 
 
 >-----------------------------------------------------------------------------------------------------------------
+
+>Namespace are the k8s obects that partitioned the single k8s cluster into multiple virtual cluster.
+
+>k8s can manage large large number of workloads concurrently and organizations often
+>choose to deploy projects created by seperate teams to shared clusters.
+
+>k8s namespaces allow different teams , projects or customers share a same k8s cluster.
+
+>namespace allows us to logically group objects together , so that we can control them as a unite/group.
+
+>Namepsaces allows you to have similarly named k8s resources in different namepsaces.
+
+>Using RBAC, we can implements the access control for different namespaces.
+
+>k8s namespace provides the scope for k8s names it contains , which means using the 
+>combination of an object name and namespace, each objects gets unique identity across the cluster.
+
+>Not all k8s resources are namespaced, like k8s obects like Nodes PV are not namespaced.
+>they are cluster wide resources to be accessible by all objects in the cluster.
+
+>resources in same namespace can communicate with each other by their names.
+>But, across the cluster with multiple namespaces, they must use FQDN/fully qualified domain name for communication.
+
+>fqdn, <service_name>.<namespace_name>.<subdomain/svc>.cluster.local    ---> curl it from any pod/container.
+.cluster.local , is the internal domain of k8s cluster
+.svc , is the subdomain 
+.svc.cluster.local, is a Base domain name
+
+>within namespace communicatio between pods happens through service.
+>core-dns pod, in kube-system namespace, manages the dns services and resolve the ip addresses
+>in k8s cluster and service.
+
+>service/kubernetes , is a core-dns service , which provide the service for the 
+>pod-to-pod communication in default namespace.
+
+>cat /etc/resolve.conf, will give the information that k8s added to pod on creation. 
+
+>cat /etc/resolv.conf
+nameserver 10.96.0.10
+search default.svc.cluster.local svc.cluster.local cluster.local ap-south-1.compute.internal
+options ndots:5
+
+
+>-----------------------------------------------------------------------------------------------------------------
+
+>Different existing namepsces in kubernetes.
+
+>Default_
+this is default namespace, by default all the resources get created in this namespace.
+
+>Kube-system_
+it is namespace for objects created by k8s system/control plane. any chnages to objects in this ns
+would couse irreperable damages to the cluster itself.
+
+>kube-public_
+created automatically and is readable by all users, including non authenticated users. this is mostaly
+reserved for cluster usage, in case that some resources should be visible and 
+readable publicly throughout the whole user
+
+>kube-node-lease_
+this ns hold lease objects associated with each node . node lease allows the kubelet to send 
+heartbeats so that control plane can detect node failures.
+
+>kubectl get namespace/ns
+>kubectl get namespace/ns --show-labels
+>kubectl create ns <ns-name>
+
+
+apiVersion: v1
+kind: Namespace
+
+metadata:
+  name: testnamespace
+  labels: 
+    target: test
+    team: sedt-team 
+    app: iot-app
+
+>-----------------------------------------------------------------------------------------------------------------
+
+         

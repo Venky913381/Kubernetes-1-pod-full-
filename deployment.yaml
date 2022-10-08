@@ -107,10 +107,12 @@ spec:
 
 >--------------------------------------------------------------------------------
 > kubectl apply -f <deploy.yaml>  ;  watch "kubectl get rs -o wide"
-> kubectl rollout status deployment <deploy-name>          
+> kubectl rollout status deployment <deploy-name>  
+> kubectl rollout history deployment <deployment-name>
+
 > kubectl delete -f <.yml>
 > kubectl delete deployment <deploy-name>
-> kubectl rollout history deployment <deployment-name>
+
 #------------------------------------------------------------------------------------------
 > kubectl rollout history deployment <deployment-name>   --> will give all revision history, however this will
                                                            > not keep any explicit details of deployment.
@@ -118,7 +120,7 @@ spec:
 >  kubectl apply -f <deploy.yaml> --record, But this not add any custom massage.
 
 > to add custom massage for deployment, add to yml file the following in metadata of deployemnt..
-> under annotation , kubernetes.io/change-cause: <personalize text>  
+> under annotation , " kubernetes.io/change-cause: <personalize text> "
 > afte adding annotation, there is no need to use --record flag
 #-------------------------------------------------------------------------------------------
 > ROLLBACK_TO_SPECIFIC_REVISION_IN_HISTORY__
@@ -128,10 +130,10 @@ spec:
 > .i.e. -->    kubectl rollout undo  deployement  <deploy-name>
 #------------------------------------------------------------------------------------------
 
-> by default, it will k8s , will keep the last "10" deployment record in memory, we can change this by using
+> by default,  k8s will keep the last "10" deployment record in memory, we can change this by using
 > "revisionHistoryLimit: <n>"    , user spec of deployment.
 
->--------------------------------------------------------------------------------
+
 
 >--------------------------------------RECREATE STARTEGY--------------------------------------------
 
