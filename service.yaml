@@ -1,8 +1,33 @@
 >
+
+>Service in k8s
+
+>we need a services for enabling the pod-to-pod communication, also to enable external traffic to access 
+>microservice/app deployed in k8s pod.
+
+>services can be defined through yaml manifest files or using imperative command. and can be deployed using 
+>kubectl apply -f <service_file.yaml> command.
+
+>Port :- port in service manifest file, represents the actual port that service listen on. if service listens 
+>        on port 3000, we can access the service through its <service_name>:3000
+
+>Target Port :- target port represents the actual Container Port of the pod. it should match the container port
+>               in the podmanifest file.
+
+>Node Port: Node port represents the port of the Node , from which external traffic access the service. 
+>           It is used with Ip address of the node/ec2 , and serice will be accessible.
+>           NodePort Ranges from port 30000 to port 32767.
+
+>type : type represent the type of the service.
+
+>flow :  <ip_address>:NodePort ------>  Port ------> TargetPort   {for nodePort service}
+
+>kubectl get service -l label=value  ---> to get service details filtered by labels.
+
 read more on services: https://kubernetes.io/docs/concepts/services-networking/service/
 
 >--------------------------------------------------NodePort----------------------------------------------------
-
+   
 apiVersion: v1
 kind: Service 
 metadata:
@@ -11,7 +36,7 @@ metadata:
     name: service1
 spec:
   type: NodePort
-  ports:                                                http://ip:80---->9000---->32000
+  ports:                                                            
   - nodePort: 32000  > on node , on nodes port, with web ip / browser / ip:port / this is endpoint
     port: 9000       > on pod , machine port will mapped to this port on pod
     targetPort: 80   > on container, container port
@@ -82,7 +107,11 @@ spec:
 >kubectl port-forward --address 0.0.0.0 svc/<serviceName> <PortOnHost>:<PortOnPod>
 >kubectl port-forward --address 0.0.0.0 svc/<Service-Name> --namespace <NameSpace Name> Machine/HostPort:PodPort
 
->curl <servicename>.<ns_name>.svc.cluster.local   ---> to access service in another namespace
+>kubectl port-forward -n <name_space> pod/<pod_name> <port>  ---> to forward the traffic to pod w/o service
+
+>curl <servicename>.<ns_name>.svc.cluster.local              ---> to access service in another namespace
+
+>kubectl get endpoints/ep -n <namespace>                     ---> to get the endpoints of pods in namespace
 
 
 >----------------------------------------------------
@@ -224,3 +253,154 @@ spec:
 
 >Ingress Controller 
 >Ingress Resources         #check ingress yaml file.
+
+
+>--------------------------------------------------------------------------------------------------------------
+
+# Named Port_
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp
+  labels:
+    name: myapp
+spec:
+  containers:
+  - name: myapp
+    image: nginx
+
+    ports:
+      - containerPort: 80
+        name: openPort
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: myapp
+spec:
+  selector:
+    app: myapp
+
+  ports:
+  - protocol: tcp
+    port: 7575
+    targetPort: openPort
+        
+>here, we have named the port on container along with opening the perticular port and 
+>using service, we are targeting the port on pod, not by using its port number , but by using the
+>port name , that er have given to the port , we opened on pod.
+
+>this way, even if we chnaged the port numbers on pod, we need not to update the same on service manifest,
+>as service is identifying the target port using its name  and not using its number.
+
+
+>--------------------------------------------------------------------------------------------------------------
+
+
+# Service Without Selectors_
+>we can define the servce without selectors, however , in this we need to define the endpoints resource of
+>the pod using endpoints manifest file.
+
+Services most commonly abstract access to Kubernetes Pods thanks to the selector, 
+but when used with a corresponding Endpoints object and without a selector, 
+the Service can abstract other kinds of backends, including ones that run outside the cluster. For example :-
+
+1> You want to have an external database cluster in production, 
+   but in your test environment you use your own databases.
+
+2>You want to point your Service to a Service in a different Namespace or on another cluster.
+
+3>You are migrating a workload to Kubernetes. While evaluating the approach, 
+  you run only a portion of your backends in Kubernetes.
+
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+ name: nginx-dpl                 # Name of the deployment object
+ labels:
+   app: nginx                     
+spec:
+ replicas: 3                    # Number of instances in the deployment
+ selector:                      # Selector identifies pods to be
+     matchLabels:               #     part of the deployment 
+        app: nginx              #     by matching of the label "app" 
+ template:                      # Templates describes pods of the deployment
+   metadata:
+     labels:                    # Defines key-value map
+       app: nginx               # Label to be recognized by other objects
+   spec:                        #     as deployment or service
+     containers:                # Lists all containers in the pod
+     - name: nginx-pod          # container name
+       image: nginx:1.17.4      # container docker image
+       ports:
+       - containerPort: 80      # port exposed by container
+
+
+>we need to manually get the ips of the pods before, proceeding with enpoints manifest.
+>kubectl get pods -o wide | awk {'print $1" " $3" " $6'} | column -t
+NAME                       STATUS   IP
+ngix-dpl-7d6b8c8944-8zsgk  Running  100.96.8.53
+ngix-dpl-7d6b8c8944-l4gwk  Running  100.96.6.43
+ngix-dpl-7d6b8c8944-pffsg  Running  100.96.8.54      
+
+>Service without selectors_
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: dummy-svc
+  labels:
+    app: nginx
+spec:
+ ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+      name: http
+
+>manually defining the endpoints_ 
+
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: dummy-svc 
+subsets: 
+  - addresses:
+    - ip: 100.96.8.53
+    - ip: 100.96.6.43
+    - ip: 100.96.8.54
+    ports:
+    - port: 80
+      name: http
+
+(we can remove 'name' attribute from both service and endpoints, removal from any one will result in error)
+
+>this method of exposing pods are not efficient at all, as we need to get the ips of the pod manually and
+>needs to define it in endpoints. and if pod controller recreates the pod then ip of the pod will get changed,
+>and we need to rewrite the endpoints manifest.
+
+>--------------------------------------------------------------------------------------------------------------
+
+#accessing service with containers environmental variable.
+
+>when we create a service within the namespace before creation of pod, at the time pod creation k8s
+>injects the service enviromental variable in to the container.
+>using these variable we can access the service within the namespace.
+
+>first exec in to the container from which we want to communicate with other pod.
+>list the environmental variable using, #env
+>we will get environmental variable likes, <service_name>_SERVICE_HOST, <service_name>_SERVICE_HOST
+
+>Using these variable we can access service as,
+ curl <service_name>_SERVICE_HOST:<service_name>_SERVICE_HOST/<path_if_exist>
+
+>this is similar the accessing the service using DNS or fqdn, where we access the service as below_
+ curl <service_name>.<namespace_name>.svc.cluster.local
+
+
+>--------------------------------------------------------------------------------------------------------------
+

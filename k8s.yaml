@@ -3,8 +3,9 @@
 
 >kubectl get <type>  
 >kubectl get <type> <name>
->kubectl get all                           --->to get all the current resources in the cluster
->kubectl get <type> <name> -o wide/yaml/json  > foo.yaml/yoo.json
+>kubectl get <type> <name> -o wide/yaml/json > foo.yaml/yoo.json
+>kubectl get <type> <name> --show-labels / -o wide   --->to get types as per the label assigned
+>kubectl get all -n <name_space>                     --->to get all the current resources in any namespace
 
 >kubectl logs <pod_name>                              ---> to get logs of the k8s pod
 >kubectl logs -f <pod_name>                           ---> to get logs of the k8s pod
@@ -24,6 +25,7 @@
 
 >kubectl explain <k8s resource>              ---> to get basic manifest component details
 >kubectl explain --recursive <type> | less   ---> to get all resource attributes for writting manifest
+>kubectl explain <type>.<section_in_yaml>    ---> to get all resource attributes for writting manifest
 
 >kubectl describe <type> <name>              ---> to get more details on the k8s object
 
@@ -31,7 +33,6 @@
 >kubectl label --override <type> <name> label1=value2   ---> to override the existing pod label
 >kubectl label <type> --all label1=value1               ---> to label all resource type in one go
 >kubectl label <type> <name> label1-                    ---> (-) to delete the lable
->kubectl get <type> <name> --show-labels / -o wide
 
 >kubectl delete <type> <name>
 >kubectl delete -f <manifest.yaml>    ---> will delete all the resources declared in manifest file.
@@ -42,11 +43,13 @@
 >kubectl cluster-info         ---> gives the cluster details
 >kubectl api-resources        ---> gives the lost of resources, short names, namespace support,version, kind etc.
 >kubectl config view          ---> to view the configuration file. (--minify, to minify o/p)
->kubectl congig get-clusters  ---> (--help)
+>kubectl config get-clusters  ---> (--help, for more options)
 
-
->kubectl api-resources --namespaced=true/false  ---> to filetr the obects supporting namespace.
+>kubectl api-resources --namespaced=true/false  ---> to filter the obects supporting namespace.
 >kubectl top nodes/pods                         ---> to get resource usage matrices (need matrics server installed)
+>kubectl api-versions                           ---> to get api version of k8s objects
+>kubectl get componentstatuses/cs               ---> to get the status of components of cluster
+>kubectl run <type> --help                      ---> to get Imperial commmand structure for k8s resource
 >kubectl -n kube-system top nodes
 
 >minikube --help           ---> for minikube commands.
@@ -58,27 +61,25 @@
 >minikube pause            ---> pause Kubernetes
 >minikube unpause          ---> unpause Kubernetes
 >minikube ip               ---> to get cluster ip
-
->snap install kubectx --classic   ---> to install kubectx and kubens
->kubens                           ---> to list the available namespaces
->kubens <namepsace_name>          ---> to switch the context to namespace i.e to make ns default
->kubens -                         ---> to switch the context back to default namespace
->kubectx                          ---> to list context
->kubectx <nameof_context>         ---> to change the context
+>minikube start --container-runtime='runtime_name'  ---> default, Docker , others are Containerd, rocket etc.
 
 #----------------------------------------------------POD---------------------------------------------------------
 
 >read : https://kubernetes.io/docs/concepts/workloads/pods/
 
->kubectl run <podname> label=value --image=<image:version> -i --rm --restart=Never -- <cmd>  --->Imperative command
+>kubectl run <podname> label=value --image=<image:version> -it --rm --restart=Never -- <cmd>  -->Imperative command
 
 > --image   : specifies image
-> -i        : interactive mode
+> -it       : interactive mode
 > -rm       : specifies, to remove pod, when stopped
 > --restart : specifies restart policy for container
 > --port=<> : specifies the port to be open on container
 > --expose  : this will create the service for the pod
 > --replicas: to create multiple pod replicas
+
+>kubectl run pod --help
+>kubectl explain pod.spec / pod.metadata
+
 
 apiVersion: v1
 kind: Pod 
@@ -120,8 +121,7 @@ spec:
 
 >kubectl apply -f <filename.yaml>  / --dry-run=client
 >kubectl get pod / -o wide / --show-labels / -w
->kubectl exec <podname> -c <containerName> -it -- <command>        --> executing command inside the container.
->                       --container <containerName> -it -- <bash/cmd>
+>kubectl exec <podname> -c <containerName> -it -- <command>   ---> executing command inside the container.
 
 #------------------------------------------service---------------------------------------------------
 
@@ -130,6 +130,7 @@ read more on services: https://kubernetes.io/docs/concepts/services-networking/s
 >service is k8s resource used to expose the pod/containers for it to accept the outside/internet traffic. 
 >Using service we open the port on the pod.
 
+>kubectl explain service.spec / service.metadata
 
 >NodePort service
 
@@ -148,7 +149,9 @@ spec:
         - nodePort: 32000    #port on the node/machine 
           port: 9000         #port on the pod/port opened by service
           targetPort: 80     #port opened on the container inside pod/this is end point of the service.
-      
+    
+>
+
  #--------------------------------POD AND SERVICE------------------
 
 apiVersion: v1
@@ -161,6 +164,12 @@ spec:
   containers:
     - image:  coolgourav147/nginx-custom
       name:  firstcontainer
+      ports: 
+      - containerPort: 80
+      - containerPort: 3535
+      - containerPort: 2525
+
+
 
 
 apiVersion: v1                
@@ -227,9 +236,10 @@ metadata:
 spec:
     replicas: 5
     selector:
-        type: app         #selector value and pods label needed to match,  even if selector is given
+        type: app           #selector value and pods label needed to match,  even if selector is given
                             # pod label is must. If selector attribute  is not provided
-                              # then pods label is taken as default selector for rc.
+                            # then pods label is taken as default selector for rc.
+                            
     template:        # pod details in template
         metadata: 
           name: firstpod
@@ -259,7 +269,7 @@ spec:
 
 > we can consider, ReplicaSet as a further advancement of Replication Controller. It have advancement in
 > selectors over the Replica set.
-> USES "EQUILITY BASED SELECTOR" AS WELL AS "SET BASED SELECTOR".
+> IT USES  "SET BASED SELECTOR".
 
 >read more: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
 
@@ -1905,6 +1915,37 @@ eg7_ popeye :- scans live k8s cluster and reports potential issues with deployed
 >kubectl krew install popeye
 >kubectl popeye                 
 it will scans the cluster and give details report on it.
-      
+
+
+>----------------------------------------------------------------------------------------------------------
+
+> Copy files/dir to and From the Pod/Containers
+
+>kubectl cp --help
+
+Examples:
+# !!!Important Note!!!
+# Requires that the 'tar' binary is present in your container
+# image.  If 'tar' is not present, 'kubectl cp' will fail.
+
+# Copy /tmp/foo_dir local directory to /tmp/bar_dir in a remote pod in the default namespace
+kubectl cp /tmp/foo_dir <some-pod>:/tmp/bar_dir
+
+# Copy /tmp/foo local file to /tmp/bar in a remote pod in a specific container
+kubectl cp /tmp/foo <some-pod>:/tmp/bar -c <specific-container>
+
+# Copy /tmp/foo local file to /tmp/bar in a remote pod in namespace <some-namespace>
+kubectl cp /tmp/foo  <some-namespace>/<some-pod>:/tmp/bar
+
+# Copy /tmp/foo from a remote pod to /tmp/bar locally
+kubectl cp <some-namespace>/<some-pod>:/tmp/foo /tmp/bar
+
+Options:
+-c, --container='': Container name. If omitted, the first container in the pod will be chosen
+
+Usage:
+kubectl cp <file-spec-src> <file-spec-dest> [options]
+
+Use "kubectl options" for a list of global command-line options (applies to all commands).
 
 >----------------------------------------------------------------------------------------------------------

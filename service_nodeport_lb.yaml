@@ -1,7 +1,7 @@
 >
 >Service in k8s
 
->we need a services for enabling the pod-to-pod communication=, also to enable external traffic to access 
+>we need a services for enabling the pod-to-pod communication, also to enable external traffic to access 
 >microservice/app deployed in k8s pod.
 
 >services can be defined through yaml manifest files or using imperative command. and can be deployed using 
@@ -22,8 +22,43 @@
 >flow :  <ip_address>:NodePort ------>  Port ------> TargetPort   {for nodePort service}
 
 >kubectl get service -l label=value  ---> to get service details filtered by labels.
+
 >--------------------------------------------------------------------------------------------------------------
 
 >NodePort_
 
 >
+
+
+
+
+>--------------------------------------------------------------------------------------------------------------
+
+>LOAD BALANCER
+
+>we need a cloud environment like eks, gke ,civo, platform9 ,digitalOcean etc. to use load-balancer type service
+
+>once we sets up our k8s cluster in cloud environment, all we nned to do is create a service with
+>type as loadBalancer. and this will configure the load balacer provided by cloud provider to our service
+>in our cluster.
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: myapp
+  labels: 
+    serviceType: Frontend
+
+spec:
+  type: LoadBalancer
+  selecor:
+    app: myapp
+
+  ports:
+  - port: 8080
+    targetPort: 7575
+    protocol: TCP
+
+>--------------------------------------------------------------------------------------------------------------
+

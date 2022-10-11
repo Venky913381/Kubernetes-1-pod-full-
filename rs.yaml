@@ -1,4 +1,33 @@
 >
+
+>Desired state is core concept in k8s.
+>through declarative or imperative Api, we describe the desire state of the objects 
+>like pod, rs, deployment in the cluster.
+
+>if dur to some failures , a pod stops running , the kubelet recreates the pod based on the lines of desired
+>state in etcd.
+
+>kubeController managers in the master responsible for the regulating the state of the system. if they
+>detects any drift in current state of the cluster, they instruct the kubelets components in the worker
+>to spin up the additional pods depends on the desired state.
+>this way k8s ensured that all the containers running across the cluster are always in the desired state.
+>we need a controller for our application , for the purpose of Relibility, LoadBalancing, Scalling.
+
+>https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+
+>Replica set is higher level objects that gives ability to easily run multiple instance for given pod.
+>it works similat ro replication controller.
+
+>Replica set uses SET BASE SELECTOR to manage pods.
+
+>the major difference between RC AND RS is the Rolling -Update command , which works with Replicatio Controller 
+>but wonts works with Replica set . THis is becouse rs are meant to be used as a backend for the Deplyments.
+
+>Deployments are recommanded over Replica Set.
+
+
+>Replica Set, using Match Labels
+
 apiVersion: apps/v1
 kind: ReplicaSet
 
@@ -39,6 +68,8 @@ spec:
 
 
 >-----------------------------------------------------------------------
+
+>Replica Set, using Match Expression
 
 apiVersion: apps/v1
 kind: ReplicaSet
@@ -84,5 +115,55 @@ spec:
 > kubectl apply -f <rs.yaml>
 > kubectl delete -f <rs.yaml>
 > kubectl delete rs <rs-name>      
+
+>-----------------------------------------------------------------------------------------------------------------
+
+>can also be written as_
+
+selector:                   
+    matchExpressions:
+    - {key: appname, operator: In, values: [app1,app2]}
+
+>----------------------------------------------------------------------------------
+
+> In MatchLabels in rs file, conditions given under match labels will be considered and treated as LOGICAL AND. 
+>i.e pod will need to match the all conditions to be controlled by rs.
+
+selector:                   
+    matchLabels: 
+      appname: app
+      type: frontend
+      owner: swapnil
+
+>pod neded to have all the labels as shown above to be controlled by RS. i.e each label is AND operated.
+
+>----------------------------------------------------------------------------------
+
+> In Match Expression in rs file, conditions given under match labels will be considered and treated as LOGICAL OR. 
+>i.e pod will need to match at least one conditions to be controlled by rs.
+
+matchExpressions:
+    - key: appname
+      operator: In 
+      values:
+        - app1          
+        - app2
+>pod needed to have at least one of above 2 label  to be controlled by RS.      
+
+
+
+matchExpressions:
+    - key: appname
+      operator: In 
+      values:
+        - app1 
+        - app2             #any one will work 
+    - key: type
+      operator: In 
+      values:
+        - frontend         #pod must be frontend in either app1 and app2
+
+>as we have given two different conditions under match expression, two key will be considered as Logical AND.
+>i.e pod must match the both both key as values.        
 
 >----------------------------------------------------------------------------------

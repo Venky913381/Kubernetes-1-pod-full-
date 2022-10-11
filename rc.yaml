@@ -1,5 +1,32 @@
 >
+
+>Desired state is core concept in k8s.
+>through declarative or imperative Api, we describe the desire state of the objects 
+>like pod, rs, deployment in the cluster.
+
+>if dur to some failures , a pod stops running , the kubelet recreates the pod based on the lines of desired
+>state in etcd.
+
+>kubeController managers in the master responsible for the regulating the state of the system. if they
+>detects any drift in current state of the cluster, they instruct the kubelets components in the worker
+>to spin up the additional pods depends on the desired state.
+>this way k8s ensured that all the containers running across the cluster are always in the desired state.
+>we need a controller for our application , for the purpose of Relibility, LoadBalancing, Scalling.
+
 >read: https://kubernetes.io/docs/concepts/workloads/controllers/replicationcontroller/
+
+>replication controller is the original form of the replication in k8s.
+>replicatioj controller, ensures high availibilty by replacing unhealthy/dead pods with new ones to ensure
+>required replicas are always runnig inside the cluster.
+
+>we can use rc to controll the deployment of single pod also. rc will help by automatically bringing up the
+>new pod whenthe existing one fails.
+>Another reason we need replication controller to create multiple pod and share the load across them.
+
+>Replication Controller uses Equality Based Selector(older), while Replica set uses Set Based Selector(latest).
+
+>Replication Controller is now deprecated and is replaced by Replica Set.
+
 
 apiVersion: v1
 kind: ReplicationController
@@ -8,18 +35,22 @@ metadata:
   name: rc1            
   labels: 
     controllername: appcontroller
+
 spec:
   replicas: 4
-  template:                                  # USES ONLY EQUILITY BASED SELECTOR.
+  template:                    # USES ONLY EQUILITY BASED SELECTOR.
     metadata:
-      name: servicepod         # by default it will the use containers label to match with service, if we do not declare
-      labels:                  # the selector explicitaly
-         appname: myapp        # to math with be service / selector
+      name: servicepod         # by default it will the use containers label to match with rc, 
+      labels:                  # if we do not declare, the selector explicitaly
+         appname: myapp        # to match with be pods.
     spec: 
       containers:
         - image: coolgourav147/nginx-custom
           imagePullPolicy: Never
           name: contone
+          ports: 
+          - containerPort: 4545
+          - containerPort: 3030
 
 
 >kubectl apply -f <rc.yaml>                  ---> repeatative usage for declarative object config.
@@ -47,7 +78,7 @@ metadata:
 spec:
   replicas: 4
   selector:
-    appname: myapp         #explicitaly giving the selector , service will match to this selector    
+    appname: myapp         #explicitaly giving the selector , rc will match to this selector to select pods   
 
   template:
     metadata:

@@ -1,10 +1,61 @@
 >
 >-------------------------------------------POD-----------------------------------------
 
+>pods are the most basic scheduling unit in k8s.
+>pods are often Ephemeral, as on killing of on epod, controller will automatically creates a replecment for it.
+
+>k8s doesnt run the container directaly, instead it wraps one or more containers 
+>into higher leval structure called as pod.
+
+>pods are smallest deployable unite that can be  created, scheduled and managed on k8s cluster.
+>each pod will have a unique ip address within the cluster.
+
+>pods can hold multiple containers as well, when we scale pod, the containers inside 
+>the pod will get scalled together, regardless of their individual needs.
+
+>every pod is like a seperate logical machine with its own IP, hostname, process and so on, running a single
+>application. it is just a sandbox to run the containers in.
+
+>any container in the same pod will share the same storage volume and network resource 
+>and communicates using localhost.
+
+>lifecycle of Pod_
+1. pending    :- pod is accepted, but container is yet to be created.
+2. running    :- pod is scheduled on node, and all containers are created and at least one is in running state.
+3. succeeded  :- all container in pod existed with status 0 and will not be restarted
+4. failed     :- all containers in pod have exited and at least one container have retruned the non zero status.
+5. CrashLoopBackoff :-the container failed to start and tried again and again
+6. unknown          :- state of pod, could not be obtained
+
+>Restart policy in k8s
+restart policy applies to all the containers in the pod.
+possible values are, Always, OnFailure, and Never.
+
+>when container in a pod exited, the kubelet restart them with an exponential back-off delay (10s, 20s, 40s...)
+>that is capped at 5 minutes.
+>once a container has executed for 10 minutes without any problem, the kubelet resets the restart backoff
+>timer for that container.
+
+>default restart policies for k8s objects_
+1. Jobs       --> on failure or Never
+2. RC         --> Always
+3. DaemonSet  --> Any
+
+
 >read : https://kubernetes.io/docs/concepts/workloads/pods/
 
->kubectl run <podname> --image=<image:version>     ---> Imperative command
+>kubectl run <podname> label="key=value" --image=<image:version> -i --rm --restart=Never -- <cmd>  --->Imperative
 
+> --image   : specifies image
+> -i        : interactive mode
+> -rm       : specifies, to remove pod, when stopped
+> --restart : specifies restart policy for container
+> --port=<> : specifies the port to be open on container
+> --expose  : this will create the service for the pod
+> --replicas: to create multiple pod replicas
+
+>kubectl run pod --help
+>kubectl explain pod.spec / pod.metadata
 
 apiVersion: v1
 kind: Pod
@@ -99,9 +150,11 @@ spec:
 
 >-------------------------------------------------- 4
 
+>kubectl run pod --help
+>kubectl explain pod.spec / pod.metadata
 >kubectl explain --recursive pod | less
 >kubectl apply -f <filename.yaml>  / --dry-run=client
->kubectl get pod / -o wide / --show-labels / -w (to monitor in realtime)
+>kubectl get pod / -o wide / --show-labels / -w (watch, to monitor in realtime)
 
 >kubectl delete pod <pod_name> / -f <manifest>
 >kubectl delete -f <pod_manifest.yml>
@@ -110,7 +163,7 @@ spec:
 >kubectl describe pod <pod_name>
 >kubectl label pod <name> label1=value1
 
->kubectl logs <pod_name> -c <container_name> / -f      for containuous logs
+>kubectl logs <pod_name> -c <container_name> / -f     ( for containuous logs)
 >kubectl logs <container_name>
 >kubectl logs -f <pod_name> --all-containers
 
@@ -119,7 +172,8 @@ spec:
 >in multicontainer pod, if we are opening any port on perticular container, then same port will be open on 
 >another container in pod. i.e. containers in a pod uses shared network and can be accessible on localhost.
 
->we can telnet between the containers_  >telnet localhost <port>
+we can telnet between the containers_  
+>telnet localhost <port>
 >netstat -nltp         : to check open ports on container
 >netcat -l -p  <port>  : to open port on container
 
@@ -136,7 +190,7 @@ spec:
  
 
 >having a one container in one pod is desirable, however , there may arise a condition where we need to
->define multiple container in a single pod, either to assist/initilize/ot to do extra works, the main container. 
+>define multiple container in a single pod, either to assist/initilize/or to do extra works for the main container. 
 >Or in a case, where application/microservices are tightly coupled and needed to be in vicinity of each other.
 
 >When it comes to container security, Distroless or Minimal base images, like alpine, reduces the attack surface.
@@ -155,10 +209,10 @@ spec:
 >container images should be small and lightweight.
 >They should pack only the application code and its dependancies. Rest everything to be scrapped off to bring down 
 >its size including the build dependancies.
->the  smaller the images the lesser is the attack on the surface to the container to the containeramd morever
+>the  smaller the images the lesser is the attack on the surface to the container to the container and morever
 >are easy to distribute and deploy.
 
->larges images can have more sodtware vulnerabilities in the form of vulnerable dependencies 
+>larger images can have more sodtware vulnerabilities in the form of vulnerable dependencies 
 >including potential security holes.
 
 >better to use alpine images like, FROM golang:alpine or FROM node:alpine
@@ -198,13 +252,14 @@ spec:
 
 >init containers supports all the features of the app containers. features like, resource limit, 
 >volumes, security. However, resource limits and requests are handled differently as init container
->do not persistanly.
+>do not exists persistanly.
 
->init containers do not supports probes like liveness, readyness, startup probes.
+>init containers do not supports probes like liveness, readiness, startup probes.
 >init container executes in an order they are defined in a manifest file.
 >once execution of init container is done, it will be removed from pod, with exit status as zero.
 
->use cases : 1. to clone the directory which is not present in image.
+>use cases : 1. to clone the directory which is not present in image before execution of main container.
+
 apiVersion: v1
 kind: Pod
 metadata:
@@ -226,7 +281,7 @@ spec:
 
   containers:
   - name: myapp
-    image: <Image>
+    image: nginx
     ports: 
       - name: http 
         containerPort: 80
@@ -324,7 +379,7 @@ spec:
 >it hides the complexity of calling external services by providing simple endpoints , like accessing 
 >database servers.
 
->Istio uses envoy proxy containers for traffic management, mTLS, dark releases, canary deployments,
+>Istio uses envoy proxy containers for traffic management, TLS, dark releases, canary deployments,
 >Blue-green deployements and A/B rollout.
 
 
@@ -359,7 +414,8 @@ spec:
 >Ephemeral Container share the process space with main app container. so they have a full view of the processes
 >which are going on in main app container build with distroless images.
 
->Ephemeral container can not be restarted. they do not have any port opened or any probes to perform.
+>Ephemeral container can not be restarted. 
+>they do not have any port opened or any probes to perform.
 >we can not specify ephemeral container in any manifest file, we have to activate it using commands, below..
 
 > >kubectl explain pod.spec.ephemeralContainers
