@@ -24,9 +24,9 @@ spec:
         - name: cont1
           image: coolgourav147/nginx-custom            # image: coolgourav147/nginx-custom:v2
 
-> if we update the above deployment with another image, (or if, there may change in replicas) and monitor the changes
+> if we update the above deployment with another image,(or if, there may change in replicas) and monitor the changes
 > with below command, then , it is observed that as older deployment will gradually get replaced by newer deployments.
-> kubectl rollout status deployment <deploy-name> 
+  kubectl rollout status deployment <deploy-name> 
 
 > the process will complated, only after all the older deployments gradually get replaced with newer deployments.
 > this strategy is called as Rolling Update strategy and there is zero downtime, it is default startegy.
@@ -45,10 +45,10 @@ metadata:
 
 spec: 
   replicas: 10              > previous, replica is 7       
-  minReadySeconds: 20     > this is the time we given for our container to be ready to accept traffic
-                                  #after creatio in pod.
+  minReadySeconds: 20     #this is the time we given for our container to be ready to accept traffic
+                          #after creatio in pod.
 
-  revisionHistoryLimit: 15   > default is 10
+  revisionHistoryLimit: 15   # default is 10, max mumber of revisions in history
 
   strategy: 
     rollingUpdate:       # here we are explictly given the RollingUpdate strategy. 
@@ -134,7 +134,7 @@ spec:
 #------------------------------------------------------------------------------------------
 
 > by default,  k8s will keep the last "10" deployment record in memory, we can change this by using
-> "revisionHistoryLimit: <n>"    , user spec of deployment.
+> "revisionHistoryLimit: <n>" , user spec of deployment.
 
 
 

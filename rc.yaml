@@ -4,8 +4,8 @@
 >through declarative or imperative Api, we describe the desire state of the objects 
 >like pod, rs, deployment in the cluster.
 
->if dur to some failures , a pod stops running , the kubelet recreates the pod based on the lines of desired
->state in etcd.
+>if there are any failures , a pod stops running , the kubelet recreates the pod based on the 
+>record of desired state in etcd.
 
 >kubeController managers in the master responsible for the regulating the state of the system. if they
 >detects any drift in current state of the cluster, they instruct the kubelets components in the worker
@@ -16,14 +16,14 @@
 >read: https://kubernetes.io/docs/concepts/workloads/controllers/replicationcontroller/
 
 >replication controller is the original form of the replication in k8s.
->replicatioj controller, ensures high availibilty by replacing unhealthy/dead pods with new ones to ensure
+>replication controller, ensure's high availibilty by replacing unhealthy/dead pods with new ones to ensure
 >required replicas are always runnig inside the cluster.
 
->we can use rc to controll the deployment of single pod also. rc will help by automatically bringing up the
->new pod whenthe existing one fails.
+>we can use rc to control the deployment of single pod also. rc will help by automatically bringing up the
+>new pod when the existing one fails.
 >Another reason we need replication controller to create multiple pod and share the load across them.
 
->Replication Controller uses Equality Based Selector(older), while Replica set uses Set Based Selector(latest).
+>Replication Controller uses Equality Based Selector(older), while Replica-Set uses Set Based Selector(latest).
 
 >Replication Controller is now deprecated and is replaced by Replica Set.
 

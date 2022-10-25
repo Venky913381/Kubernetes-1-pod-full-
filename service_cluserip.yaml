@@ -25,7 +25,7 @@
 >Cluster IP_
 
 >cluster IP makes the service available within the cluser, So that pod to pod communication becomes possible.
->ClusterIp service is available within cluser only, to access application out of cluster we need to for other
+>ClusterIp service is available within cluser only, to access application out of cluster we need to go for other
 >types of services. 
 
 
@@ -67,7 +67,7 @@ spec:
 
 >End Points
 
->endpoints tracks the ip addresses of the object,the service send traffic to.
+>endpoints tracks the ip addresses of the k8s object,the service send traffic to.
 
 >when a service selector matches a pod label, that ip added to your endpoints.
 > i.e EnsPoints are the final termination point of your microservice deployed in pod.
@@ -144,7 +144,7 @@ spec:
 
 >kubectl port-forward , give us a direct network access to port of a pod for test purpose.
 >it establishes a tunnel from the target pod to your localhost.
->The command requires yout o define the type or name of the rsource as well as local and remote port numbers.
+>The command requires yout o define the type or name of the resource as well as local and remote port numbers.
 
 >syntax_
 kubectl port-forward --address <local-IP> <res-type>/<res-name> <local-port>:<resource-port> -n <namespace-name> 
@@ -169,7 +169,8 @@ kubectl port-forward --address <local-IP> <res-type>/<res-name> <local-port>:<re
 >So communication through ip address is not prefferable. That is why , we preffer communication via DNS address.
 
 >However, DNS resolution just by pod name is not possible in k8s. In case of clusterIP service 
->it is possible, as Name of clusterIP resolves to clusterIP service itself.
+>it is possible, as Name of clusterIP resolves to clusterIP service itself. that is why we use service as
+>a abstraction/ proxy to expose the pod to the traffic.
 
 >Pod to pod communication without service do not load balances the requests.
 
@@ -190,3 +191,6 @@ kubectl port-forward --address <local-IP> <res-type>/<res-name> <local-port>:<re
 >--------------------------------------------------------------------------------------------------------------
 
 
+  
+
+ 

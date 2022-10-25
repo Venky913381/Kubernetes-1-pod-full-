@@ -1,3 +1,5 @@
+>
+
 version: 0.2
 
 phases:
@@ -13,218 +15,128 @@ phases:
         - target/hello-world.war
     discard-paths: yes                
 
+-------------------------------------------------------
 
-            
+version: 0.2
 
- --image=coolgourav147/nginx-custom
+#env:
+  #variables:
+     # key: "value"
+     # key: "value"
+  #parameter-store:
+     # key: "value"
+     # key: "value"
+  #secrets-manager:
+     # key: secret-id:json-key:version-stage:version-id
+     # key: secret-id:json-key:version-stage:version-id
+  #exported-variables:
+     # - variable
+     # - variable
+  #git-credential-helper: yes
 
+#batch:
+  #fast-fail: true
+  #build-list:
+  #build-matrix:
+  #build-graph:
 
+phases:
+  #install:
+    #If you use the Ubuntu standard image 2.0 or later, you must specify runtime-versions.
+    #If you specify runtime-versions and use an image other than Ubuntu standard image 2.0, the build fails.
+    #runtime-versions:
+      # name: version
+      # name: version
+    #commands:
+      # - command
+      # - command
+  #pre_build:
+    #commands:
+      # - command
+      # - command
+  build:
+    commands:
+      # - command
+      # - command
+  #post_build:
+    #commands:
+      # - command
+      # - command
 
-apiVersion: v1
-kind: Pod 
+#reports:
+  #report-name-or-arn:
+    #files:
+      # - location
+      # - location
+    #base-directory: location
+    #discard-paths: yes
+    #file-format: JunitXml | CucumberJson
 
-metadata: 
-  name: firstpod
-  labels: 
-     env: prod
-     name: swapnil
-spec: 
-  containers:
-    - name: firstcontainer
-      image: coolgourav147/nginx-custom
-      env: 
-        - name: owner
-          value: swapnil
-          name: city 
-          value: pune 
-      args: ["sleep","3600"]  
-    - name: secondcontainer
-      image: coolgourav147/nginx-custom
-      env: 
-        - name: name
-          value: swapnil
-          name: city 
-          value: nagpur
-      args: ["sleep","3600"]
-  initContainers:
-    - name: init1container
-      image: coolgourav147/nginx-custom
-      env: 
-        - name: name
-          value: swapnil
-          name: city 
-          value: nagpur
-      args: ["sleep","15"] 
-    - name: init2container
-      image: coolgourav147/nginx-custom
-      env: 
-        - name: name
-          value: swapnil
-          name: city 
-          value: nagpur
-      args: ["sleep","15"]
+#artifacts:
+  #files:
+    # - location
+    # - location
+  #name: $(date +%Y-%m-%d)
+  #discard-paths: yes
+  #base-directory: location
 
-
-
-
-
-
-apiVersion: v1
-kind: Service
-
-metadata:
-      name: firstservice
-      labels:
-        servicelabel: label1
-spec:
-      type: NodePort
-      port:
-        - nodePort: 32000
-          port: 9000
-          targetPort: 80
-      selector:
-          type: app
+#cache:
+  #paths:
+    # - paths
 
 
 
-apiVersion: v1
-kind: ReplicationController
-
-metadata:
-    name: firstrc
-    labels:
-      appname: app
-spec:
-    replicas: 5
-    selector:
-        type: app
-    template:
-        metadata: 
-          name: firstpod
-          labels: 
-            env: prod
-            name: swapnil
-            type: app
-        spec: 
-          containers:
-            - name: firstcontainer
-              image: coolgourav147/nginx-custom
-              env: 
-                - name: owner
-                  value: swapnil
-    
-
-
-
-apiVersion: apps/v1
-kind: ReplicaSet
-
-metadata:
-    name: firstrs
-    labels:
-      appname: app
-spec:
-    replicas: 5
-    selector:  
-        matchLabels: 
-          type: app
-    template:
-        metadata: 
-          name: firstpod
-          labels: 
-            env: prod
-            name: swapnil
-            type: app
-        spec: 
-          containers:
-            - name: firstcontainer
-              image: coolgourav147/nginx-custom
-              env: 
-                - name: owner
-                  value: swapnil
-
-
-
-apiVersion: apps/v1
-kind: ReplicaSet
-
-metadata:
-    name: firstrs
-    labels:
-      appname: app
-spec:
-    replicas: 5
-    selector:  
-      matchExpressions:
-        key: app 
-        operator: In 
-        values:
-          - app 
-          - app2
-          - app3
-
-    template:
-      metadata: 
-        name: firstpod
-          labels: 
-            type: app       
-      spec: 
-        containers:
-            name: firstcontainer
-            image: coolgourav147/nginx-custom
-               
-#--------------------------------------------
-
-
-apiVersion: v1
-kind: ResourceQuota
-metadata: 
-  name:  myquota
-
-spec:
-  hard:
-    pods: 2
-
-
-
-apiVersion: v1
-kind: ResourceQuota
-metadata: 
-  name:  myquota1
-
-spec:
-  hard:
-    requests.cpu: 0.5
-    requests.memory: 200Mi
-    limits.cpu: 1
-    limits.memory: 1Gi
+>-------------------------------------------------------------------------------------------    
+      
 
 
 
 
-apiVersion: v1
-kind: ResourceQuota
-metadata: 
-  name:  myquota1
-
-spec:
-  hard:
-    pods: 10
-    requests.cpu: 0.5
-    requests.memory: 200Mi
-    limits.cpu: 1
-    limits.memory: 1Gi
 
 
-   
-apiVersion: v1 
-kind:  LimitRange
-metadata:
-  name: testlimit
-  namespace: my-namespace
-spec:
-  limits: 
-    - default:
-        cpu: 200m 
-        memory: 300Mi
-      type: Container   
+
+Review
+
+Step 1: Choose pipeline settings
+Pipeline settings
+Pipeline name
+testapp
+Artifact location
+A new Amazon S3 bucket will be created as the default artifact store for your pipeline
+Service role name
+AWSCodePipelineServiceRole-ap-south-1-testapp
+
+Step 2: Add source stage
+Source action provider
+Source action provider
+GitHub (Version 1)
+PollForSourceChanges
+false
+Repo
+war_project
+Owner
+swapnilgit1
+Branch
+master
+
+Step 3: Add build stage
+Build action provider
+Build action provider
+AWS CodeBuild
+ProjectName
+testapp
+
+Step 4: Add deploy stage
+Deploy action provider
+Deploy action provider
+AWS Elastic Beanstalk
+ApplicationName
+testapp
+EnvironmentName
+Testapp-env
+Create pipeline
+Previous
+
+
+
+ 

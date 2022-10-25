@@ -6,6 +6,7 @@
 >kubectl get <type> <name> -o wide/yaml/json > foo.yaml/yoo.json
 >kubectl get <type> <name> --show-labels / -o wide   --->to get types as per the label assigned
 >kubectl get all -n <name_space>                     --->to get all the current resources in any namespace
+>kubectl get all/<resource> --all-namespaces         --->to get all the resources/resource in all namespaces
 
 >kubectl logs <pod_name>                              ---> to get logs of the k8s pod
 >kubectl logs -f <pod_name>                           ---> to get logs of the k8s pod
@@ -63,11 +64,56 @@
 >minikube ip               ---> to get cluster ip
 >minikube start --container-runtime='runtime_name'  ---> default, Docker , others are Containerd, rocket etc.
 
+#---------------------------------------------------------------------------------------------------------------
+
+
+>Why We Need Container Orchastration_
+
+Container Orchastration automates the deployment, management, scalling, and networking of the 
+containers across the cluster.it is focused on the managing the life cycle of container.
+
+Enterprises that need to deploy and manage hundreds or thousands of linux containers and host can benefits
+from container orchastration.
+
+k8s is open source container management tool, it provides a container runtime, container orchastration,
+container centric infrastructure orchastration, self healing mechanism, service discovery, load balancing,
+and container scalling. it is wriitten in go languange.
+
+>Container orchastration is used to automate the following tasks_
+
+>1.configuring and scheduling of the containers
+>2.provisioning and deployments of the containers
+>3.redundancy and availability of the containers
+>4.scalling up and down to spread the load evenly across host infrastructure
+>5.movement of containers from one host to another , if there is a shortage of compute resources in a host.
+>6.allocation of the resources between containers
+>7.external exposure of services running in a container with the outside world
+>8.load balancing of service discovery between contrainer
+>9.health monitoring of containers and hosts.
+
+
+>Certified Kubernetes Distribution_
+
+>1.Cloud Managed  :- EKS, AKS, GKE, CIVO, PLATFORM9, 'KOPS is a utility to manage cluster on cloud' ...etc
+>2.Self Managed   :- OpenShift by RedHat and Docker Enterprise
+>3.Local Dev/Test :- Micro k8s by canonical, minikube, kind
+>4.Vanilla K8s    :- the core k8s project(BareMetal), Kubeadm
+>5.SpecialBuilds  :- K3s by Rancher, is a light weigt k8s distribution.
+
+
+>k8s alternatives_
+
+>1. Container as a service             : ecs, fargate, azure container instance... etc
+>2. managed k8s service                : eks, aks, gke, civo... etc
+>3. paas using k8s                     : openshift, rancher offer k8s as paas
+>4. lightweight container orchastrator : docker swarm, hashicorp Nomad, apache mesos.. etc
+
+
 #----------------------------------------------------POD---------------------------------------------------------
 
 >read : https://kubernetes.io/docs/concepts/workloads/pods/
 
->kubectl run <podname> label=value --image=<image:version> -it --rm --restart=Never -- <cmd>  -->Imperative command
+>kubectl run <podname> label=value --image=<image:version> -it --rm --restart=Never -- <cmd> 
 
 > --image   : specifies image
 > -it       : interactive mode
@@ -239,7 +285,7 @@ spec:
         type: app           #selector value and pods label needed to match,  even if selector is given
                             # pod label is must. If selector attribute  is not provided
                             # then pods label is taken as default selector for rc.
-                            
+
     template:        # pod details in template
         metadata: 
           name: firstpod
@@ -561,7 +607,6 @@ spec:
 >--------------------------------------------------------------------------------------------------------------
 
 
-
 #--------------------------POD's resource REQUESTS and LIMITS------------------------------------------------
 
 >putting resource limits in the pods specs itself.
@@ -580,7 +625,7 @@ spec:
       image: coolgourav147/nginx-custom
       resources:
         requests:
-          memory: 200Mi    #Applicable for this pod only.
+          memory: 200Mi    #Applicable for this pod/container only.
           cpu: 100m
         limits: 
           memory: 300Mi
@@ -625,7 +670,7 @@ To access service in another namespace
 
 >----------------------------------------------------------------------------------------------
 
-1) OBJECT BASED QUOTA
+1) OBJECT BASED QUOTA (QUOTA FOR NAMESPACE)
 
 >this will set the limits on the number of k8s objects that can be created in given namespace.
 
@@ -644,7 +689,7 @@ spec:
 
 >----------------------------------------------------------------------------------------------
 
-2) COMPUTE BASED QUOTA
+2) COMPUTE BASED QUOTA 
 
 >This will set the combine limit on the quantity of the compute resource like RAM and CPU
 >that can be used by thr k8s object in the given namespace.
@@ -1638,7 +1683,7 @@ spec:
           command:
             - cat 
             - /tmp/test
-        initialDelaySeconds: 20 # will check for readiness after 20 sec of pod creation every 5 seconds.
+        initialDelaySeconds: 20     # will check for readiness after 20 sec of pod creation every 5 seconds.
         timeoutSeconds: 5 
         successThreshold: 2
         failureThreshold: 3
@@ -1648,7 +1693,6 @@ spec:
 
 >The default state of readiness before the initial delay is Failure . 
 >If a container does not provide a readiness probe, the default state is Success 
-      
 
 
 >-----------------------------------STARTUP-PROBE---------------------------------------------------------        
@@ -1763,8 +1807,14 @@ Defaults to 1 second. Minimum value is 1.
 >h) Cluster Role and Role Binding
 >i) Role Based Access Control
 >j) Pod/Node Affinity/AntiAffinity
+>k) DaemonSet
+>l) Istio
+>m) Kubernetes Logs 
+>n) Kubernetes Jobs
 
 >----------------------------------------------------------------------------------------------------------
+
+#Kubernetes Package Managers and Plugins Managers
 
 >Kubernetes Krew plugin manager for kubectl
 
@@ -1928,23 +1978,23 @@ Examples:
 # Requires that the 'tar' binary is present in your container
 # image.  If 'tar' is not present, 'kubectl cp' will fail.
 
-# Copy /tmp/foo_dir local directory to /tmp/bar_dir in a remote pod in the default namespace
-kubectl cp /tmp/foo_dir <some-pod>:/tmp/bar_dir
+Copy /tmp/foo_dir local directory to /tmp/bar_dir in a remote pod in the default namespace
+>kubectl cp /tmp/foo_dir <some-pod>:/tmp/bar_dir
 
-# Copy /tmp/foo local file to /tmp/bar in a remote pod in a specific container
-kubectl cp /tmp/foo <some-pod>:/tmp/bar -c <specific-container>
+Copy /tmp/foo local file to /tmp/bar in a remote pod in a specific container
+>kubectl cp /tmp/foo <some-pod>:/tmp/bar -c <specific-container>
 
-# Copy /tmp/foo local file to /tmp/bar in a remote pod in namespace <some-namespace>
-kubectl cp /tmp/foo  <some-namespace>/<some-pod>:/tmp/bar
+Copy /tmp/foo local file to /tmp/bar in a remote pod in namespace <some-namespace>
+>kubectl cp /tmp/foo  <some-namespace>/<some-pod>:/tmp/bar
 
-# Copy /tmp/foo from a remote pod to /tmp/bar locally
-kubectl cp <some-namespace>/<some-pod>:/tmp/foo /tmp/bar
+Copy /tmp/foo from a remote pod to /tmp/bar locally
+>kubectl cp <some-namespace>/<some-pod>:/tmp/foo /tmp/bar
 
 Options:
 -c, --container='': Container name. If omitted, the first container in the pod will be chosen
 
 Usage:
-kubectl cp <file-spec-src> <file-spec-dest> [options]
+>kubectl cp <file-spec-src> <file-spec-dest> [options]
 
 Use "kubectl options" for a list of global command-line options (applies to all commands).
 

@@ -36,9 +36,9 @@
 
 >LOAD BALANCER
 
->we need a cloud environment like eks, gke ,civo, platform9 ,digitalOcean etc. to use load-balancer type service
+>we need a cloud environment like eks, gke, aks, civo, platform9 ,digitalOcean etc to use load-balancer type service
 
->once we sets up our k8s cluster in cloud environment, all we nned to do is create a service with
+>once we sets up our k8s cluster in cloud environment, all we need to do is create a service with
 >type as loadBalancer. and this will configure the load balacer provided by cloud provider to our service
 >in our cluster.
 

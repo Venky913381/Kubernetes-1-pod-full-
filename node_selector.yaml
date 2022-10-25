@@ -1,5 +1,5 @@
 >
->There are various ways to schedule a pod on node or selecta Node to schedule/ececute the pod,
+>There are various ways to schedule a pod on node or select a Node to schedule/execute the pod,
 >these are_
       1.Node Name and Node Selector
       2.Node Affinity and Node-Anti-Affinity
@@ -10,7 +10,7 @@
 >kubernetes user normally do not need to choose a node to execute their pod, Instead , selection of appropriate
 >pod is automatically handled by kubernetes scheduler.
 
->k8s schedules watches for the newly created pod that have no Node assigned and for everyy such pod scheduler
+>k8s scheduler watches for the newly created pod that have no Node assigned and for every such pod scheduler
 >becomes responsible for finding the best node for that pod to run on.
 
 >Automatic node scheduling prevents user from scheduling pod on unhealthy node.
@@ -23,6 +23,8 @@
 >-----------------------------------------------------------------------------------------------------------------
 
 >Node Name_
+
+works based on the name of the Node. not based on the labels of the node.
 
 apiVersion: v1
 kind: Pod
@@ -39,18 +41,21 @@ spec:
 
   nodeName: <node_name>    
 
+>Node name may be the hostname of the node, in cloud environment, hostname will not remain stable and may get 
+>changed.
 
 >nodeName is a feild in pod spec, which defines the node name on which we wants pod to get schedule.
->it is simplest way to schedule the pod on perticular node using node selection constraiunts, but due
->to its limitations it is typuically not used.
->we can also assign the pod to master node using this method.
+>it is simplest way to schedule the pod on perticular node using node selection constraints, but due
+>to its limitations it is typically not used.
+
+>we can also assign the pod to master node using this method. this is Hard method/rule to schedule the pod.
 
 >if the named node does not exist in cluster, the pod will not run and in some cases may be automatically deleted.
 >like in eks cluster, we do not have choice for selecting node names.
 
 >the the named node does not have a resource to accommodate the pod , the pod will fail.
 
->node name in cloud enevironments like eks or gke are not always predictable or stable.
+>node name in cloud environments like eks or gke are not always predictable or stable.
 
 to get names of the nodes in our k8s cluster.
 >kubectl get nodes -o wide
@@ -59,6 +64,8 @@ to get names of the nodes in our k8s cluster.
 >-----------------------------------------------------------------------------------------------------------------
 
 >Node Selector_
+
+works based on the Labels of the Node. not based on the Name of the node.
 
 apiVersion: v1
 kind: Pod

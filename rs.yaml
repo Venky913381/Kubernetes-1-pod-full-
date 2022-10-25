@@ -18,10 +18,11 @@
 >Replica set is higher level objects that gives ability to easily run multiple instance for given pod.
 >it works similat ro replication controller.
 
->Replica set uses SET BASE SELECTOR to manage pods.
+>Replica set uses SET BASE SELECTORS to manage pods.
 
->the major difference between RC AND RS is the Rolling -Update command , which works with Replicatio Controller 
->but wonts works with Replica set . THis is becouse rs are meant to be used as a backend for the Deplyments.
+>the major difference between RC AND RS is the Rolling-Update command , which works with Replica set  
+>but wonts works with Replication Controller . 
+>This is becouse rs are meant to be used as a backend for the Deplyments.
 
 >Deployments are recommanded over Replica Set.
 
@@ -37,11 +38,11 @@ metadata:
     type: frontend
 
 spec: 
-  replicas: 3                  > if we specify multiple matchLabels, and if existing pods do not match all labels 
-  selector:                     # then all new pods with multiple labels will be created.
+  replicas: 3                   #if we specify multiple matchLabels, and if existing pods do not match all labels 
+  selector:                     #then all new pods with multiple labels will be created.
     matchLabels: 
-      appname: app            #labels must match to the container label, else will give error
-  template:                       # able to match only one label , with existing pods.
+      appname: app              #labels must match to the container label, else will give error
+  template:                     #able to match only one label , with existing pods.
     metadata: 
       name: pod1
       labels: 
@@ -66,7 +67,6 @@ spec:
   - image: coolgourav147/nginx-custom
     name:  my-name   
 
-
 >-----------------------------------------------------------------------
 
 >Replica Set, using Match Expression
@@ -86,9 +86,9 @@ spec:
     - key: appname
       operator: In 
       values:
-        - app              >pod must have all labels, .i.e. appname and type. only one will not work.
+        - app              #pod must have all labels, .i.e. appname and type. only one will not work.
         - app2
-                          # will select all pod having Labels, appname-->app,app2 and type-->frontend
+                          # will select all pod having Labels, appname-->app or app2 and type-->frontend
     - key: type            > but, it will not select any app, app2 with type backend.
       operator: In 
       values:
@@ -132,32 +132,35 @@ selector:
 selector:                   
     matchLabels: 
       appname: app
-      type: frontend
+      type: frontend        # LOGICAL AND
       owner: swapnil
 
 >pod neded to have all the labels as shown above to be controlled by RS. i.e each label is AND operated.
 
 >----------------------------------------------------------------------------------
 
-> In Match Expression in rs file, conditions given under match labels will be considered and treated as LOGICAL OR. 
+>In Match Expression in rs file, conditions given under match Expression's KEY will be 
+>considered and treated as LOGICAL OR. (i.e within single KEY)
 >i.e pod will need to match at least one conditions to be controlled by rs.
 
 matchExpressions:
     - key: appname
       operator: In 
       values:
-        - app1          
+        - app1             # LOGICAL OR
         - app2
 >pod needed to have at least one of above 2 label  to be controlled by RS.      
 
 
+>However, if there are multiple matching expressions then , conditions defined by each KEY will considered
+>and treated as LOGICAL AND. (i.e. with multiple Keys)
 
 matchExpressions:
     - key: appname
       operator: In 
       values:
         - app1 
-        - app2             #any one will work 
+        - app2             #any one will work i.e. LOGICAL "AND" BETWEEN TWO KEYS
     - key: type
       operator: In 
       values:

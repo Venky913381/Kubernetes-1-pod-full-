@@ -18,7 +18,7 @@ sample_project
 │   └── tests
 │           └── test-connection.yaml
 └── values.yaml
-└── requirements.yaml
+└── requirements.yaml (helm 2.0 version, deprecated in 3.0 version)
 └── readme.md
 └── LICENCE
 
@@ -39,4 +39,13 @@ in this yml filr we define charts dependancies, so that it can be download dynam
 >values.yaml
 a yaml file of default configuration values for the chart.
 
+>helpers.tpl
+where we will declare our functions
 
+>Test
+before doing actual deployment,  we we want to do some testing, we will do it here.
+
+
+
+
+      

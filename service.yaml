@@ -12,7 +12,7 @@
 >        on port 3000, we can access the service through its <service_name>:3000
 
 >Target Port :- target port represents the actual Container Port of the pod. it should match the container port
->               in the podmanifest file.
+>               in the pod's manifest file.
 
 >Node Port: Node port represents the port of the Node , from which external traffic access the service. 
 >           It is used with Ip address of the node/ec2 , and serice will be accessible.
@@ -56,12 +56,13 @@ spec:
     - image: coolgourav147/nginx-custom
       imagePullPolicy: Never
       name: servicecontainer 
+      ports:
+        containerPort: 80
 
 
 
 
 >--------------------------------------------------ClusterIP---------------------------------------------------
-
 
 apiVersion: v1
 kind: Service 
@@ -76,7 +77,7 @@ spec:                                  #can be used with above pod too..
   selector:
     appname: myapp
   ports:
-  - name: my-servicee
+  - name: my-service
     port: 9000              > pod port/listening port
     protocol: TCP
                                                   
@@ -109,7 +110,7 @@ spec:
 
 >kubectl port-forward -n <name_space> pod/<pod_name> <port>  ---> to forward the traffic to pod w/o service
 
->curl <servicename>.<ns_name>.svc.cluster.local              ---> to access service in another namespace
+>curl <servicename>.<ns_name>.svc.cluster.local              ---> to access service in another namespace, fqdn
 
 >kubectl get endpoints/ep -n <namespace>                     ---> to get the endpoints of pods in namespace
 
@@ -175,9 +176,9 @@ ports:
 
 >There are two types of applications 1.Stateless application  and  2.Statefull application.
 
-Stateless : it will do not store anything (data) or retrieve anything, eg . Nginx
+Stateless : it will do not store anything (data), previous session, nor it retrieve anything, eg . Nginx
 Statfull  : this type of application stores state, so whenever application crashes or if any issue arises
-            or app lost connection, whenever, it comes back it from the same state as data is stored. 
+            or app lost connection, whenever, it comes back it starts from the same state as data is stored. 
             this type of application can not always start from scratch.
 
 
@@ -191,8 +192,9 @@ If we, DNS query the service name via utilities like nslookup, k8s returns the s
 of the pod it manages.
 
 if we are running the single instance of the database pod like mangodb , 
-we do not need to load balalnce as only one replica is available. Also, we need the dns query of service 
-name to return the ip address of mangodb pod but not of service.
+we do not need to load balance as only one replica is available. 
+
+we need the dns query of service name to return the ip address of mangodb pod but not of service.
 
 to achieve this , we explicitly set the '.spec.clusterIP' of the service to 'None' to instruct k8s not to
 assign any IP to the service  or to Load balance the requests. 
@@ -204,27 +206,29 @@ by the service. The requests will accept the first IP address returned.
 One of the misconception with Headless service is that, it do not Load Balances the request.
 Even though headless service return the ip addresses of the pods, it will still load balances the 
 requests to the pods and this type of load balancing is called as DNS ROUND ROBIN LOAD BALANCING.
-> Headless service will Not always forward the reuest to first pod.
+
+> Headless service will Not always forward the request to first pod.
 
 >curl <headless_service_name>:<container_port>  ---> this request is directaly forwaed to backend pod through
->    DNS ROUND ROBIN LOAD BALANCING mechanism and for each dns quesy/request it will result in new ip address
+>    DNS ROUND ROBIN LOAD BALANCING mechanism and for each dns query/request it will result in new ip address
 >    as headless service is load balancing the requests. 
 
->However, headless service , whenused with StatefulSets provides a 
->unique identity to each pod managed by StatefulSet
+>However, headless service , when used with StatefulSets provides a unique identity to each pod
+>managed by StatefulSet
 
 
 >Headless services are more useful when_
 1. Pod to pod communication.
 >   pod to pod communication , where we do not wants request to be load balance by service and insted of 
 >   returning the service ip, we wants to dynamically fetch the ips of pods to be return.
+
 2. Master-slave configuration, where slaves needs to be aware of the mastrer pod like Clustered databases.
 
 
 
->a headless service is a service with service ip but , insted of load balancing it will return the ips of our
->associated pods, this allows us to interact directaly with pods insted of proxy. it is as simple as specifying
->None for '.spec.clusterIP' and can be utilized with or without selectors.
+>a headless service is a service without service ip but , insted of load balancing it will return the ips of our
+>associated pods, this allows us to interact directaly with pods instead of proxy. it is as simple as specifying
+>'None' for '.spec.clusterIP' and can be utilized with or without selectors.
 
 >Headless service allows us to reach pod directaly, rather than the service acting as a load balancer or
 >proxy. this can have many use cases.
@@ -290,9 +294,9 @@ spec:
         
 >here, we have named the port on container along with opening the perticular port and 
 >using service, we are targeting the port on pod, not by using its port number , but by using the
->port name , that er have given to the port , we opened on pod.
+>port name , that we have given to the port , we opened on pod.
 
->this way, even if we chnaged the port numbers on pod, we need not to update the same on service manifest,
+>this way, even if we changed the port numbers on pod, we need not to update the same on service manifest,
 >as service is identifying the target port using its name  and not using its number.
 
 
@@ -310,10 +314,10 @@ the Service can abstract other kinds of backends, including ones that run outsid
 1> You want to have an external database cluster in production, 
    but in your test environment you use your own databases.
 
-2>You want to point your Service to a Service in a different Namespace or on another cluster.
+2> You want to point your Service to a Service in a different Namespace or on another cluster.
 
-3>You are migrating a workload to Kubernetes. While evaluating the approach, 
-  you run only a portion of your backends in Kubernetes.
+3> You are migrating a workload to Kubernetes. While evaluating the approach, 
+   you run only a portion of your backends in Kubernetes.
 
 
 

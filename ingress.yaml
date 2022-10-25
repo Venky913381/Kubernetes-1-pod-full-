@@ -119,9 +119,9 @@ spec:
 >using same ip address. 
 
 >Ingress controller, typically do not eliminates the need for external load balancer, 
->but it add extra layer of routing and control behind the load balalncer.
+>but it add extra layer of routing and control behind the load balancer.
 
->we only pay for one Load balancer or ip priovided by cloud provider and Ingress controller is smart enough to
+>we only pay for one Load balancer or ip provided by cloud provider and Ingress controller is smart enough to
 >route various requests using simple Host or URL based routing.
 
 >Ingress controller allows us to map multiple DNS names to single IP and using routing rules, we can can route
@@ -142,11 +142,11 @@ spec:
 
 > Ingress Controller :--> 
     is the one that is responsible for implementing all the ingress rules, usually with 
-    load balalncer to help handle traffic.
+    load balancer to help handle traffic.
     Ingress controller route the traffic only through DNS names, not through IP address, as tll the routing
     rules are defined in Ingress Controller. i.e.Application are only accessible by DNS names and not through IP. 
 
->Ingress Class :-->
+> Ingress Class :-->
     Ingresses can be implemented by different controller , such as Nginx, Traefik etc. often with 
     different configuration.
 
@@ -156,10 +156,10 @@ spec:
 
 >----------------------------------------------------------------------------------------------------------------- 
 
->Ingress exposes HTTPS and  HTTPS routes from outside the cluster to service within the cluster.
+>Ingress exposes HTTP and  HTTPS routes from outside the cluster to service within the cluster.
 >Traffic routing is controlled by rules defined in ingress resource.
 
->Ingress resource can  ot do anything on their own, we need to have an Ingress controller in order for ingress 
+>Ingress resource can not do anything on their own, we need to have an Ingress controller in order for ingress 
 >resource to work. Thus, Ingress Controller implements the rules defined by Ingress Resource.
 
 

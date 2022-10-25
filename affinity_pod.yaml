@@ -22,7 +22,7 @@
 # Pod Affinty and Pod antiAffinity_
 
 >In pod Affinty and Pod antiAffinity , Node will select , How the perticular Pod will be placed Relative to other 
->pods based on the rules defined under Node affinity and AntiAffinity in pod spec manifest file.
+>pods based on the rules defined under rule of *(node/correction needed) affinity and AntiAffinity in pod spec manifest file.
 >i.e. Pod will select the Node , based on the type Pod which is already running on that node.
 
 >In pod Affinty and Pod antiAffinity , allows you to specify rules about How pods should be placed relative to
@@ -36,7 +36,9 @@
 >Pod Anti Affinity, can Prevent the scheduler from co-locating a new pod on the same node 
 >as pod with the same label, if the label selector on the new pod matches the label on the current pod.
 
-
+>we have two kinds of scheduling methods under affinty rules_
+1. HARD SCHEDULING - (required)
+2. SOFT SCHEDULING - (preffered)
 
 >-----------------------------------------------------------------------------------------------------------------
 
@@ -55,7 +57,7 @@ spec:
 
   affinity: 
     nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution: 
+      requiredDuringSchedulingIgnoredDuringExecution:   #hard scheduling
         nodeSelectorTerms: 
           - matchExpressions:
             - key: gpu 
@@ -67,7 +69,7 @@ spec:
 
 
 apiVersion: v1
-kind: Pod                           # this is new pod, and it will colocate with existing pod.
+kind: Pod                           # this is new pod, and it will co-locate with existing pod.
 metadata:
   name: nginx-with-pod-affinity
 spec:
@@ -125,7 +127,7 @@ spec:
 
   affinity: 
     podAntiAffinity: 
-      prefferedDuringSchedulingIgnoredDuringExecution:
+      prefferedDuringSchedulingIgnoredDuringExecution:   #soft scheduling
       - weight: 100
         podAffinityTerm: 
           labelSelector:
@@ -160,6 +162,7 @@ spec:
 > weight :- Weight is used to define the prefference of node selection, when we give multiple Match Expressions and 
 >           and there are multiple nodes that satisfies the affinity conditions. so K8S rates the nodes and based 
 >           on its values assign weight to it.
+
 >           its value varies between 1 to 100, based on weight it "preffered" the node to get schedule.
 >           (only for preffered). 
 >           K8S will schedule the pod on a node with Highest total weight score. 
@@ -205,7 +208,7 @@ spec:
                   - cache
             topologyKey: kubernetes.io/hostname
 
->above, AntiAffinity rule, will ensure that no teo redis pod will get schedule on same node.
+>above, AntiAffinity rule, will ensure that no two redis pod will get schedule on same node.
 
 
 apiVersion: apps/v1

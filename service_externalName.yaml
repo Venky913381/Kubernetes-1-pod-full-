@@ -23,7 +23,7 @@ spec:
   type: ExternalName
   externalName: my.database.example.com   
 
->so , in nutshell, we use texternal service in a case where, we want our service to resolve to the DNS name
+>so , in nutshell, we use external service in a case where, we want our service to resolve to the DNS name
 >instead of local selector.
 
 
