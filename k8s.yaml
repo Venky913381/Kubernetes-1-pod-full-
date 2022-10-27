@@ -72,7 +72,7 @@
 Container Orchastration automates the deployment, management, scalling, and networking of the 
 containers across the cluster.it is focused on the managing the life cycle of container.
 
-Enterprises that need to deploy and manage hundreds or thousands of linux containers and host can benefits
+Enterprises that need to deploy and manage hundreds or thousands of linux containers and hosts can benefits
 from container orchastration.
 
 k8s is open source container management tool, it provides a container runtime, container orchastration,
@@ -104,7 +104,7 @@ and container scalling. it is wriitten in go languange.
 >k8s alternatives_
 
 >1. Container as a service             : ecs, fargate, azure container instance... etc
->2. managed k8s service                : eks, aks, gke, civo... etc
+>2. managed k8s service                : eks, aks, gke, civo, platform9... etc
 >3. paas using k8s                     : openshift, rancher offer k8s as paas
 >4. lightweight container orchastrator : docker swarm, hashicorp Nomad, apache mesos.. etc
 
@@ -609,7 +609,7 @@ spec:
 
 #--------------------------POD's resource REQUESTS and LIMITS------------------------------------------------
 
->putting resource limits in the pods specs itself.
+>putting resource limits in the pods specs itself.(resources for each container in pod)
 
 apiVersion: v1
 kind: Pod 
@@ -659,7 +659,7 @@ To access service in another namespace
 > <*servicename>.<namespacename>.svc.cluster.local  -->curl it
 
 
->we can controll resources in custom namespace in two different ways_
+>we can control resource allocation in custom namespace in two different ways_
 1> ResourceQuota
 2> LimitRange
 
@@ -686,15 +686,26 @@ spec:
     pods: 2    # same can be applied to RC, RS, DEPLOYMENTS, SERVICES, JOBS AND Others.........
 
 > this will limit the namespace for creation of only two pods in it.
+>Similarly, applicable for_ (Object Based Quota)
+persistentvolumeclaims
+services
+secrets
+configmaps
+replicationcontrollers
+deployments
+replicasets
+statefulsets
+jobs
+cronjobs
 
 >----------------------------------------------------------------------------------------------
 
 2) COMPUTE BASED QUOTA 
 
->This will set the combine limit on the quantity of the compute resource like RAM and CPU
+>This will set the combine limit on the quantity of the compute resource like RAM and CPU, a namespace can utilize.
 >that can be used by thr k8s object in the given namespace.
 
-apiVersion: v1                # this is the combine request/ limits of the pods or resoures in the namespace
+apiVersion: v1                # this is the combine request/ limits for the pods or resoures in the namespace
 kind: ResourceQuota           # i.e. SUM of all pods/resorces must be within request and limit constraint. 
 
 metadata: 
@@ -713,7 +724,7 @@ spec:
 
 apiVersion: v1
 kind: ResourceQuota             #However, if we do not specify the limit in pod file and specify only request
-metadata:                         # then apply will ERROR out, as it will cross the limit set by quata file for NS.
+metadata:                         # then apply will ERROR out, as it will cross the limit set by quota file for NS.
   name:  myquota1
 
 spec:
@@ -721,7 +732,8 @@ spec:
     pods: 10               #putting limits on number of resources and limit on compute resources..
     requests.cpu: 0.5                     # COMPUTE + OBJECT limit.
     requests.memory: 200Mi               
-    limits.cpu: 1                       
+    limits.cpu: 1
+    limits.memory: 1Gi                       
 
 
 >kubectl apply -f <manifest.yaml> -n <namespaceName>
@@ -946,7 +958,7 @@ spec:
 #-------------------------------------------SECRETS----------------------------- (uses Base64 encryption)
 
 
->kubectl create secret generic <my-sec1> --from-literal=name=swapnil  --> direct from literals
+>kubectl create secret generic <my-sec1> --from-literal=name="swapnil"  --> direct from literals
 
 >generic is encryption method, other are Docker registry and tls
 
@@ -1050,6 +1062,26 @@ spec:
 #--------------------------------------Taint and Toleration-----------------------------------------------   
 
 > refer, https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
+
+Node affinity is a property of Pods that attracts them to a set of nodes,
+(either as a preference or a hard requirement). Taints are the opposite,  they allow a node to Repel a set of pods.
+
+>The default value for operator is Equal.
+
+A toleration "matches" a taint if the keys are the same and the effects are the same, and:
+>1.the operator is Exists (in which case no 'value' should be specified), or
+>2.the operator is Equal and the values are equal.
+
+There are two special cases:
+>1.An empty key with operator Exists matches all keys, values and effects which means this will tolerate everything.
+>2.An empty effect matches all effects with key key
+
+>There can be multiple taints on the node with same or different keys, so in order for pod to get schedule on that 
+>node, we need to add all the tolarations with all the keys, as per taints on the node.
+
+>if there are multiple taints on node, pod need to tolerate all the taints , else it will not able to tolerate the
+>taints on the node. 
+
 
 > kubectl taint node <node-name> <key>=<taint>:<effect>    --> NoSchedule /PreferNoSchedule / NoExecute
 
@@ -1212,7 +1244,7 @@ spec:
     ports:
       - containerPort: 80 
 
-  nodeName: <node_name>    
+  nodeName: <node_name>    #name of node, NOT LABEL
 
 
 >nodeName is a feild in pod spec, which defines the node name on which we wants pod to get schedule.
@@ -1229,7 +1261,6 @@ spec:
 
 to get names of the nodes in our k8s cluster.
 >kubectl get nodes -o wide
-
 
 
 

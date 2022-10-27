@@ -22,18 +22,18 @@
 # Pod Affinty and Pod antiAffinity_
 
 >In pod Affinty and Pod antiAffinity , Node will select , How the perticular Pod will be placed Relative to other 
->pods based on the rules defined under rule of *(node/correction needed) affinity and AntiAffinity in pod spec manifest file.
+>pods based on the rules defined under rule of Pod affinity and AntiAffinity in pod spec manifest file.
 >i.e. Pod will select the Node , based on the type Pod which is already running on that node.
 
 >In pod Affinty and Pod antiAffinity , allows you to specify rules about How pods should be placed relative to
 >other pods running on perticular node.
 
->Pod Affinity, can tell the scheduler to co-locate a new pod on the same node as 'Other Pod', 
->if the label selector on the new pod matches the label on current pod.
+>Pod Affinity,we can tell the scheduler to co-locate a new pod on the same node as 'Other Pod', 
+>if the label selector on the new pod matches the label on current pod running on the node.
 >i.e. it will check the label of existing pod, so that new pod will get schedule on the 
->same node as existing pod is. so that both pods will be on same node.
+>same node as existing pod is. so that both pods will be on same node. i.e IT WILL CO-LOCATE THE BOTH PODS.
 
->Pod Anti Affinity, can Prevent the scheduler from co-locating a new pod on the same node 
+>Pod Anti Affinity, can Prevent the scheduler from co-locating/i.e. NotTO Co-locatea new pod on the same node 
 >as pod with the same label, if the label selector on the new pod matches the label on the current pod.
 
 >we have two kinds of scheduling methods under affinty rules_
@@ -126,7 +126,7 @@ spec:
     image: nginx
 
   affinity: 
-    podAntiAffinity: 
+    podAntiAffinity:             #podAntiAffinity
       prefferedDuringSchedulingIgnoredDuringExecution:   #soft scheduling
       - weight: 100
         podAffinityTerm: 
@@ -168,7 +168,7 @@ spec:
 >           K8S will schedule the pod on a node with Highest total weight score. 
 >           i.e weight 80 is more desirable than weight 60.
 
-
+#only for preffered clause...
 
 >-----------------------------------------------------------------------------------------------------------------
 

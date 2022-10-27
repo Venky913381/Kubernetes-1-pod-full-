@@ -119,4 +119,4 @@ spec:
 >(it is not a continuous process). The interval is set by the --horizontal-pod-autoscaler-sync-period 
 >parameter to the kube-controller-manager (and the default interval is 15 seconds).      
 
->
+>-----------------------------------------------------------------------------------------------------------

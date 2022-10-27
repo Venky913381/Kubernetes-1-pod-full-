@@ -39,7 +39,7 @@ spec:
     ports:
       - containerPort: 80 
 
-  nodeName: <node_name>    
+  nodeName: <node_name>     #name of node, NOT LABEL
 
 >Node name may be the hostname of the node, in cloud environment, hostname will not remain stable and may get 
 >changed.

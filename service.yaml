@@ -15,7 +15,7 @@
 >               in the pod's manifest file.
 
 >Node Port: Node port represents the port of the Node , from which external traffic access the service. 
->           It is used with Ip address of the node/ec2 , and serice will be accessible.
+>           It is used with Ip address of the node/ec2 , and service will be accessible.
 >           NodePort Ranges from port 30000 to port 32767.
 
 >type : type represent the type of the service.
@@ -138,13 +138,13 @@ spec:
 
 >-------------------------------------------------------------
 
->1) http://ip:8080 ---->9000---->32000
->2) http://ip:8080 ---->9000---->my-service
+>1) http://ip:32000 ---->9000---->80
+>2) http://ip:32000 ---->9000---->my-service
 
   ports:                                               
-  - nodePort: 8080
+  - nodePort: 32000
     port: 9000      
-    targetPort: 32000  
+    targetPort: 80  
 
     name: my-service
     protocol: tcp   
@@ -152,7 +152,7 @@ spec:
 > for using "name" container specs must mentioned the Port attributes with containerport and its name in container
 > spec as below.....
 ports:
-- containerPort: 32000        
+- containerPort: 80        
   name: my-service      
 
 
@@ -176,7 +176,7 @@ ports:
 
 >There are two types of applications 1.Stateless application  and  2.Statefull application.
 
-Stateless : it will do not store anything (data), previous session, nor it retrieve anything, eg . Nginx
+Stateless : it will do Not store anything (data), previous session, nor it retrieve anything, eg . Nginx
 Statfull  : this type of application stores state, so whenever application crashes or if any issue arises
             or app lost connection, whenever, it comes back it starts from the same state as data is stored. 
             this type of application can not always start from scratch.
@@ -188,14 +188,13 @@ The default behaviour of the k8s is to assign internal ip address to the service
 Through this ip address, the service will proxy all the client requests 
 and load balance them to the pods behind it.
 
-If we, DNS query the service name via utilities like nslookup, k8s returns the service but not the ip's 
+If we, DNS query the service name via utilities like nslookup, k8s returns the service's ip but not the ip's 
 of the pod it manages.
 
 if we are running the single instance of the database pod like mangodb , 
 we do not need to load balance as only one replica is available. 
 
-we need the dns query of service name to return the ip address of mangodb pod but not of service.
-
+if, we do the dns query of service name to return the ip address of mangodb pod but not of service.
 to achieve this , we explicitly set the '.spec.clusterIP' of the service to 'None' to instruct k8s not to
 assign any IP to the service  or to Load balance the requests. 
 This type of service is knows as Headless Service.
@@ -209,7 +208,7 @@ requests to the pods and this type of load balancing is called as DNS ROUND ROBI
 
 > Headless service will Not always forward the request to first pod.
 
->curl <headless_service_name>:<container_port>  ---> this request is directaly forwaed to backend pod through
+>curl <headless_service_name>:<container_port>  ---> this request is directaly forwarded to backend pod through
 >    DNS ROUND ROBIN LOAD BALANCING mechanism and for each dns query/request it will result in new ip address
 >    as headless service is load balancing the requests. 
 
@@ -222,12 +221,12 @@ requests to the pods and this type of load balancing is called as DNS ROUND ROBI
 >   pod to pod communication , where we do not wants request to be load balance by service and insted of 
 >   returning the service ip, we wants to dynamically fetch the ips of pods to be return.
 
-2. Master-slave configuration, where slaves needs to be aware of the mastrer pod like Clustered databases.
+2. Master-slave configuration, where slaves needs to be aware of the master pod like Clustered databases.
 
 
-
->a headless service is a service without service ip but , insted of load balancing it will return the ips of our
->associated pods, this allows us to interact directaly with pods instead of proxy. it is as simple as specifying
+>a headless service is a service without service ip but , instead of load balancing it will return the ips of our
+>associated pods.
+>This allows us to interact directaly with pods instead of proxy. it is as simple as specifying
 >'None' for '.spec.clusterIP' and can be utilized with or without selectors.
 
 >Headless service allows us to reach pod directaly, rather than the service acting as a load balancer or
@@ -304,7 +303,7 @@ spec:
 
 
 # Service Without Selectors_
->we can define the servce without selectors, however , in this we need to define the endpoints resource of
+>we can define the service without selectors, however , in this we need to define the endpoints resource of
 >the pod using endpoints manifest file.
 
 Services most commonly abstract access to Kubernetes Pods thanks to the selector, 
@@ -397,7 +396,7 @@ subsets:
 
 >first exec in to the container from which we want to communicate with other pod.
 >list the environmental variable using, #env
->we will get environmental variable likes, <service_name>_SERVICE_HOST, <service_name>_SERVICE_HOST
+>we will get environmental variable likes, <service_name>_SERVICE_HOST, <service_name>_SERVICE_IP
 
 >Using these variable we can access service as,
  curl <service_name>_SERVICE_HOST:<service_name>_SERVICE_HOST/<path_if_exist>

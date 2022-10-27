@@ -23,8 +23,6 @@ spec:
 
 >kubectl apply -f <limit/quota.yml> -n <test-space-name>   --> if ns is not specified in metadata.
 
-
-
 >Similarly, applicable for_ (Object Based Quota)
 persistentvolumeclaims
 services
@@ -39,7 +37,7 @@ cronjobs
 
 >------------------------------------------------------------------------------------------------
 Compute Based Quota
->B) putting maximum compute resource limit for namespace. (Compute Based Quota)
+>B) putting maximum compute resource limit for the entire namespace. (Compute Based Quota)
 
 apiVersion: v1
 kind: ResourceQuota 
@@ -55,14 +53,14 @@ spec:
     limits.cpu: 1
     limits.memory: 600Mi
 
-> even if we put the resource limit on namepace, we need to put individual limits on pod in pod def.
-> else pod creation will error out.
+>even if we put the resource limit on namepace, we need to put individual limits on pod in pod specs.
+>else pod creation will error out.
 
 >if we do not put requests in pod def and only describe limit , then pod will occupy the resources
->equivalent to the max resource limit.
+>equivalent to the max resource limit, i.e. request==limit.
 
 >if we do not put limits in pod def and only describe requests , then pod creation will error out,
->becouse, it will exceeds the Namespace limit(if specified)
+>becouse, it will exceeds the Namespace limit(if specified), i.e. requests==all resource capacity.
 
 >----------------------------sample test pod--------------------------
 
@@ -134,7 +132,7 @@ spec:
 >on the h/w resources to be used by pod/container. this will ensure that pod/container must/at least get
 >resource h/w allocation defined by MIN AND MAX.
 
-> This will be helpful, if any pod , contains very service, that have a minimum requirement of h/w resources. MAX/MIN 
+> This will be helpful, if any pod , contains a service, that have a minimum requirement of h/w resources. MAX/MIN 
 > will ensure that , container for that service will get the resources it needed.
 
 apiVersion: v1
@@ -183,7 +181,20 @@ spec:
 > this specifies that pod's , limit/request must not exeed 2. 
 > i.e. max request of pod must be less than or equivalent to half of the limit.
 
-so, if memory limit is 500Mi then request must not be more than 250Mi, which ensure the ration of 2.
->----------------------
+so, if memory limit is 500Mi then request must not be more than 250Mi, which ensure the ratio of 2.
+
+>------------------------------------------------------------------------------------------------------------
 
 
+>If you add a LimitRange in a namespace that applies to compute-related resources such as cpu and memory, 
+>you must specify requests or limits for those values. Otherwise, the system may reject Pod creation.
+(if 'type' attribute is not specifies in spec file)
+
+>LimitRange validations occur only at Pod admission stage, not on running Pods. 
+>If you add or modify a LimitRange, the Pods that already exist in that namespace continue unchanged.
+
+>If two or more LimitRange objects exist in the namespace, it is not deterministic 
+>which default value will be applied
+
+
+>------------------------------------------------------------------------------------------------------------

@@ -143,7 +143,7 @@ spec:
 > Ingress Controller :--> 
     is the one that is responsible for implementing all the ingress rules, usually with 
     load balancer to help handle traffic.
-    Ingress controller route the traffic only through DNS names, not through IP address, as tll the routing
+    Ingress controller route the traffic only through DNS names, not through IP address, as all the routing
     rules are defined in Ingress Controller. i.e.Application are only accessible by DNS names and not through IP. 
 
 > Ingress Class :-->

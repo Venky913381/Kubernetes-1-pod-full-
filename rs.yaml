@@ -4,8 +4,8 @@
 >through declarative or imperative Api, we describe the desire state of the objects 
 >like pod, rs, deployment in the cluster.
 
->if dur to some failures , a pod stops running , the kubelet recreates the pod based on the lines of desired
->state in etcd.
+>if due to some failures , a pod stops running/dies , the kubelet recreates the pod based on the lines of desired
+>state stored in etcd.
 
 >kubeController managers in the master responsible for the regulating the state of the system. if they
 >detects any drift in current state of the cluster, they instruct the kubelets components in the worker
@@ -87,8 +87,8 @@ spec:
       operator: In 
       values:
         - app              #pod must have all labels, .i.e. appname and type. only one will not work.
-        - app2
-                          # will select all pod having Labels, appname-->app or app2 and type-->frontend
+        - app2             #pod needed to have at least one of above 2 label  to be controlled by RS.
+                           # will select all pod having Labels, appname-->app or app2 and type-->frontend
     - key: type            > but, it will not select any app, app2 with type backend.
       operator: In 
       values:

@@ -78,7 +78,7 @@ metadata:
 spec:
   replicas: 4
   selector:
-    appname: myapp         #explicitaly giving the selector , rc will match to this selector to select pods   
+    appname: myapp      #explicitaly giving the selector , rc will match to this selector to select existing pods   
 
   template:
     metadata:
@@ -95,3 +95,6 @@ spec:
 # selector value and pods label needed to match,  even if selector is given
 # pod label is must. If selector attribute  is not provided
 # then pods label is taken as default selector for rc.
+
+
+>--------------------------------------------------------------------------------------------------------------

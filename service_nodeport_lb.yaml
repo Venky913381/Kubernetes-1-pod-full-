@@ -27,8 +27,40 @@
 
 >NodePort_
 
->
+>A NodePort service is the most primitive way to get external traffic directly to your service. 
+>NodePort, as the name implies, opens a specific port on all the Nodes (the VMs), 
+>and any traffic that is sent to this port is forwarded to the service.
 
+apiVersion: v1
+kind: Service
+metadata:  
+  name: my-nodeport-service
+spec:
+  selector:    
+    app: my-app
+  type: NodePort
+  ports:  
+  - name: http
+    port: 80
+    targetPort: 80
+    nodePort: 30036
+    protocol: TCP
+
+
+Basically, a NodePort service has two differences from a normal “ClusterIP” service. 
+First, the type is “NodePort.” There is also an additional port called the nodePort that specifies 
+which port to open on the nodes. If you don’t specify this port, it will pick a random port. 
+Most of the time you should let Kubernetes choose the port.
+
+>When would you use this?, There are many downsides to this method:
+
+>1.You can only have one service per port
+>2.You can only use ports 30000–32767
+>3.If your Node/VM IP address change, you need to deal with that
+
+For these reasons, It is not recommend using this method in production to directly expose your service. 
+If you are running a service that doesn’t have to be always available, or you are very cost sensitive,
+this method will work for you. A good example of such an application is a demo app or something temporary.
 
 
 
@@ -41,6 +73,10 @@
 >once we sets up our k8s cluster in cloud environment, all we need to do is create a service with
 >type as loadBalancer. and this will configure the load balacer provided by cloud provider to our service
 >in our cluster.
+
+>A LoadBalancer service is the standard way to expose a service to the internet. 
+>On GKE, this will spin up a Network Load Balancer that will give you a single IP address that
+>will forward all traffic to your service.
 
 
 apiVersion: v1
@@ -59,6 +95,18 @@ spec:
   - port: 8080
     targetPort: 7575
     protocol: TCP
+
+
+>When would you use this?
+
+If you want to directly expose a service, this is the default method. 
+All traffic on the port you specify will be forwarded to the service. 
+There is no filtering, no routing, etc. This means you can send almost any kind of traffic to it, 
+like HTTP, TCP, UDP, Websockets, gRPC, or whatever.
+
+>The big downside is that each service you expose with a LoadBalancer will get its own IP address, 
+>and you have to pay for a LoadBalancer per exposed service, which can get expensive!
+
 
 >--------------------------------------------------------------------------------------------------------------
 

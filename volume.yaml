@@ -10,7 +10,7 @@ apiVersion: v1
 kind: Pod
 metadata: 
   name: pod1 
-
+v
 spec:
   containers:
     - name: vol1 
@@ -23,13 +23,13 @@ spec:
     - name: test-vol
       emptyDir: {}        
 
->data will remain inside the pod and will be available to the container inside that pod.
->this data will not be available to other containers on other pod or other pod on other machines.
+>data will remain inside the pod and will be available to the containers inside that pod.
+>this data will not be available to other containers on other pods or other pods on other machines.
 
->emptyDir is a temporary storage and it have a lifecycle similar to pod. i.e. once pod is deleted
+>emptyDir is a temporary storage and it have a lifecycle similar to the pod. i.e. once pod is deleted
 >volume and data will also be lost.
 
->it is initially empty, emptydir volumes rae stored on whatever medium is backing the node, that is
+>it is initially empty, emptydir volumes are stored on whatever medium is backing the node, that is
 >it might be disk or n/w storage or RAM (emptyDir.medium feild to Memory)
 
 >all containers in the pod can read and write to this volume by mounting the volume at some path in their
@@ -61,11 +61,10 @@ spec:
         - name: test-vol2           # on container
           mountPath: /data
 
-  volumes:                 # valoume on host machine
-    - name: test-vol2          
+  volumes:                 # volume on host machine
+    - name: test-vol2                         #/data on container & /tmp/data on host, will be in sync.
       hostPath:
           path: /tmp/data    
-
 
 
 >this type of volume mounts a file or directory created on node where pod is running.
@@ -84,14 +83,14 @@ spec:
 
 >In above two cases , if pod is get schedule on any machine , other than its original machine in cluster data will 
 >no longer be available to the pod.
->In this all we need a volume which isavailable to the all the machines in the cluster, Here AWS EKS comes to rescu.
+>In this all we need a volume which is available to the all the machines in the cluster,Here AWS EKS comes to rescu
 
 >In this approch , we create a managed k8s cluster on aws eks, and create a ebs volume, which will remain
 >available to the all nodes.  (managed cluster .i.e. AWS ITSELF WILL MANAGED MASTER NODE/CONTROL PLANE)
 
 >If pod get schedule on a perticular node, then EBS volume will get attached to that node automatically and
->if we delete and create the pod , on anothe rmachines in cluster, then that EBS volume will automatically get
->attached to that machine. and this way pod will always have acces to the data.
+>if we delete and create the pod , on another machines in cluster, then that EBS volume will automatically get
+>attached to that machine. and this way pod will always have access to the data.
 
 >Create EKS cluster on K8s_
 >1)install awscli

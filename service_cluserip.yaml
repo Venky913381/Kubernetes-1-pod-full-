@@ -1,7 +1,7 @@
 >
 >Service in k8s
 
->we need a services for enabling the pod-to-pod communication=, also to enable external traffic to access 
+>we need a services for enabling the pod-to-pod communication, also to enable external traffic to access 
 >microservice/app deployed in k8s pod.
 
 >services can be defined through yaml manifest files or using imperative command. and can be deployed using 
@@ -18,7 +18,7 @@
 
 >type : type represent the type of the service.
 
->flow :  <ip_address>:NodePort ------>  Port ------> TargetPort   {for nodePort service}
+>flow :  <ip_address>:NodePort ------>Port ------>TargetPort---->Microservice   {for nodePort service}
 
 >--------------------------------------------------------------------------------------------------------------
 
@@ -40,9 +40,9 @@ spec:
   type: clusterIP
   ports:
   - name: http
-    port: 80            #port of pod/ on this port service will listen
-    targetPort: 5000    #containers port, we need to open this port on container using 'containerPort'
-    protocol: TCP
+    port: 80               #containers port, we need to open this port on container using 'containerPort'        
+    targetPort: 5000       #port of pod/ on this port service will listen
+    protocol: TCP           
 
   selector:
     app: myapp  
@@ -67,14 +67,14 @@ spec:
 
 >End Points
 
->endpoints tracks the ip addresses of the k8s object,the service send traffic to.
+>endpoints tracks the ip addresses of the k8s object,that the service send traffic to.
 
->when a service selector matches a pod label, that ip added to your endpoints.
-> i.e EnsPoints are the final termination point of your microservice deployed in pod.
+>when a service selector matches a pod label, ip of that pod get added to your endpoints.
+>i.e EndPoints are the final termination point of your microservice deployed in pod.
 
 >the endpoints for a service can be found by
-kubectl describe svc <service name>
-kubectl get ep <service name>
+  kubectl describe svc <service name>
+  kubectl get ep <service name>
 
 >if we do not define the matching labels, i.e. selectorless service, we need to define seperate
 >endpoint objects for our service.
@@ -190,7 +190,37 @@ kubectl port-forward --address <local-IP> <res-type>/<res-name> <local-port>:<re
 
 >--------------------------------------------------------------------------------------------------------------
 
+>Can we access a ClusterIP service from the internet, 
+>Turns out you can access it using the Kubernetes proxy! 
 
-  
+apiVersion: v1
+kind: Service
+metadata:  
+  name: my-internal-service
+spec:
+  selector:    
+    app: my-app
+  type: ClusterIP
+  ports:  
+  - name: http
+    port: 80
+    targetPort: 80
+    protocol: TCP
 
- 
+>Start the Kubernetes Proxy:
+kubectl proxy --port=8080    
+
+>Now, you can navigate through the Kubernetes API to access this service using this scheme:
+http://localhost:8080/api/v1/proxy/namespaces/<NAMESPACE>/services/<SERVICE-NAME>:<PORT-NAME>/
+
+>eg_ http://localhost:8080/api/v1/proxy/namespaces/default/services/my-internal-service:http/
+
+>When would you use this?
+There are a few scenarios where you would use the Kubernetes proxy to access your services.
+
+Debugging your services, or connecting to them directly from your laptop for some reason
+Allowing internal traffic, displaying internal dashboards, etc.
+Because this method requires you to run kubectl as an authenticated user, 
+you should NOT use this to expose your service to the internet or use it for production services.
+
+>--------------------------------------------------------------------------------------------------------------

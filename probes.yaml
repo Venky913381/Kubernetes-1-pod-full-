@@ -11,9 +11,13 @@
 
 
 
->--------------------------------Liveness Probe---------------------------------
+>-----------------------------------------------Liveness Probe----------------------------------------------------
 
->The kubelet uses liveness probes to know when to restart a container.
+>Many applications running for long periods of time eventually transition to broken states, 
+>and cannot recover except by being Restarted. 
+>Kubernetes provides liveness probes to detect and remedy such situations.
+
+>The kubelet uses liveness probes to know when to RESTART a container.
 >The kubelet uses readiness probes to know when a container is ready to start accepting traffic.
 >A Pod is considered ready when all of its containers are ready, i.e. when it passes the liveness probe.
 
@@ -56,14 +60,21 @@ spec:
 
 
 
+>-----------------------------------------------Readiness Probe--------------------------------------------------
 
 
->--------------------------------Readiness Probe-------------------------------
+Sometimes, applications are temporarily unable to serve traffic. For example, an application might need to 
+load large data or configuration files during startup, or depend on external services after startup. 
+In such cases, you don't want to kill the application, but you don't want to send it requests either. 
+Kubernetes provides readiness probes to detect and mitigate these situations. 
+A pod with containers reporting that they are not ready does not receive traffic through Kubernetes Services.
+
 
 >even through pod is created and live, it do not means that it is ready to serve the requests. App may take 
 >time to be ready to serve the traffic. we do readiness probe to check the same.
 
 >Note: Readiness probes runs on the container during its whole lifecycle.
+
 >Caution: Liveness probes do not wait for readiness probes to succeed. 
 >If you want to wait before executing a liveness probe you should use initialDelaySeconds or a startupProbe.
 

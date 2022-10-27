@@ -24,6 +24,7 @@ spec:
         - name: cont1
           image: coolgourav147/nginx-custom            # image: coolgourav147/nginx-custom:v2
 
+
 > if we update the above deployment with another image,(or if, there may change in replicas) and monitor the changes
 > with below command, then , it is observed that as older deployment will gradually get replaced by newer deployments.
   kubectl rollout status deployment <deploy-name> 
@@ -46,9 +47,9 @@ metadata:
 spec: 
   replicas: 10              > previous, replica is 7       
   minReadySeconds: 20     #this is the time we given for our container to be ready to accept traffic
-                          #after creatio in pod.
+                          #after creation in pod.
 
-  revisionHistoryLimit: 15   # default is 10, max mumber of revisions in history
+  revisionHistoryLimit: 15   # default is 10, max mumber of revisions in history k8s can store
 
   strategy: 
     rollingUpdate:       # here we are explictly given the RollingUpdate strategy. 
@@ -108,7 +109,7 @@ spec:
 
 
 
->--------------------------------------------------------------------------------
+>-----------------------------------------------------------------------------------------
 > kubectl apply -f <deploy.yaml>  ;  watch "kubectl get rs -o wide"
 > kubectl rollout status deployment <deploy-name>  
 > kubectl rollout history deployment <deployment-name>

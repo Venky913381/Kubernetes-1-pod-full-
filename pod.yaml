@@ -2,9 +2,9 @@
 >-------------------------------------------POD-----------------------------------------
 
 >pods are the most basic scheduling unit in k8s.
->pods are often Ephemeral, as on killing of on epod, controller will automatically creates a replecment for it.
+>pods are often Ephemeral, as on killing of one pod, controller will automatically creates a replacment for it.
 
->k8s doesnt run the container directaly, instead it wraps one or more containers 
+>k8s doesn't run the container directaly, instead it wraps one or more containers 
 >into higher leval structure called as pod.
 
 >pods are smallest deployable unite that can be  created, scheduled and managed on k8s cluster.
@@ -143,7 +143,7 @@ spec:
       - sleep 20
 
 
->while having init containers in a manifest/pod, care needed to be taken that init cotainers must exist , after
+>while having init containers in a manifest/pod, care needed to be taken that init cotainers must exit , after
 >complating their task, failing to do so, will keep the init container running , which will prevent the main 
 >containers from being running.
 
@@ -163,7 +163,7 @@ spec:
 >kubectl describe pod <pod_name>
 >kubectl label pod <name> label1=value1
 
->kubectl logs <pod_name> -c <container_name> / -f     ( for containuous logs)
+>kubectl logs <pod_name> -c <container_name> / -f     ( for continuous logs)
 >kubectl logs <container_name>
 >kubectl logs -f <pod_name> --all-containers
 
@@ -212,7 +212,7 @@ we can telnet between the containers_
 >the  smaller the images the lesser is the attack on the surface to the container to the container and morever
 >are easy to distribute and deploy.
 
->larger images can have more sodtware vulnerabilities in the form of vulnerable dependencies 
+>larger images can have more software vulnerabilities in the form of vulnerable dependencies 
 >including potential security holes.
 
 >better to use alpine images like, FROM golang:alpine or FROM node:alpine
@@ -241,7 +241,7 @@ we can telnet between the containers_
 
 > init container will execute to perform activities that are needed in order for
 > successful execution of main app container. it executes to its completion and once
-> executed it will not run again. untile init container executions completes, other main
+> executed it will not run again. until init container executions completes, other main
 > container will not start and remains in pending state.
 
 >init containers contains Utilities or custom code for setup that are not present in an app image.
@@ -396,7 +396,7 @@ spec:
 >eg, sending logs to central logging server that accepts logs in only a specific format.
 
 >it is similar to sidecar patter, it also extends the functionality of main container, but works
->to improve compatibilirt issues.
+>to improve compatibility issues.
 
 >{watch video again......vimp}
 
@@ -405,11 +405,11 @@ spec:
 >5. Ephemeral Container
 
 >when we build multistage images using Distroless images, it does not provide us with utilities like ping,
->bash, sh etc. so it is impossible to exec in to that container for the purpose of debugging it.
+>bash, sh , curl etc. so it is impossible to exec in to that container for the purpose of debugging it.
 
 >so, in such case, Ephemeral containers come in to picture, Ephemeral containers are those 
->container which run in same pod as main app pod and contains the Debugging utilities like bash, sh, ping, curl etc.
->we can also  debug pod in CrashLoopBackOff state.
+>container which run in same pod as main app container and contains the Debugging utilities 
+>like bash, sh, ping, curl etc. we can also  debug pod in CrashLoopBackOff state.
 
 >Ephemeral Container share the process space with main app container. so they have a full view of the processes
 >which are going on in main app container build with distroless images.
@@ -423,5 +423,23 @@ spec:
 > >kubectl debug -it <podname> --image=busybox:1.28 --target=<podname>
 
 >{watch euphemeral container video again......Vimp}
+
+>--------------------------------------------------------------------------------------------------------
+
+>6. Static Pods
+
+>Static Pods are managed directly by the kubelet daemon on a specific node, without the API server observing them.
+>Whereas most Pods are managed by the control plane (for example, a Deployment), 
+>for static Pods, the kubelet directly supervises each static Pod (and restarts it if it fails).
+
+>Static Pods are always bound to one Kubelet on a specific node. 
+>The main use for static Pods is to run a self-hosted control plane: in other words, 
+>using the kubelet to supervise the individual control plane components.
+
+>The kubelet automatically tries to create a mirror Pod on the Kubernetes API server for each static Pod.
+>This means that the Pods running on a node are visible on the API server, but cannot be controlled from there.
+
+Note: The spec of a static Pod cannot refer to other API objects (e.g., ServiceAccount, ConfigMap, Secret, etc).
+
 
 >--------------------------------------------------------------------------------------------------------

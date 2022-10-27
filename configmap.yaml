@@ -9,7 +9,7 @@
 >kubectl get cm  <cm-name>
 >kubectl describe cm  <cm-name
 
->kubectl create configmap <cm-name> --from-literal=db_ip="8.8.8.8"   ---> from literal , directaly from cmd.
+>kubectl create configmap <cm-name> --from-literal=<literal>="<value>"  ---> from literal , directaly from cmd.
 >kubectl create configmap <cm-name> --from-literal=param1="value1"  --from-literal=param2="value2" --fro....
 
 single property file: application.properties
@@ -96,7 +96,7 @@ spec:
             key: application.properties        
             name: configmap2  
 
-       - name: variable-cm2      #value of key in cm will be avauilable in this var inside container.
+       - name: variable-cm2      #value of key in cm will be available in this var inside container.
          valueFrom:
           configMapKeyRef: 
             key: my-key1       # key in config map    
@@ -162,4 +162,9 @@ spec:
         - key: application.properties
           path: "variable-1"  
         - key: admin.properties
-          path: "variable-2"          
+          path: "variable-2"   
+
+
+
+
+>-------------------------------------------------------------------------------------------------------------

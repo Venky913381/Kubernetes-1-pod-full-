@@ -74,7 +74,7 @@ metadata:
   name: jhooq-pvc
 spec:
   volumeName: jhooq-demo-pv
-  storageClassName: local-storage
+  storageClassName: local-storage     # must need to same as describe in PV specs
   volumeMode: Filesystem
   accessModes:
     - ReadWriteOnce
@@ -116,7 +116,7 @@ spec:
 >kubectl describe pv <pv_name>
 >kubectl describe pvc <pvc_name>
 
->If their of multiple PV's and if we do exclusively mentioned the volumeName in pvc, 
+>If there are multiple PV's and if we do exclusively mentioned the volumeName in pvc, 
 >then k8s will check, what pv will satisfy the storage need as per pvc and automatically those will
 >be bind together.
 
@@ -198,10 +198,10 @@ spec:
 
 >There are two ways to provisioned the persistant volume_
 
-1> statically :- a cluster admin creates a numer of pv's , they carry the details of the real storage,
+1> statically :- a cluster admin creates a numbers of pv's , they carry the details of the real storage,
                  which is available for use by cluster users.
 
-2> Dynamically :- When none of the admin created pv matches the users pvc, then the cluster 
+2> Dynamically :- When none of the admin created pv that matches the users pvc, then the cluster 
                   may try to dynamically provisioned the volume/pv, specially for the pvc. 
                   This provisioning is based on StorageClasses, the pv must request a storage class 
                   and the admin must have created and configured that class for dynamic provisioning to occure.
