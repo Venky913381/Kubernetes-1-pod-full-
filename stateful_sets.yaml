@@ -1,6 +1,8 @@
 >
+
 >1) read, Cluster IP service
 >2) read, Headless Service
+>3) read, pod-to-pod communication in clusterip file
 
 >if a headless service manages more than one pod, service dns name will return a lists of pods managed
 >by the service. The requests will accept the first IP address returned.
@@ -28,10 +30,18 @@ requests to the pods and this type of load balancing is called as DNS ROUND ROBI
    for use in next session with that client. It also do not need permanant storage.
    eg_ nginx, apache, nodejs
 
-2> we can simply scakles a stateless application by deploying it on multiple servers, 
+2> we can simply scales a stateless application by deploying it on multiple servers, 
    it easily scales Horizontally.
 
 3> this applications are much faster and needs no external storage or backup.
+
+4> application are, web apps which serves the static web pages and need not to store any data. so all the request
+   coming to the application will get the same response.
+
+5> we use cluster ip service as an abstraction and to load balance the incoming requests    
+
+> user --> LB --> FrontEnd/proxy/pod with service ---> cluster ip ---> stateless app
+
 
 >Stateful Application_
 
@@ -46,24 +56,32 @@ requests to the pods and this type of load balancing is called as DNS ROUND ROBI
 
 4> needs to maintain users data in cases of n/w or storage failure.
 
-> User -------> Stateless Application ------->Stateful Application.
+> User---> LB ---> FrontEnd/ Stateless Application --->Headless Service ---> Stateful Application.
 
 >--------------------------------------------------------------------------------------------------------------
 
 # Stateful Sets_
 
->A statefulSets is a k8s controller used to run teh stateful application as containers/Pods in kubernetes cluster
+>A statefulSets is a k8s controller used to run the stateful application as containers/Pods in kubernetes cluster
 >and manages the desired and current state.
 
 >However, we do have other controller ReplicaSet, ReplicationController, Deployments, that 
 >provide similar functinalities like StatefulSets. 
->However there are certain parameters taht are unique to StatefulSets_
+>However there are certain parameters that are unique to StatefulSets_
 
 >Instead of generating random names of pods like Replication Controller or Replica Sets, 
 >Stateful sets generate stable name for each and every pod, so it becomes easier to identify the master pod
 >by all other pods.
 
-1> Data Replication :-
+>In deployments , each pod gets a random identity with hash of RS and pod attached. pods gets a new identity 
+>(hostname & ip) across restart and reschedule. the pod identity is generated in following syntax_
+<name of deployment>-<replicaset hash>-<pod hash> , if pod get replaced, pod_hash will chnaged.
+
+>in stateful sets , each pod will get stable name .
+<statefulset_name>-ordinal
+
+
+1> Data Replication :
 
 > In case of deployments, each pod gets a random identity with hash of a RS and Pod Attached.
 > Pod gets a new identity i.e hostname and Ip , across restart and reschedule. 
@@ -73,7 +91,7 @@ requests to the pods and this type of load balancing is called as DNS ROUND ROBI
 > can be redirected to it in consistance manner even in case of pod recretaion.
 >
 
-2> Sticky / Indentity Hostname :-
+2> Sticky / Indentity Hostname :
 
 > Each pod created by StefulSet has a ordinal value (0 through # replicas -1 ) and a stable n/w id, which is
 > '<statefulsetname>-ordinal' assigned to it.
@@ -99,7 +117,10 @@ requests to the pods and this type of load balancing is called as DNS ROUND ROBI
 >NO, becouse, the request may go to replicas as service always load balalnces the requests (dns round robin).
 
 >Stateful sets when combined with headless service, gives a unique identity to each pod which is_
- <statefulset_name>-ordinal.<headless_svc_name>
+ <statefulset_name>-ordinal
+
+>to target the pod, we can use the following syntax, so the all the desired request will go to only targeted pod
+<statefulset_name>-ordinal.<headless_svc_name>
 > eg_ mysql-0.db  -->a unique fqdn
 
 >
@@ -116,13 +137,13 @@ requests to the pods and this type of load balancing is called as DNS ROUND ROBI
 
 
 
-3> Stable Persistant STorage_
+3> Stable Persistant Storage:
 
 > Every stateful set pod will have a pesistance storage which is provisioned using PVC and PV 
 > either statically or dynamically using storage classes. 
 
 
-4> Ordered Creation ,Deletion and Upgrades_
+4> Ordered Creation ,Deletion and Upgrades:
 
 >Stateful sets assign a sticky identity- an ordinal number starting from zero.
 
@@ -134,7 +155,7 @@ requests to the pods and this type of load balancing is called as DNS ROUND ROBI
 >second pod will get created and then it will replicate data from first pod, 
 >only after that third pod will get created and then that pod will replicate data from second pod.
 
->if we delete the pod, it will delete the pod in reverse order, not in randm order. By doing this, the replication
+>if we delete the pod, it will delete the pod in reverse order, not in random order. By doing this, the replication
 >algorithm is maintained.
 
 >for example, if out of four replicas, if we scaled down to 3 , then only pod number 3 will be deleted. 
@@ -233,11 +254,7 @@ spec:
 >--------------------------------------------------------------------------------------------------------------
 
 
-
-
 >kubectl get sts
 >kubectl get pv
 >kubectl get pvc    
-  h  hjghj  bbnm     
-
-  swapnil           
+         

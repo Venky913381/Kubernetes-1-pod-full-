@@ -155,7 +155,7 @@ kubectl port-forward --address <local-IP> <res-type>/<res-name> <local-port>:<re
 
 >--------------------------------------------------------------------------------------------------------------
 
->pod-to-pod communication_ (without Service)
+pod-to-pod communication_ (without Service):
 
 >address syntax
   <pod's_ip_address>.<namespace_name>.pod.cluster-<domain.example>   ---->fqdn
@@ -169,29 +169,42 @@ kubectl port-forward --address <local-IP> <res-type>/<res-name> <local-port>:<re
 >So communication through ip address is not prefferable. That is why , we preffer communication via DNS address.
 
 >However, DNS resolution just by pod name is not possible in k8s. In case of clusterIP service 
->it is possible, as Name of clusterIP resolves to clusterIP service itself. that is why we use service as
+>it is possible, as Name of clusterIP service resolves to clusterIP service itself. that is why we use service as
 >a abstraction/ proxy to expose the pod to the traffic.
 
 >Pod to pod communication without service do not load balances the requests.
 
 
->pod-to-pod communication_ (with Service {ClusterIP})
+
+pod-to-pod communication_ (with ClusterIP  Service):
 
 >pod-to-pod communication with Service, each service gets its own IP address.
+
 >each service will have incoming port and target port i.e containers port.
->It always load balalnces the requests.
+>It always load balalnces the incoming requests between replicas.
 
 >service acts like a proxy placed before the pod. and pods are mapped to service with help of labels.
 
->syntax_
-  http://<service_name>.<namespace_name>.svc.cluster.local:<Port>    ---->fqdn
->the above fqdn will resolve to the ip address of clusterIP service.
+>service ips are stable, it balances the requests.
+>clusterIP is more suitable for stateless applications.
 
+>syntax_
+http://<service_name>.<namespace_name>.svc.cluster.local:<Port>    ---->fqdn
+
+>the above fqdn will resolve to the ip address of clusterIP service. 
+>every clusterip service will get a internal ip.
+
+http://svc/port 
+>above will resolve to the actual ip address of the service, this is done by quering the Core DNS service
+>which is responsible for DNS resolution with k8s environment. core-dns runs in kube-system namespace and 
+>through kube-dns service which runs in same kube-system namespace we can access this core-dns , which is 
+>either runs a Deployment or DaemonSet.
 
 >--------------------------------------------------------------------------------------------------------------
 
->Can we access a ClusterIP service from the internet, 
->Turns out you can access it using the Kubernetes proxy! 
+Can we access a ClusterIP service from the internet :
+
+>Turns out that, we can access clusterIP service from outside using the Kubernetes proxy. 
 
 apiVersion: v1
 kind: Service

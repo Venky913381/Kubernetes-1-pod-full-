@@ -104,8 +104,23 @@ All traffic on the port you specify will be forwarded to the service.
 There is no filtering, no routing, etc. This means you can send almost any kind of traffic to it, 
 like HTTP, TCP, UDP, Websockets, gRPC, or whatever.
 
+
+
 >The big downside is that each service you expose with a LoadBalancer will get its own IP address, 
 >and you have to pay for a LoadBalancer per exposed service, which can get expensive!
+
+>with cloud lb, we need to pay for each of the service that is exposed using LB as the service. as service grows
+>in number, complexity to manage SSL's, scallings, Auth..etc also increases.
+
+>Ingress controller allows us to manage all the above functionalities within the k8s cluster itself with a 
+>defination file, that lives along the rest of your application deployments file.
+
+>ingress controller can perform load balancing , Auth, SSL and URL/Path based routing configuration by being 
+>inside the cluster, living as a deployment or a DAEMON SET.
+
+>Ingress helps user access the application using single externally accessible URL, that you can configure 
+>to route to different services within the cluster based on url, at the same time terminates the SSL/TLS.
+
 
 
 >--------------------------------------------------------------------------------------------------------------

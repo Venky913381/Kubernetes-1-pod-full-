@@ -176,7 +176,8 @@ ports:
 
 >There are two types of applications 1.Stateless application  and  2.Statefull application.
 
-Stateless : it will do Not store anything (data), previous session, nor it retrieve anything, eg . Nginx
+Stateless : it will do Not store anything (data), previous session, nor it retrieve anything, eg . Nginx,apache
+
 Statfull  : this type of application stores state, so whenever application crashes or if any issue arises
             or app lost connection, whenever, it comes back it starts from the same state as data is stored. 
             this type of application can not always start from scratch.
@@ -204,9 +205,14 @@ by the service. The requests will accept the first IP address returned.
 
 One of the misconception with Headless service is that, it do not Load Balances the request.
 Even though headless service return the ip addresses of the pods, it will still load balances the 
-requests to the pods and this type of load balancing is called as DNS ROUND ROBIN LOAD BALANCING.
+requests to the pods and this type of load balancing is called as "DNS ROUND ROBIN LOAD BALANCING".
 
-> Headless service will Not always forward the request to first pod.
+>Headless service will Not always forward the request to first pod. this is becouse, headless sevrvice will
+>load balance the requests acrpss the pods through the service proxy.
+
+curl <headless-service-name>:<Container_Port> , here headless service will not resolve to first instance of the 
+pod, and as it is load balances the requests, it will result in different ips of pods every time requests in made.
+
 
 >curl <headless_service_name>:<container_port>  ---> this request is directaly forwarded to backend pod through
 >    DNS ROUND ROBIN LOAD BALANCING mechanism and for each dns query/request it will result in new ip address
@@ -217,9 +223,11 @@ requests to the pods and this type of load balancing is called as DNS ROUND ROBI
 
 
 >Headless services are more useful when_
+
 1. Pod to pod communication.
 >   pod to pod communication , where we do not wants request to be load balance by service and insted of 
->   returning the service ip, we wants to dynamically fetch the ips of pods to be return.
+>   returning the service ip, we wants to dynamically fetch the ips of pods to be return. so that request
+>   can be forwared to only target pod and not any other pod.
 
 2. Master-slave configuration, where slaves needs to be aware of the master pod like Clustered databases.
 

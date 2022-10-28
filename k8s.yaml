@@ -1833,15 +1833,18 @@ Defaults to 1 second. Minimum value is 1.
 
 >d) K8S AutoScalling (HPA)
 >e) Kubernetes DashBoard
->f) Steteful Sets
+>f) Stateful Sets
+
 >g) Service Account
 >h) Cluster Role and Role Binding
 >i) Role Based Access Control
+
 >j) Pod/Node Affinity/AntiAffinity
 >k) DaemonSet
 >l) Istio
 >m) Kubernetes Logs 
 >n) Kubernetes Jobs
+>o) custom resource and custom resource defination (CR&CRD)
 
 >----------------------------------------------------------------------------------------------------------
 
@@ -2030,3 +2033,54 @@ Usage:
 Use "kubectl options" for a list of global command-line options (applies to all commands).
 
 >----------------------------------------------------------------------------------------------------------
+
+# DaemonSet_
+
+>A DaemonSet is similar to the Deployments, it ensures that all (or some) Nodes run a copy of a Pod. 
+>As nodes are added to the cluster, Pods are added to them. As nodes are removed from the cluster, 
+>those Pods are garbage collected. 
+>Deleting a DaemonSet will clean up the Pods it created.
+
+>Both replica set and deployments are used for running a specificnumber of pods on k8s cluster.
+>but certain cases exist , where we want to run a pod on each and every node, that exist in a cluster,
+>and such node needs to run a exactly one instance only.
+
+>In a simple case, one DaemonSet, covering all nodes, would be used for each type of daemon. 
+>A more complex setup might use multiple DaemonSets for a single type of daemon, but with different
+>flags and/or different memory and cpu requests for different hardware types
+
+
+Some typical uses of a DaemonSet are:
+>running a cluster storage daemon, such as Glustered, Ceph on every node.
+>running a logs collection daemon, such as Filebeat, Fluented on every node.
+>running a node monitoring daemon, such as Nagios, Elk, Prometheous on every node.
+
+
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: fluentd-elasticsearch
+  labels:
+    k8s-app: fluentd-logging
+spec:
+  selector:
+    matchLabels:
+      name: fluentd-elasticsearch
+
+  template:
+    metadata:
+      labels:
+        name: fluentd-elasticsearch  # same as containers
+    spec:
+      containers:
+      - name: fluentd-elasticsearch
+        image: quay.io/fluentd_elasticsearch/fluentd:v2.5.2
+        volumeMounts:
+        - name: varlog
+          mountPath: /var/log
+      volumes:
+      - name: varlog
+        hostPath:
+          path: /var/log
+
+>-------------------------------------------------------------------------------------------------------------
