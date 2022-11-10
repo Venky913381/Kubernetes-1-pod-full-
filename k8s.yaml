@@ -1906,6 +1906,7 @@ spec:
 3. Adapter Containers 
 4. Init Containers 
 5. Ephemeral Containers 
+6. Static Containers
 
 >b)Volumes_
 1. Persistant Volume 
@@ -1920,7 +1921,7 @@ spec:
   3. ClusterIP     (expose service only within cluser)
 
   4. Ingress/Ingress_Resources/Ingress_Rule
-  5. Ingress Controller 
+  5. Ingress Controller (Nginx/Traefik)
   
   6. Port Forwarding
   7. External IP Service
@@ -1929,7 +1930,7 @@ spec:
 
 >d) K8S AutoScalling (HPA)
 >e) Kubernetes DashBoard (skooner)
->f) Stateful Sets
+>f) Stateful Sets and Headless Service
 
 >g) Service Account
 >h) Roles/Cluster Role and Role Binding/Cluster Role Binding (CR&CRB)
@@ -1937,12 +1938,12 @@ spec:
 
 >j) Pod/Node Affinity/AntiAffinity
 >k) DaemonSet
->l) Istio/HAProxy/Nginx
+>l) Istio/HAProxy/Nginx/Traefik
 >m) Kubernetes Logs 
 >n) Kubernetes Jobs
 >o) custom resource and custom resource defination (CR&CRD)
 >p> Docker Image Security using Anchore/Sync (DevSecOps)
-
+>q>
 
 
 >----------------------------------------------K8S Accessories-------------------------------------------------
@@ -1950,7 +1951,7 @@ spec:
 
 #Kubernetes Package Managers and Plugins Managers
 
->Kubernetes Krew plugin manager for kubectl
+Kubernetes Krew plugin manager for kubectl :
 
 >ref, https://krew.sigs.k8s.io/docs/
 
@@ -2103,4 +2104,27 @@ it will scans the cluster and give details report on it.
 
 >----------------------------------------------------------------------------------------------------------
 
+#Kubernetes Tool
 
+DATREE : 
+
+Datree is a CLI tool that supports Kubernetes owners in their roles, by preventing developers from making 
+errors in Kubernetes configurations that can cause clusters to fail in production. 
+Our CLI solution is open source, enabling it to be supported by the Kubernetes community.
+
+
+>install datree on linux
+curl https://get.datree.io | /bin/bash
+
+>Run a policy check against a Kubernetes manifest
+datree test <k8s_manifest.yaml>
+
+>Enable/disable built-in rules
+After signing up, you'll be automatically redirected to your Centralized policy where you can configure 
+it according to your needs.
+
+
+
+
+
+>----------------------------------------------------------------------------------------------------------

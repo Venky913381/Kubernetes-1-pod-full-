@@ -40,7 +40,7 @@ in this yml filr we define charts dependancies, so that it can be download dynam
 a yaml file of default configuration values for the chart.
 
 >helpers.tpl
-where we will declare our functions
+this is where we will declare our functions
 
 >Test
 before doing actual deployment,  we we want to do some testing, we will do it here.
@@ -48,4 +48,141 @@ before doing actual deployment,  we we want to do some testing, we will do it he
 
 
 
-      
+>-------------------------------------------------------------------------------------------------------------
+
+>1.helm create <chartname>
+>2.helm install <release_name> <chart_name> / --debug --dry-run
+>2.helm uninstall <release_name> <chart_name>
+>3.helm list -a
+>4.helm add repo <repo_url>
+>3.helm repo list
+>3.helm repo update
+>3.helm index <chart_name>
+>3.helm remove <repo_name>
+>3.helm plugin install/uninstall <plugin_url>
+>3.helm plugin list
+>3.helm upgrade <release_name> <chart_name>
+>3.helm lint <chart_name>
+>3.helm template <chart_name>
+>3.helm install -set <param=value> <release_name> <chart_name>
+>3.helm install -f <custom_value_file> <release_name> <chart_name>
+>3.helm upgrade <release_name> <chart_name> 
+>3.helm rollback <release_name> <revision_version>
+>3.helm delete <release_name>
+>3.helm 
+>3.helm
+>3.helm
+>3.helm
+>3.helm
+>3.helm
+>3.helm
+>3.helm
+>3.helm
+>3.helm
+>3.helm
+>3.helm
+>3.helm
+>3.helm
+>3.helm
+>3.helm
+>3.helm
+>3.helm
+>3.helm
+>3.helm
+
+>----------------------------------------------------------------------------------------------------------
+
+>helm install <release_name> --debug --dry-run <chart_name> 
+verify/debug/validate by contacting kubernetes api server before actual deployment. it will not install chart.
+
+>helm template <chart_name>
+verify/debug/validate without contacting kubernetes api server before actual deployment.
+
+>helm lint <chart_name>
+check for the syntactical error in configuration files, if found promt user with details.
+
+>helm rollback <release_name> <revision_version>
+Even if, we roll backs to previous version, the version number will increase, 
+in order to signify the new deployment that what was earlier.  
+
+>helm install <chart_name> --generate-name
+in helm it is necessary to provide release name, if not provided helm produce error, if we are 
+not providing release name , we can use --generate-name flag to auto generate release name.
+
+
+>other naming issues with helm release that causes errors_ (release_name naming conventions)_error cases
+
+Helm release name consists of upper-case        (ex - helm install demoChart helloworld)
+Helm release name consists of blank spaces      (ex - helm install demo Chart helloworld)
+Helm release name consists of special character (ex - helm install demoCh@rt helloworld)
+
+>                    Release Name	          Reason for failure
+1	Release Name  ---> 	demoChart	 --->  Release name contains Uppercase character
+2	Release Name  ---> 	demo Chart --->  Release name contains Blank space
+3	Release Name	--->  demoCh@rt	 --->  Release name contains Special Character
+
+>-------------------------------------------------------------------------------------------------------------
+
+HelmFile:
+
+>ref:https://jhooq.com/helmfile-manage-helmchart/    , for all details and mode.
+
+>1.You can bundle several Helm Charts into a Single Helmfile to manage your kubernetes eco system
+>2.Helmfile helps you to keep isolation between the different environments(developemnt, staging, production)
+
+>3.It can help you to identify the differences between the new changes which you want to apply 
+>  against the existing running deployment inside kubernetes cluster
+
+>4.Helmfile uses the Go Templates which lets you templatify your Helmfile and also you can use Sprig 
+>  Library with functions - requiredEnv, exec, readFile, toYaml, fromYaml, setValueAtPath, get, tpl, required, 
+>  fetchSecretValue, expandSecretRefs
+
+>5.With the help of HelmFile you can deploy multi-tier applications inside kubernetes cluster.
+
+>helmfile --help
+>helmfile --version
+>helmfile sync
+>helmfile
+
+>helmfile.yaml -->
+
+releases:
+   - name: helloworld      #release name
+     chart: ./helloworld   #chart name/chart path
+     installed: true       #if not given, will not install helm chart
+
+   - name: testversion
+     chart: ./testchart
+     installed: true       #installed: false, to uninstall chart
+
+>helmfile sync  : to run helmfile and install charts in helmfile.   
+
+
+
+> Use GitHub repository for installing helm chart using Helmfile 
+
+>first, install helm git plugin, it is needed to work with git and git url syntax
+
+The one more feature of Helmfile which I like the most is - you can even install the helmchart 
+from remote repository such as GitHub, Google Container Repository, AWS ECR
+
+Add the following configuration attributes for working with remote repository -
+1. Repository name - helloworld
+2. Repository URL - git+https://github.com/rahulwagh/helmchart@helloworld?ref=master&sparse=0
+
+>urlsyntax :- git+https://<url without .git>@<name of helm_chart>?ref=master&sparse=0
+
+repositories:
+  - name: helloworld
+    url: git+https://github.com/rahulwagh/helmchart@helloworld?ref=master&sparse=0
+
+releases:
+
+  - name: helloworld
+    chart: helloworld/helloworld
+    installed: false 
+
+Now you can run the $ helmfile sync command for installing the helm chart from remote repository
+
+
+>-------------------------------------------------------------------------------------------------------------
