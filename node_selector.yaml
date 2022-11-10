@@ -33,13 +33,13 @@ metadata:
   labels:
     name: myapp
 spec:
+  nodeName: <node_name>     #name of node, NOT LABEL
   containers:
   - name: myapp
     image: nginx
     ports:
       - containerPort: 80 
-
-  nodeName: <node_name>     #name of node, NOT LABEL
+  
 
 >Node name may be the hostname of the node, in cloud environment, hostname will not remain stable and may get 
 >changed.
@@ -53,7 +53,7 @@ spec:
 >if the named node does not exist in cluster, the pod will not run and in some cases may be automatically deleted.
 >like in eks cluster, we do not have choice for selecting node names.
 
->the the named node does not have a resource to accommodate the pod , the pod will fail.
+>if the named node does not have a resource to accommodate the pod , the pod will fail.
 
 >node name in cloud environments like eks or gke are not always predictable or stable.
 

@@ -2,18 +2,19 @@
 >-------------------------------------------POD-----------------------------------------
 
 >pods are the most basic scheduling unit in k8s.
->pods are often Ephemeral, as on killing of one pod, controller will automatically creates a replacment for it.
 
 >k8s doesn't run the container directaly, instead it wraps one or more containers 
 >into higher leval structure called as pod.
 
->pods are smallest deployable unite that can be  created, scheduled and managed on k8s cluster.
->each pod will have a unique ip address within the cluster.
+>pods are often Ephemeral, as on killing of one pod,controller will automatically creates a replacment for it.
+
+>pods are smallest deployable unite that can be created, scheduled and managed on k8s cluster.
+>each pod will have a unique IP address within the cluster.
 
 >pods can hold multiple containers as well, when we scale pod, the containers inside 
 >the pod will get scalled together, regardless of their individual needs.
 
->every pod is like a seperate logical machine with its own IP, hostname, process and so on, running a single
+>every pod is like a seperate logical machine with its own IP, HOSTNAME, PROCESS and so on, running a single
 >application. it is just a sandbox to run the containers in.
 
 >any container in the same pod will share the same storage volume and network resource 
@@ -23,7 +24,7 @@
 1. pending    :- pod is accepted, but container is yet to be created.
 2. running    :- pod is scheduled on node, and all containers are created and at least one is in running state.
 3. succeeded  :- all container in pod existed with status 0 and will not be restarted
-4. failed     :- all containers in pod have exited and at least one container have retruned the non zero status.
+4. failed     :- all containers in pod have exited and at least one container have returned the non zero status.
 5. CrashLoopBackoff :-the container failed to start and tried again and again
 6. unknown          :- state of pod, could not be obtained
 
@@ -35,6 +36,32 @@ possible values are, Always, OnFailure, and Never.
 >that is capped at 5 minutes.
 >once a container has executed for 10 minutes without any problem, the kubelet resets the restart backoff
 >timer for that container.
+
+>CrashLoopBackOff is not an error on itself, but indicates that there’s an error 
+>happening that prevents a Pod from starting properly.
+
+Some of the errors linked to the actual application are:
+
+>1.Misconfigurations             : Like a typo in a configuration file.
+>2.A resource is not available   : Like a PersistentVolume that is not mounted.
+>3.Wrong command line arguments  : Either missing, or the incorrect ones.
+>4.Bugs & Exceptions             : That can be anything, very specific to your application.
+
+
+errors from the network and permissions are:
+
+>1.You tried to bind an existing port.
+>2.The memory limits are too low, so the container is Out Of Memory killed.
+>3.Errors in the liveness probes are not reporting the Pod as ready.
+>4.Read-only filesystems, or lack of permissions in general.
+
+>A similar back-off period is ImagePullBackOff, which is a waiting status when a container image couldn’t be pulled.
+
+tools you can use to debug it, and in which order to use it, This could be our best course of action:
+Check the pod description.
+Check the pod logs.
+Check the events.
+Check the deployment.
 
 >default restart policies for k8s objects_
 1. Jobs       --> on failure or Never
@@ -143,7 +170,7 @@ spec:
       - sleep 20
 
 
->while having init containers in a manifest/pod, care needed to be taken that init cotainers must exit , after
+>while having init containers in a manifest/pod, care needed to be taken that init containers must exit , after
 >complating their task, failing to do so, will keep the init container running , which will prevent the main 
 >containers from being running.
 
@@ -167,7 +194,7 @@ spec:
 >kubectl logs <container_name>
 >kubectl logs -f <pod_name> --all-containers
 
->----------------------------------------------------5
+>--------------------------------------------------- 5
 
 >in multicontainer pod, if we are opening any port on perticular container, then same port will be open on 
 >another container in pod. i.e. containers in a pod uses shared network and can be accessible on localhost.
@@ -185,7 +212,7 @@ we can telnet between the containers_
   2. ambassador/envoy container  (proxy pattern)       --> proxies-database connection
   3. adapter container           (log format changer)  --> simplifies monitoring output for service 
   4. init container              (initilazation for main container) --> Do initialization works for main container
-  5. Ephemeral containers        (debugging container for main container build with distroless image)
+  5. Ephemeral containers        (debugging container for main container build with distroless images)
   6. Main App Container          (container for main app or microservice)
  
 
@@ -209,7 +236,7 @@ we can telnet between the containers_
 >container images should be small and lightweight.
 >They should pack only the application code and its dependancies. Rest everything to be scrapped off to bring down 
 >its size including the build dependancies.
->the  smaller the images the lesser is the attack on the surface to the container to the container and morever
+>the  smaller the images the lesser is the attack on the surface to the container and morever
 >are easy to distribute and deploy.
 
 >larger images can have more software vulnerabilities in the form of vulnerable dependencies 
@@ -220,18 +247,19 @@ we can telnet between the containers_
 >the dependancies just enough to run your app.
 
 >So, in a nutshell, Even though it is always prefferable to use latest updated images, but it is not always 
->advisable to use latest images n DevSecOps. 
+>advisable to use latest images in DevSecOps. 
 
 >Best practices for Building docker images
 
  1.Do not run the container as a ROOT 
  2.Avoid copying unnecessary files, use .dockerignore to ignore the files 
- 3.Merge layers
- 4.Using Alpine or Distroless images as base image 
+ 3.Merge layers (--squash, flag with docker image build command)
+ 4.Using bareminimum Alpine or Language specific Distroless images as base image 
  5.Using MultiStage Builds
  6.Health Checks
  7.Avoid exposing unecessary ports
  8.Hardcoding the credentials.
+ 9.vunrebilities checking image using tols like Anchore, Sync etc...
 
 >{watch euphemeral container video again......vimp}
 
@@ -244,7 +272,7 @@ we can telnet between the containers_
 > executed it will not run again. until init container executions completes, other main
 > container will not start and remains in pending state.
 
->init containers contains Utilities or custom code for setup that are not present in an app image.
+>init containers may contains Utilities or custom code for setup that are not present in an app image.
 >like, sed, awk, python or dig during setup, also functions like cloning a git repo in to volume.
 
 >if pods, init containers fails, k8s repeatedly restart the pod until the init container succeeds.
@@ -254,7 +282,7 @@ we can telnet between the containers_
 >volumes, security. However, resource limits and requests are handled differently as init container
 >do not exists persistanly.
 
->init containers do not supports probes like liveness, readiness, startup probes.
+>init containers DO NOT  supports probes like liveness, readiness, startup probes.
 >init container executes in an order they are defined in a manifest file.
 >once execution of init container is done, it will be removed from pod, with exit status as zero.
 
@@ -371,9 +399,10 @@ spec:
 
 >3. Ambassador/Envoy Container_
 
->The Ambassador pattern employs a proxy for the main application container to talk to external word.
+>The Ambassador pattern employs a proxy for the main application container to talk to external world.
+>i.e. it act as a proxy for main application container.
 
->they handle request/response to/from the server or external services, so it acts like a proxy or
+>they handle request/response,  to/from the server or external services, so it acts like a proxy or
 >buffer container between external traffic and main application.
 
 >it hides the complexity of calling external services by providing simple endpoints , like accessing 
@@ -395,7 +424,7 @@ spec:
 
 >eg, sending logs to central logging server that accepts logs in only a specific format.
 
->it is similar to sidecar patter, it also extends the functionality of main container, but works
+>it is similar to sidecar pattern, it also extends the functionality of main container, but works
 >to improve compatibility issues.
 
 >{watch video again......vimp}
@@ -429,12 +458,13 @@ spec:
 >6. Static Pods
 
 >Static Pods are managed directly by the kubelet daemon on a specific node, without the API server observing them.
->Whereas most Pods are managed by the control plane (for example, a Deployment), 
+>Whereas most Pods are managed by the control plane (for example, a Deployment, RS), 
 >for static Pods, the kubelet directly supervises each static Pod (and restarts it if it fails).
 
->Static Pods are always bound to one Kubelet on a specific node. 
+>Static Pods are always bound to one Kubelet on a specific node.
+
 >The main use for static Pods is to run a self-hosted control plane: in other words, 
->using the kubelet to supervise the individual control plane components.
+>using the kubelet to supervise the individual components of control plane.
 
 >The kubelet automatically tries to create a mirror Pod on the Kubernetes API server for each static Pod.
 >This means that the Pods running on a node are visible on the API server, but cannot be controlled from there.

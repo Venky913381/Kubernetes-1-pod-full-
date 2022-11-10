@@ -1,6 +1,8 @@
 >
+
 If there are external IPs/ External Name that route to one or more cluster nodes, 
-Kubernetes services can be exposed on those external IPs. 
+Kubernetes services can be exposed on those external IPs.
+
 Traffic that ingresses into the cluster with the external IP(as destination IP)/External Name, 
 on the service port, will be routed to one of the service endpoints. 
 externalIPs are not managed by Kubernetes and are the responsibility of the cluster administrator.
@@ -23,9 +25,7 @@ spec:
   type: ExternalName
   externalName: my.database.example.com   
 
->so , in nutshell, we use external service in a case where, we want our service to resolve to the DNS name
->instead of local selector.
-
+>so above service can be accesses by using name "my.database.example.com " externally.
 
 >--------------------------------------------------------------------------------------------------------------
 
@@ -38,12 +38,14 @@ To hardcode an IP address, consider using headless Services.
 >EXTERNAL IP_
 
 If there are external IPs that route to one or more cluster nodes, Kubernetes Services 
-can be exposed on those externalIPs. Traffic that ingresses into the cluster with the 
-external IP (as destination IP), on the Service port, will be routed to one of the Service endpoints. 
-externalIPs are not managed by Kubernetes and are the responsibility of the cluster administrator.
+can be exposed on those external-IPs. 
+
+>Traffic that ingresses into the cluster with the external IP (as destination IP), 
+>on the Service port, will be routed to one of the Service endpoints. 
+>external-IPs are not managed by Kubernetes and are the responsibility of the cluster administrator.
 
 In the Service spec, externalIPs can be specified along with any of the ServiceTypes. 
-In the example below, "my-service" can be accessed by clients on "80.11.12.10:80" (externalIP:port)
+>In the example below, "my-service" can be accessed by clients on "80.11.12.10:80" (externalIP:port)
 
 apiVersion: v1
 kind: Service

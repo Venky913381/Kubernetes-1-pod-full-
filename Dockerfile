@@ -131,7 +131,15 @@ CMD ["java","-jar","/usr/src/mymaven/target/ROOT.war"]
     it is pioneered by GOOGLE. google have published the set of distroless images for different languages.
     distroless images do not have shell for dubugging. 
 
->14.Container Security Tools_
+>14.Merge Layers of Image_  
+    Use --squash flag on build
+    The squash flag is an experimental feature. It allows you to merge the new layers into one layer 
+    during the build time. To use it just add the flag to the build command: docker build --squash -t <image>.
+
+    You can use it by activating the experimental features in the Docker settings.
+      
+
+>15.Container Security Tools_
     
     1)it scans the containers for all the vulnerabilituies and monitor them regularly against any attack, issue 
       or new bugs.
@@ -141,7 +149,7 @@ CMD ["java","-jar","/usr/src/mymaven/target/ROOT.war"]
     3)some of the container scanners are _ ANCHORE ENGINE, CLAIR, TWISTLOCK, QUALYS, BLACKDUG, CILIUM,
       SYSDIG FALCO, AQUASECURITY/ TRIVY. 
 
-15> USING Anchore CLI_
+>16.USING Anchore CLI_
 
     1)adding container image to analyse_ 
         anchore-cli image add <image_name>

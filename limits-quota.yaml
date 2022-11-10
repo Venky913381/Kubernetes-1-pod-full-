@@ -53,7 +53,7 @@ spec:
     limits.cpu: 1
     limits.memory: 600Mi
 
->even if we put the resource limit on namepace, we need to put individual limits on pod in pod specs.
+>even if we put the resource limit on namespace, we need to put individual limits on pod in pod specs.
 >else pod creation will error out.
 
 >if we do not put requests in pod def and only describe limit , then pod will occupy the resources
@@ -100,7 +100,7 @@ metadata:
   name: limitrange1
   namespace: test-space
 spec: 
-  limits:                       # Applicable to Pod/Container inside Namespace, not Namespace.
+  limits:                       # Applicable to Pod/Container inside Namespace, not Namespace itself.
   - default: 
       cpu: 200m                     >.i.e. Quota for entire Namespace 
       memory: 500Mi                 >      Limit for the Container/pod

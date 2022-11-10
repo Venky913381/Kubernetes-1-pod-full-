@@ -39,7 +39,7 @@ spec:
 
 
 >completions  : is the number of iteration of the job.
->parallelism  : is the number of obs that can run in parallel, if not specifies only one job run at a time.  
+>parallelism  : is the number of jobs that can run in parallel, if not specifies only one job run at a time.  
 >backoffLimit : if the job fails, this is the max number of retry for the job.
 >activeDeadlineSeconds : is the time, we gave for to execute,if not executed within this time,pod will be terminated
 
@@ -109,3 +109,4 @@ Caution: If startingDeadlineSeconds is set to a value less than 10 seconds, the 
 This is because the CronJob controller checks things every 10 seconds
 
 >------------------------------------------------------------------------------------------------------------
+

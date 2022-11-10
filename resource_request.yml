@@ -1,4 +1,8 @@
 >
+
+>using resource attributes in container spec, we can define the resource requests and limits 
+>that container is entitiled or allowed to use.
+
 apiVersion: v1
 kind: Pod 
 

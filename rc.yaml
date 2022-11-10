@@ -1,23 +1,23 @@
 >
 
->Desired state is core concept in k8s.
->through declarative or imperative Api, we describe the desire state of the objects 
+>Desired state is the core concept in k8s.
+>through declarative or imperative Approch, we describe the desire state of the objects 
 >like pod, rs, deployment in the cluster.
 
 >if there are any failures , a pod stops running , the kubelet recreates the pod based on the 
 >record of desired state in etcd.
 
->kubeController managers in the master responsible for the regulating the state of the system. if they
->detects any drift in current state of the cluster, they instruct the kubelets components in the worker
->to spin up the additional pods depends on the desired state.
+>kubeController managers in the MASTER responsible for the regulating the state of the system. if they
+>detects any drift in current state of the cluster, they instruct the KUBELET components in the WORKER
+>to spin up the additional pods depends on the desired state. 
 >this way k8s ensured that all the containers running across the cluster are always in the desired state.
 >we need a controller for our application , for the purpose of Relibility, LoadBalancing, Scalling.
 
 >read: https://kubernetes.io/docs/concepts/workloads/controllers/replicationcontroller/
 
->replication controller is the original form of the replication in k8s.
->replication controller, ensure's high availibilty by replacing unhealthy/dead pods with new ones to ensure
->required replicas are always runnig inside the cluster.
+>replication controller was the original form of the replication in k8s.
+>replication controller, was tasked with ensuring high availibilty by replacing unhealthy/dead pods with 
+>new ones to ensure required replicas are always up and running inside the cluster.
 
 >we can use rc to control the deployment of single pod also. rc will help by automatically bringing up the
 >new pod when the existing one fails.
@@ -38,7 +38,7 @@ metadata:
 
 spec:
   replicas: 4
-  template:                    # USES ONLY EQUILITY BASED SELECTOR.
+  template:                    # USES ONLY EQUILITY BASED SELECTOR. it is hard selection
     metadata:
       name: servicepod         # by default it will the use containers label to match with rc, 
       labels:                  # if we do not declare, the selector explicitaly

@@ -5,13 +5,13 @@
 >kubectl get <type> <name>
 >kubectl get <type> <name> -o wide/yaml/json > foo.yaml/yoo.json
 >kubectl get <type> <name> --show-labels / -o wide   --->to get types as per the label assigned
->kubectl get all -n <name_space>                     --->to get all the current resources in any namespace
->kubectl get all/<resource> --all-namespaces         --->to get all the resources/resource in all namespaces
+>kubectl get all -n <name_space>                     --->to get all the resources in given namespace
+>kubectl get all/<resource> --all-namespaces         --->to get all the resources in all namespaces
 
 >kubectl logs <pod_name>                              ---> to get logs of the k8s pod
 >kubectl logs -f <pod_name>                           ---> to get logs of the k8s pod
->kubectl logs -f <pod_name> -c <container_name>       ---> -f for follow/continuos logs
->kubectl logs -f <pod_name> --all-containers
+>kubectl logs -f <pod_name> -c <container_name>       ---> to get logs of the container inside k8s pod
+>kubectl logs -f <pod_name> --all-containers          ---> -f for follow/continuos logs
 
 >kubectl exec <podname> -c <container_name> -it -- <command>   ---> to execute into running pod/container
 
@@ -63,6 +63,7 @@
 >minikube unpause          ---> unpause Kubernetes
 >minikube ip               ---> to get cluster ip
 >minikube start --container-runtime='runtime_name'  ---> default, Docker , others are Containerd, rocket etc.
+>minikube service  <service name> --url
 
 #---------------------------------------------------------------------------------------------------------------
 
@@ -94,11 +95,11 @@ and container scalling. it is wriitten in go languange.
 
 >Certified Kubernetes Distribution_
 
->1.Cloud Managed  :- EKS, AKS, GKE, CIVO, PLATFORM9, 'KOPS is a utility to manage cluster on cloud' ...etc
+>1.Cloud Managed  :- EKS, AKS, GKE, CIVO, PLATFORM-9, 'KOPS is a utility to manage cluster on cloud' ...etc
 >2.Self Managed   :- OpenShift by RedHat and Docker Enterprise
 >3.Local Dev/Test :- Micro k8s by canonical, minikube, kind
 >4.Vanilla K8s    :- the core k8s project(BareMetal), Kubeadm
->5.SpecialBuilds  :- K3s by Rancher, is a light weigt k8s distribution.
+>5.SpecialBuilds  :- K3S by Rancher, is a light weigt k8s distribution.
 
 
 >k8s alternatives_
@@ -637,7 +638,7 @@ spec:
 > A limit can never be lower than the request. Kubernetes will error out if you attempt to do this. 
 > If a container’s request is higher than a node’s capacity, Kubernetes will never schedule that container.
 
-#------------------------------------LIMITS/ QUATA in Namespace-------------------------------------
+#------------------------------------LIMITS/ QUOTA in Namespace-------------------------------------
 
 >Namespace is like seperate virtual space within kubernetes.
 >kubernetes cluster may have multiple application deployed within same cluster. In this case, we can use seperate 
@@ -2084,3 +2085,5 @@ spec:
           path: /var/log
 
 >-------------------------------------------------------------------------------------------------------------
+
+

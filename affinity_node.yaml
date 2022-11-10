@@ -9,7 +9,7 @@
 >kubernetes user normally do not need to choose a node to execute their pod, Instead , selection of appropriate
 >pod is automatically handled by kubernetes scheduler.
 
->k8s schedules watches for the newly created pod that have no Node assigned and for everyy such pod scheduler
+>k8s schedules watches for the newly created pod that have no Node assigned and for every such pod scheduler
 >becomes responsible for finding the best node for that pod to run on.
 
 >Automatic node scheduling prevents user from scheduling pod on unhealthy node.
@@ -27,7 +27,7 @@
 >https://kubernetes.io/docs/tasks/configure-pod-container/assign-pods-nodes-using-node-affinity/
 
 
->In Node Affinty and Node antiAffinity , Pod will select the the proper Node based on the rules defined under
+>In Node Affinty and Node antiAffinity , Pod will be scheduled on the proper Node based on the rules defined under
 >Node affinity and AntiAffinity rules in pod spec manifest file.
 
 >Node Affinity_
@@ -35,7 +35,7 @@
 >Node affinity is conceptually similar to nodeSelector, allowing you to constrain which nodes your Pod can 
 >be scheduled on based on node labels. However, it gives more flexibility to the user through the rules
 >which we can defined. Instead of directaly giving node's name or label , we give condition based on which pod 
->select the node to get schedule. There are two types of node affinity policies_
+>select the node to get schedule. There are two types of node affinity rules_
 
 #requiredDuringSchedulingIgnoredDuringExecution: 
 The scheduler can't schedule the Pod unless the rule is met / matching node is found. 
@@ -152,7 +152,7 @@ spec:
             
       preferredDuringSchedulingIgnoredDuringExecution:
       - weight: 1
-        preference:                     #preference, only for interating preferences, and determining the weight.
+        preference:                     #preference, only for iterating preferences, and determining the weight.
           matchExpressions:
           - key: label-1
             operator: In                   
@@ -184,7 +184,7 @@ and schedules the Pod onto the node with the highest final score.
 >Node AntiAffinity_
 
 
->NotIn and DoesNotExist allow you to define node anti-affinity behavior. 
+>Operator value of, "NotIn" and "DoesNotExist" allow you to define node anti-affinity behavior. 
 >Alternatively, you can use node taints to repel Pods from specific nodes.
 
 

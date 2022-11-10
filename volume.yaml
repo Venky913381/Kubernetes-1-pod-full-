@@ -43,10 +43,10 @@ spec:
 # 2.HostPath ( Creating volume outside of pod, i.e. on Node machine. (HOstPath) )
 
 >if we delete the POD data will be preserved in directory in sync on Host Machine, 
->and when new POD is created by pod, all
+>and when new POD is created by controller, all
 >the data will be present in new POD inside the container.
 
->i.e data volumes is created inside the Host Machine, and will be available to POD on that machine.
+>i.e data volumes is created inside the Host Machine, and will be available to all the PODs on that machine.
 
 apiVersion: v1 
 kind: Pod

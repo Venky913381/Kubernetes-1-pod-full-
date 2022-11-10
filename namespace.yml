@@ -3,7 +3,7 @@
 >kubernetes cluster may have multiple application deployed within same cluster. In this we can use seperate 
 >namespaces for each application deployement, which introduced layer of isolation between them.
 
->Using namespavce we can put limit on resource usage, which ensure that each application have enough resources, 
+>Using namespace we can put limit on resource usage, which ensure that each application have enough resources, 
 >not all resources is consumed by one application only.
 
 to get the k8s resourses which supports namespaces
@@ -24,7 +24,7 @@ To access service in another namespace
 > <*servicename>.<*namespacename>.svc.cluster.local  -->curl it
 
 
->we can controll resources in custom namespace in two different ways_(check limit-quota for more)
+>we can control resources in custom namespace in two different ways_(check limit-quota for more)
 1> ResourceQuota
 >this will set the limits on the number of k8s objects that can be created in given namespace.
 
@@ -84,7 +84,7 @@ spec:
 .svc , is the subdomain 
 .svc.cluster.local, is a Base domain name
 
->within namespace communicatio between pods happens through service.
+>within namespace communication between pods happens through service.
 >core-dns pod, in kube-system namespace, manages the dns services and resolve the ip addresses
 >in k8s cluster and service.
 

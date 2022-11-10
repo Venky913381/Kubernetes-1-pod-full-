@@ -55,7 +55,7 @@ spec:
     rollingUpdate:       # here we are explictly given the RollingUpdate strategy. 
       maxSurge: 0         
       maxUnavailable: 1     > max unavailable, suggest that during replacemnt of older deployments, at a time
-    type: RollingUpdate      > only 1 pod will remain unavailable. i.e. pod will get replaced one by one. 
+    type: RollingUpdate     > only 1 pod will remain unavailable. i.e. pod will get replaced one by one. 
                             # if we gave value as 3 , then at a time 3 old pods will get replaced by 3 new pod. this 
   selector:               > strategy will make sure that, 10 replicas as given (old+new),will always remain available
     matchLabels:
@@ -104,7 +104,7 @@ spec:
         - name: cont1
           image: coolgourav147/nginx-custom:v2 
 
-> if we explicity , do not gave the values of maxUnavailable or maxSurge, by default its value  will
+> if we explicity , do not gave the values of maxUnavailable or maxSurge, by default its value will
 > be 25% MaxUnavailable and 25% for MaxSurge
 
 

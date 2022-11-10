@@ -16,7 +16,7 @@
 >https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
 
 >Replica set is higher level objects that gives ability to easily run multiple instance for given pod.
->it works similat ro replication controller.
+>it works similar to replication controller.
 
 >Replica set uses SET BASE SELECTORS to manage pods.
 
@@ -83,12 +83,12 @@ spec:
   replicas: 5                  
   selector:                   
     matchExpressions:
-    - key: appname
+    - key: appname           #appname in app or appname in app2, it is soft selection
       operator: In 
       values:
         - app              #pod must have all labels, .i.e. appname and type. only one will not work.
-        - app2             #pod needed to have at least one of above 2 label  to be controlled by RS.
-                           # will select all pod having Labels, appname-->app or app2 and type-->frontend
+        - app2             #pod needed to have at least one of above 2 label values to be controlled by RS.
+                           #will select all pod having Labels, appname-->app or app2 and type-->frontend
     - key: type            > but, it will not select any app, app2 with type backend.
       operator: In 
       values:

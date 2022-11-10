@@ -11,13 +11,13 @@ One of the misconception with Headless service is that, it do not Load Balances 
 Even though headless service return the ip addresses of the pods, it will still load balances the 
 requests to the pods and this type of load balancing is called as DNS ROUND ROBIN LOAD BALANCING.
 
-> Headless service will Not always forward the reuest to first pod.
+> Headless service will Not always forward the request to first pod.
 
 >curl <headless_service_name>:<container_port>  ---> this request is directaly forwaed to backend pod through
->    DNS ROUND ROBIN LOAD BALANCING mechanism and for each dns quesy/request it will result in new ip address
+>    DNS ROUND ROBIN LOAD BALANCING mechanism and for each dns query/request it will result in new ip address
 >    as headless service is load balancing the requests. 
 
->However, headless service , whenused with StatefulSets provides a 
+>However, headless service , when used with StatefulSets provides a 
 >unique identity to each pod managed by StatefulSet
 
 >--------------------------------------------------------------------------------------------------------------
@@ -56,7 +56,7 @@ requests to the pods and this type of load balancing is called as DNS ROUND ROBI
 
 4> needs to maintain users data in cases of n/w or storage failure.
 
-> User---> LB ---> FrontEnd/ Stateless Application --->Headless Service ---> Stateful Application.
+> User---> LB ---> FrontEnd/Stateless Application --->Headless Service ---> Stateful Application.
 
 >--------------------------------------------------------------------------------------------------------------
 
@@ -69,13 +69,13 @@ requests to the pods and this type of load balancing is called as DNS ROUND ROBI
 >provide similar functinalities like StatefulSets. 
 >However there are certain parameters that are unique to StatefulSets_
 
->Instead of generating random names of pods like Replication Controller or Replica Sets, 
+>Instead of generating random names of pods like Replication Controller or Replica Sets do, 
 >Stateful sets generate stable name for each and every pod, so it becomes easier to identify the master pod
 >by all other pods.
 
 >In deployments , each pod gets a random identity with hash of RS and pod attached. pods gets a new identity 
 >(hostname & ip) across restart and reschedule. the pod identity is generated in following syntax_
-<name of deployment>-<replicaset hash>-<pod hash> , if pod get replaced, pod_hash will chnaged.
+<name of deployment>-<replicaset hash>-<pod hash> , if pod get replaced, pod_hash will changed.
 
 >in stateful sets , each pod will get stable name .
 <statefulset_name>-ordinal
@@ -89,11 +89,11 @@ requests to the pods and this type of load balancing is called as DNS ROUND ROBI
 > but in case of stateful application, we need a pod with stable IP , 
 > so that the write/read request or in case of other pod replicate the data from pod 
 > can be redirected to it in consistance manner even in case of pod recretaion.
->
+
 
 2> Sticky / Indentity Hostname :
 
-> Each pod created by StefulSet has a ordinal value (0 through # replicas -1 ) and a stable n/w id, which is
+> Each pod created by StatefulSet has a ordinal value (0 through # replicas -1 ) and a stable n/w id, which is
 > '<statefulsetname>-ordinal' assigned to it.
 
 >this makes it easier to make a perticular pod as master/primary and make other pods to replicate the data 
@@ -101,20 +101,20 @@ requests to the pods and this type of load balancing is called as DNS ROUND ROBI
 
 >if the pod dies, a new pod is created with SAME NAME, so replication algorithm wont break.
 
->So, How to setup pod to pod communication, so that other pod can copy data from main pod,
+>How to setup pod to pod communication, so that other pod can copy data from main pod ?
 >again , pod created by replication set , upon recretion will retain the old name but ip address will change.
 >and we can not set the communication between pod via name, bcuz, pod to pod dns resolution is not possible.
->we have dns resolution byt fqdn will have a pod's ips address.
+>we have dns resolution by fqdn will have a pod's ips address.
 
 
 >can we use clusterip service ?
 >NO, becouse, request will always be load balances among the replicas.
 
 >can we use name of the pod ?
->NO, becuse, pod to pod communication via name is  ot possible.
+>NO, becouse, pod to pod communication via name is not possible.
 
 >can we use Headless service name ?
->NO, becouse, the request may go to replicas as service always load balalnces the requests (dns round robin).
+>NO, becouse, the request may go to replicas as service always load balances the requests (dns round robin).
 
 >Stateful sets when combined with headless service, gives a unique identity to each pod which is_
  <statefulset_name>-ordinal
@@ -128,7 +128,7 @@ requests to the pods and this type of load balancing is called as DNS ROUND ROBI
     that does not changes with restart or recreation or reschedule. 
     This makes it easier to elect a master instance.
 
-    For stateful application with a stateful controller, it is possible to set the frst pod as primary and other
+    For stateful application with a stateful controller, it is possible to set the first pod as primary and other
     pods as replicas.
 
     The first pod will handle both read and write requests from user and other pod always sync with the first
@@ -149,9 +149,9 @@ requests to the pods and this type of load balancing is called as DNS ROUND ROBI
 
 >by default, statefulset pod are deployed in sequential order an are terminated in reverse ordinal.
 
->a new pod is created by cloning the previous pods data unless the pod ordinal's zero.
+>a new pod is created by cloning the previous pod's data unless the pod ordinal's zero.
 
->if the previous pod is in pendig state, then the new pod will not be created. in case of database pods,
+>if the previous pod is in pending state, then the new pod will not be created. in case of database pods,
 >second pod will get created and then it will replicate data from first pod, 
 >only after that third pod will get created and then that pod will replicate data from second pod.
 

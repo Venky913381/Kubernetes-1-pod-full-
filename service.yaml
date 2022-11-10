@@ -14,9 +14,9 @@
 >Target Port :- target port represents the actual Container Port of the pod. it should match the container port
 >               in the pod's manifest file.
 
->Node Port: Node port represents the port of the Node , from which external traffic access the service. 
->           It is used with Ip address of the node/ec2 , and service will be accessible.
->           NodePort Ranges from port 30000 to port 32767.
+>Node Port   :- Node port represents the port of the Node , from which external traffic access the service. 
+>               It is used with Ip address of the node/ec2 , and service will be accessible.
+>               NodePort Ranges from port 30000 to port 32767.
 
 >type : type represent the type of the service.
 
@@ -78,7 +78,7 @@ spec:                                  #can be used with above pod too..
     appname: myapp
   ports:
   - name: my-service
-    port: 9000              > pod port/listening port
+    port: 9000              > service port/listening port
     protocol: TCP
                                                   
 
@@ -106,7 +106,7 @@ spec:
 >kubectl get service/svc    -o wide / --show-labels
 
 >kubectl port-forward --address 0.0.0.0 svc/<serviceName> <PortOnHost>:<PortOnPod>
->kubectl port-forward --address 0.0.0.0 svc/<Service-Name> --namespace <NameSpace Name> Machine/HostPort:PodPort
+>kubectl port-forward --address 0.0.0.0 svc/<ServiceName> --namespace <NameSpace Name> Machine/HostPort:PodPort
 
 >kubectl port-forward -n <name_space> pod/<pod_name> <port>  ---> to forward the traffic to pod w/o service
 
@@ -132,6 +132,7 @@ spec:
     targetPort: 80  
     name: my-service
     protocol: tcp
+
   selector:
     appname: myapp 
 
@@ -163,6 +164,7 @@ ports:
   1. NodePort      (expose service out of cluser)
   2. LoadBalancer  (expose service out of cluser)
   3. ClusterIP     (expose service only within cluser)
+
   4. External Name Service
   5. Headless Service
   6. External IP Service
@@ -174,7 +176,7 @@ ports:
   
 >---------------------------------------------------------------------------------------------------------------
 
->There are two types of applications 1.Stateless application  and  2.Statefull application.
+>There are two types of applications, 1.Stateless application  and  2.Statefull application.
 
 Stateless : it will do Not store anything (data), previous session, nor it retrieve anything, eg . Nginx,apache
 
@@ -189,15 +191,15 @@ The default behaviour of the k8s is to assign internal ip address to the service
 Through this ip address, the service will proxy all the client requests 
 and load balance them to the pods behind it.
 
-If we, DNS query the service name via utilities like nslookup, k8s returns the service's ip but not the ip's 
-of the pod it manages.
+>If we, DNS query the service name via utilities like nslookup, k8s returns the service's ip but 
+>not the ip's of the pod it manages.
 
 if we are running the single instance of the database pod like mangodb , 
 we do not need to load balance as only one replica is available. 
 
 if, we do the dns query of service name to return the ip address of mangodb pod but not of service.
 to achieve this , we explicitly set the '.spec.clusterIP' of the service to 'None' to instruct k8s not to
-assign any IP to the service  or to Load balance the requests. 
+assign any IP to the service  or nor to Load balance the requests. 
 This type of service is knows as Headless Service.
 
 if a headless service manages more than one pod, service dns name will return a lists of pods managed
@@ -207,11 +209,12 @@ One of the misconception with Headless service is that, it do not Load Balances 
 Even though headless service return the ip addresses of the pods, it will still load balances the 
 requests to the pods and this type of load balancing is called as "DNS ROUND ROBIN LOAD BALANCING".
 
->Headless service will Not always forward the request to first pod. this is becouse, headless sevrvice will
->load balance the requests acrpss the pods through the service proxy.
+>one of other misconception with headless service is that, it always forward the requests to first pod, 
+>NO, Headless service will Not always forward the request to first pod. this is becouse, headless sevrvice will
+>load balance the requests across the pods through the service proxy.
 
 curl <headless-service-name>:<Container_Port> , here headless service will not resolve to first instance of the 
-pod, and as it is load balances the requests, it will result in different ips of pods every time requests in made.
+pod, and as it is load balances the requests, it will result in different ip's of pods every time requests is made.
 
 
 >curl <headless_service_name>:<container_port>  ---> this request is directaly forwarded to backend pod through
@@ -232,8 +235,9 @@ pod, and as it is load balances the requests, it will result in different ips of
 2. Master-slave configuration, where slaves needs to be aware of the master pod like Clustered databases.
 
 
->a headless service is a service without service ip but , instead of load balancing it will return the ips of our
+>a headless service is a service without service IP but , instead of load balancing it will return the ips of our
 >associated pods.
+
 >This allows us to interact directaly with pods instead of proxy. it is as simple as specifying
 >'None' for '.spec.clusterIP' and can be utilized with or without selectors.
 
@@ -311,12 +315,14 @@ spec:
 
 
 # Service Without Selectors_
->we can define the service without selectors, however , in this we need to define the endpoints resource of
+
+>we can define the service without selectors, however , in this case, we need to define the endpoints resource of
 >the pod using endpoints manifest file.
 
 Services most commonly abstract access to Kubernetes Pods thanks to the selector, 
 but when used with a corresponding Endpoints object and without a selector, 
-the Service can abstract other kinds of backends, including ones that run outside the cluster. For example :-
+the Service can abstract other kinds of backends (backend like pods, rc, rs), including ones 
+that run outside the cluster. For example :-
 
 1> You want to have an external database cluster in production, 
    but in your test environment you use your own databases.

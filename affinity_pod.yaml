@@ -28,12 +28,12 @@
 >In pod Affinty and Pod antiAffinity , allows you to specify rules about How pods should be placed relative to
 >other pods running on perticular node.
 
->Pod Affinity,we can tell the scheduler to co-locate a new pod on the same node as 'Other Pod', 
+>Pod Affinity, we can tell the scheduler to co-locate a new pod on the same node as 'Other Pod', 
 >if the label selector on the new pod matches the label on current pod running on the node.
 >i.e. it will check the label of existing pod, so that new pod will get schedule on the 
 >same node as existing pod is. so that both pods will be on same node. i.e IT WILL CO-LOCATE THE BOTH PODS.
 
->Pod Anti Affinity, can Prevent the scheduler from co-locating/i.e. NotTO Co-locatea new pod on the same node 
+>Pod Anti Affinity, can Prevent the scheduler from co-locating/i.e. NotTO Co-locate a new pod on the same node 
 >as pod with the same label, if the label selector on the new pod matches the label on the current pod.
 
 >we have two kinds of scheduling methods under affinty rules_
@@ -93,7 +93,7 @@ spec:
 >This pod affinity rule deploys the pod on Node , if it has GPU as the KEY and if it is already running a
 >Pod that has labels mentioned as a labelSelector. 
 
->SO THAT NEW POD AND OLD POD WILL BE COLOCATE ON THE SAME NODE. IT WILL FIRST SEARCH FOR OLD POD WITH 
+>SO THAT NEW POD AND OLD POD WILL BE CO-LOCATE ON THE SAME NODE. IT WILL FIRST SEARCH FOR OLD POD WITH 
 >ITS LABELS AND THEN IT WILL ALSO CHECK ITS TOPOLOGYKEY.
 
 >topologyKey is the key for the node label. any node label can be topologykey.
@@ -147,7 +147,7 @@ spec:
 
 >This is achieved using Labels, in anti Affinity rules, we are defining the matchExpression rules,
 >which searches for the the node, for the pod with matching label, if it found that pod is on that node,
->then the new pod will nt get scheduled on it.
+>then the new pod will not get scheduled on it.
 
 
 >WE CAN USE BOTH AFFINITY AND ANTI-AFFINITY RULES TOGETHER, SO THAT DIFFERENT CONDITIONS CAN BE SATISFIED.

@@ -10,7 +10,6 @@
 3> StartUp Probe
 
 
-
 >-----------------------------------------------Liveness Probe----------------------------------------------------
 
 >Many applications running for long periods of time eventually transition to broken states, 

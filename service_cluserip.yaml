@@ -25,7 +25,7 @@
 >Cluster IP_
 
 >cluster IP makes the service available within the cluser, So that pod to pod communication becomes possible.
->ClusterIp service is available within cluser only, to access application out of cluster we need to go for other
+>ClusterIp service is available within cluster only, to access application out of cluster we need to go for other
 >types of services. 
 
 
@@ -76,8 +76,8 @@ spec:
   kubectl describe svc <service name>
   kubectl get ep <service name>
 
->if we do not define the matching labels, i.e. selectorless service, we need to define seperate
->endpoint objects for our service.
+>if we do not define the matching labels, i.e. selectorless service, we need to define 
+>endpoint objects explicitly for our service.
 
 >--------------------------------------------------------------------------------------------------------------
 
@@ -133,18 +133,18 @@ spec:
 
 >Port Forwarding_ 
 
->Often times, we wants to be able to Temporarily Communicates with applications in your cluster without
+>Port forwarding is the way to Temporarily Communicates with applications in your cluster without
 >exposing them to the public internet for security reasons.
 
 >to achieve this, the port-forwarding command allows us to securely forward a port on your local machine
->through the k8s API server to a pod running in your cluster.
+>through the k8s API server to a POD running in your cluster.
 
 >you can use this method to investigate issues and adjust your services locally without the need 
 >to expose them beforhand
 
 >kubectl port-forward , give us a direct network access to port of a pod for test purpose.
 >it establishes a tunnel from the target pod to your localhost.
->The command requires yout o define the type or name of the resource as well as local and remote port numbers.
+>The command requires you to define the type or name of the resource as well as local and remote port numbers.
 
 >syntax_
 kubectl port-forward --address <local-IP> <res-type>/<res-name> <local-port>:<resource-port> -n <namespace-name> 
@@ -156,11 +156,6 @@ kubectl port-forward --address <local-IP> <res-type>/<res-name> <local-port>:<re
 >--------------------------------------------------------------------------------------------------------------
 
 pod-to-pod communication_ (without Service):
-
->address syntax
-  <pod's_ip_address>.<namespace_name>.pod.cluster-<domain.example>   ---->fqdn
->eg_
-  172-17-0-3.default.pod.cluster.local 
 
 >for pod to pod communication, we can use A/AAAA DNS record types.   
 
@@ -175,17 +170,23 @@ pod-to-pod communication_ (without Service):
 >Pod to pod communication without service do not load balances the requests.
 
 
+>address syntax
+  <pod's_ip_address>.<namespace_name>.pod.cluster-<domain.example>   ---->fqdn
+>eg_
+  172-17-0-3.default.pod.cluster.local 
+
 
 pod-to-pod communication_ (with ClusterIP  Service):
 
 >pod-to-pod communication with Service, each service gets its own IP address.
 
->each service will have incoming port and target port i.e containers port.
->It always load balalnces the incoming requests between replicas.
+>each service will have incoming port and target port i.e. containers port.
+>It always load balances the incoming requests between replicas.
 
->service acts like a proxy placed before the pod. and pods are mapped to service with help of labels.
+>service acts like a proxy placed before the pods, and pods are mapped to service with help of labels.
 
->service ips are stable, it balances the requests.
+>service ips are stable, it balances the requests. so even if pods ip changes,it will redirect the traffic to
+>to correct pod, selected via labels using selectors.
 >clusterIP is more suitable for stateless applications.
 
 >syntax_
@@ -193,6 +194,7 @@ http://<service_name>.<namespace_name>.svc.cluster.local:<Port>    ---->fqdn
 
 >the above fqdn will resolve to the ip address of clusterIP service. 
 >every clusterip service will get a internal ip.
+
 
 http://svc/port 
 >above will resolve to the actual ip address of the service, this is done by quering the Core DNS service
@@ -224,7 +226,7 @@ spec:
 kubectl proxy --port=8080    
 
 >Now, you can navigate through the Kubernetes API to access this service using this scheme:
-http://localhost:8080/api/v1/proxy/namespaces/<NAMESPACE>/services/<SERVICE-NAME>:<PORT-NAME>/
+http://localhost:<port_no>/api/v1/proxy/namespaces/<NAMESPACE>/services/<SERVICE-NAME>:<PORT-NAME>/
 
 >eg_ http://localhost:8080/api/v1/proxy/namespaces/default/services/my-internal-service:http/
 
