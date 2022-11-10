@@ -105,7 +105,7 @@ then that pod will also get deleted.
 
 >---------------------------------------------------------------------------
 
-> Different effect of the tolerations...............
+> Different effects of the tolerations...............
 
 tolarations:
     - effect: NoSchedule 
@@ -147,4 +147,4 @@ tolarations:
       value: "large"                 pod will tolerate the taint for 60 seconds, after that it will get Terminated
       tolerationSeconds: 60             > only iff no execute is effect.
 
-
+>------------------------------------------------------------------------------------------------------------

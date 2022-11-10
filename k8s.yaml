@@ -267,6 +267,17 @@ ports:
 >kubectl port-forward --address 0.0.0.0 svc/<Service-Name> --namespace <NameSpace Name> <Machine/HostPort:PodPort>
 
 
+if minikube is running on aws ec2:
+
+>You need to port forward the traffic from your EC2 node to minikube, as minikube itself will
+>runs as separate Virtual Machine on ec2.
+Once you have kubectl setup on the host machine, talking to the minikube cluster, 
+you can use kubectl port-forward to forward traffic to any service/pod running inside minikube.
+
+>kubectl port-forward --address 0.0.0.0 svc/<svc-name> <host-port>:<service-port>
+>You should be able to access your app at IP:<host-port> as long as the port-forwarding is set up.
+
+
 #-----------------------------------------ReplicationController-----------------------------------------------
 
 >read: https://kubernetes.io/docs/concepts/workloads/controllers/replicationcontroller/
@@ -1800,8 +1811,92 @@ Minimum value is 1.
 Number of seconds after which the probe times out. 
 Defaults to 1 second. Minimum value is 1.
 
+>------------------------------------------------KUBECTL COPY----------------------------------------------------
 
->----------------------------------------------------------------------------------------------------------
+> Copy files/dir to and From the Pod/Containers
+
+>kubectl cp --help
+
+Examples:
+# !!!Important Note!!!
+# Requires that the 'tar' binary is present in your container
+# image.  If 'tar' is not present, 'kubectl cp' will fail.
+
+Copy /tmp/foo_dir local directory to /tmp/bar_dir in a remote pod in the default namespace
+>kubectl cp /tmp/foo_dir <some-pod>:/tmp/bar_dir
+
+Copy /tmp/foo local file to /tmp/bar in a remote pod in a specific container
+>kubectl cp /tmp/foo <some-pod>:/tmp/bar -c <specific-container>
+
+Copy /tmp/foo local file to /tmp/bar in a remote pod in namespace <some-namespace>
+>kubectl cp /tmp/foo  <some-namespace>/<some-pod>:/tmp/bar
+
+Copy /tmp/foo from a remote pod to /tmp/bar locally
+>kubectl cp <some-namespace>/<some-pod>:/tmp/foo /tmp/bar
+
+Options:
+-c, --container='': Container name. If omitted, the first container in the pod will be chosen
+
+Usage:
+>kubectl cp <file-spec-src> <file-spec-dest> [options]
+
+Use "kubectl options" for a list of global command-line options (applies to all commands).
+
+
+
+>------------------------------------------------DaemonSet-----------------------------------------------------
+
+# DaemonSet_
+
+>A DaemonSet is similar to the Deployments, it ensures that all (or some) Nodes run a copy of a Pod. 
+>As nodes are added to the cluster, Pods are added to them. As nodes are removed from the cluster, 
+>those Pods are garbage collected. 
+>Deleting a DaemonSet will clean up the Pods it created.
+
+>Both replica set and deployments are used for running a specificnumber of pods on k8s cluster.
+>but certain cases exist , where we want to run a pod on each and every node, that exist in a cluster,
+>and such node needs to run a exactly one instance only.
+
+>In a simple case, one DaemonSet, covering all nodes, would be used for each type of daemon. 
+>A more complex setup might use multiple DaemonSets for a single type of daemon, but with different
+>flags and/or different memory and cpu requests for different hardware types
+
+
+Some typical uses of a DaemonSet are:
+>running a cluster storage daemon, such as Glustered, Ceph on every node.
+>running a logs collection daemon, such as Filebeat, Fluented on every node.
+>running a node monitoring daemon, such as Nagios, Elk, Prometheous on every node.
+
+
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: fluentd-elasticsearch
+  labels:
+    k8s-app: fluentd-logging
+spec:
+  selector:
+    matchLabels:
+      name: fluentd-elasticsearch
+
+  template:
+    metadata:
+      labels:
+        name: fluentd-elasticsearch  # same as containers
+    spec:
+      containers:
+      - name: fluentd-elasticsearch
+        image: quay.io/fluentd_elasticsearch/fluentd:v2.5.2
+        volumeMounts:
+        - name: varlog
+          mountPath: /var/log
+      volumes:
+      - name: varlog
+        hostPath:
+          path: /var/log
+
+>-------------------------------------------------------------------------------------------------------------
+
 
 >read more_
 
@@ -1833,21 +1928,25 @@ Defaults to 1 second. Minimum value is 1.
   9. Headless Service 
 
 >d) K8S AutoScalling (HPA)
->e) Kubernetes DashBoard
+>e) Kubernetes DashBoard (skooner)
 >f) Stateful Sets
 
 >g) Service Account
->h) Cluster Role and Role Binding
+>h) Roles/Cluster Role and Role Binding/Cluster Role Binding (CR&CRB)
 >i) Role Based Access Control
 
 >j) Pod/Node Affinity/AntiAffinity
 >k) DaemonSet
->l) Istio
+>l) Istio/HAProxy/Nginx
 >m) Kubernetes Logs 
 >n) Kubernetes Jobs
 >o) custom resource and custom resource defination (CR&CRD)
+>p> Docker Image Security using Anchore/Sync (DevSecOps)
 
->----------------------------------------------------------------------------------------------------------
+
+
+>----------------------------------------------K8S Accessories-------------------------------------------------
+
 
 #Kubernetes Package Managers and Plugins Managers
 
@@ -2003,87 +2102,5 @@ it will scans the cluster and give details report on it.
 
 
 >----------------------------------------------------------------------------------------------------------
-
-> Copy files/dir to and From the Pod/Containers
-
->kubectl cp --help
-
-Examples:
-# !!!Important Note!!!
-# Requires that the 'tar' binary is present in your container
-# image.  If 'tar' is not present, 'kubectl cp' will fail.
-
-Copy /tmp/foo_dir local directory to /tmp/bar_dir in a remote pod in the default namespace
->kubectl cp /tmp/foo_dir <some-pod>:/tmp/bar_dir
-
-Copy /tmp/foo local file to /tmp/bar in a remote pod in a specific container
->kubectl cp /tmp/foo <some-pod>:/tmp/bar -c <specific-container>
-
-Copy /tmp/foo local file to /tmp/bar in a remote pod in namespace <some-namespace>
->kubectl cp /tmp/foo  <some-namespace>/<some-pod>:/tmp/bar
-
-Copy /tmp/foo from a remote pod to /tmp/bar locally
->kubectl cp <some-namespace>/<some-pod>:/tmp/foo /tmp/bar
-
-Options:
--c, --container='': Container name. If omitted, the first container in the pod will be chosen
-
-Usage:
->kubectl cp <file-spec-src> <file-spec-dest> [options]
-
-Use "kubectl options" for a list of global command-line options (applies to all commands).
-
->----------------------------------------------------------------------------------------------------------
-
-# DaemonSet_
-
->A DaemonSet is similar to the Deployments, it ensures that all (or some) Nodes run a copy of a Pod. 
->As nodes are added to the cluster, Pods are added to them. As nodes are removed from the cluster, 
->those Pods are garbage collected. 
->Deleting a DaemonSet will clean up the Pods it created.
-
->Both replica set and deployments are used for running a specificnumber of pods on k8s cluster.
->but certain cases exist , where we want to run a pod on each and every node, that exist in a cluster,
->and such node needs to run a exactly one instance only.
-
->In a simple case, one DaemonSet, covering all nodes, would be used for each type of daemon. 
->A more complex setup might use multiple DaemonSets for a single type of daemon, but with different
->flags and/or different memory and cpu requests for different hardware types
-
-
-Some typical uses of a DaemonSet are:
->running a cluster storage daemon, such as Glustered, Ceph on every node.
->running a logs collection daemon, such as Filebeat, Fluented on every node.
->running a node monitoring daemon, such as Nagios, Elk, Prometheous on every node.
-
-
-apiVersion: apps/v1
-kind: DaemonSet
-metadata:
-  name: fluentd-elasticsearch
-  labels:
-    k8s-app: fluentd-logging
-spec:
-  selector:
-    matchLabels:
-      name: fluentd-elasticsearch
-
-  template:
-    metadata:
-      labels:
-        name: fluentd-elasticsearch  # same as containers
-    spec:
-      containers:
-      - name: fluentd-elasticsearch
-        image: quay.io/fluentd_elasticsearch/fluentd:v2.5.2
-        volumeMounts:
-        - name: varlog
-          mountPath: /var/log
-      volumes:
-      - name: varlog
-        hostPath:
-          path: /var/log
-
->-------------------------------------------------------------------------------------------------------------
 
 
