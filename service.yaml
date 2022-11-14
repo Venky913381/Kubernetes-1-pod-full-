@@ -174,7 +174,9 @@ ports:
   8. Ingress/Ingress_Resources/Ingress_Rule
   9. Ingress Controller 
   
+  
 >---------------------------------------------------------------------------------------------------------------
+
 
 >There are two types of applications, 1.Stateless application  and  2.Statefull application.
 
@@ -208,6 +210,13 @@ by the service. The requests will accept the first IP address returned.
 One of the misconception with Headless service is that, it do not Load Balances the request.
 Even though headless service return the ip addresses of the pods, it will still load balances the 
 requests to the pods and this type of load balancing is called as "DNS ROUND ROBIN LOAD BALANCING".
+
+>Whatever the name of our headless service is , it represents all the backend pods it manages. the name 
+>of service is not resolving to the ip address of the service itself. infact headless service is acting
+>like single DNS name for all the backend pods it manages. 
+
+>As simple DNS call to headless service will result in a multiple DNS results , that is it return IPS 
+>od all the backend pods it manages.That is why it is called as "DNS ROUND ROBIN LOAD BALANCING".
 
 >one of other misconception with headless service is that, it always forward the requests to first pod, 
 >NO, Headless service will Not always forward the request to first pod. this is becouse, headless sevrvice will

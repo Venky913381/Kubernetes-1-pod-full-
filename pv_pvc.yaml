@@ -74,8 +74,8 @@ metadata:
   name: jhooq-pvc
 spec:
   volumeName: jhooq-demo-pv
-  storageClassName: local-storage     # must need to same as describe in PV specs
-  volumeMode: Filesystem
+  storageClassName: local-storage     # must need to same as describe in PV specs, it will decide which PV 
+  volumeMode: Filesystem                         # will get served the claim.
   accessModes:
     - ReadWriteOnce
   resources:
@@ -121,7 +121,7 @@ spec:
 >be bind together.
 
 
-> accessModes, can be_
+> accessModes, can be_ (from statefulset video)
      ReadWriteOnce (RWO) : only single worker node can mount the volume for reading and writing at same time.
                            this mode will still allow multiple pods to access the volume when pods are running
                            on same node.
@@ -131,9 +131,12 @@ spec:
 
 
 >persistentVolumeReclaimPolicy, can be_
-     Retain  : it deletes volume content and makes the voulme available to be claimed again as 
+
+  >reclaim policy tell us , what happens to persistent volume , when the PVC is deleted
+
+     Delete  : it deletes volume content and makes the voulme available to be claimed again as 
                soon as pvc gets deleted. 
-     Delete  : pv content will be persisted after pvc is deleted and it can not be reused, until
+     Retain  : pv content will be persisted after pvc is deleted and it can not be reused, until
                administrator reclaim the volume manually.
 
 >--------------------------------------------------------------------------------------------------------------- 
@@ -179,7 +182,7 @@ spec:
 >it is a cluster wide resource used to store /persist data beyond the lifetime of a pod.
 
 >pv's are not backed by any locally attached storage on worker node but by networked storage system 
->such as cloud providers storage or NFS or distributed filesystem like Ceph or GlusterFS.
+>such as cloud providers storage or NFS or distributed filesystem like Ceph or GlusterFS. 
 
 >PV provide a file system that can be mounted on to the cluster, without being associated with any perticular
 >node.
@@ -202,12 +205,15 @@ spec:
                  which is available for use by cluster users.
 
 2> Dynamically :- When none of the admin created pv that matches the users pvc, then the cluster 
-                  may try to dynamically provisioned the volume/pv, specially for the pvc. 
-                  This provisioning is based on StorageClasses, the pv must request a storage class 
-                  and the admin must have created and configured that class for dynamic provisioning to occure.
+                  may try to dynamically provisioned the volume/pv as per users request, specially for the pvc. 
+                  
+>                  This provisioning is based on StorageClasses, the pv must request a storage class 
+>                  and the admin must have created and configured that class for dynamic provisioning to occure.
 
-                  to enable dynamic storage provisioning , we have to enable the DefaultStorageClass admission'
-                  controller on the k8s API server.
+>                 to enable dynamic storage provisioning , we have to enable the DefaultStorageClass admission'
+>                 controller on the k8s API server.
 
->some pending, check screenshots
+
+>some pending, check screenshots (from statefulset video)
+
 >-----------------------------------------------------------------------------------------------------------------

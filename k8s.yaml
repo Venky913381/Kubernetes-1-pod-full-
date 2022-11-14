@@ -62,7 +62,11 @@
 >minikube pause            ---> pause Kubernetes
 >minikube unpause          ---> unpause Kubernetes
 >minikube ip               ---> to get cluster ip
->minikube start --container-runtime='runtime_name'  ---> default, Docker , others are Containerd, rocket etc.
+
+>minikube addons list                              ---> to get list of addons comes with minikube
+>minikube addons enable/disable <addon_name>       ---> to enable/disable addons
+
+>minikube start --container-runtime='runtime_name'/--drive='driver' --->if other than default docker
 >minikube service  <service name> --url
 
 #---------------------------------------------------------------------------------------------------------------

@@ -1,0 +1,594 @@
+>
+
+>Monolithic Application :-
+
+A monolithic architecture is a traditional model of a software program, which is built as a unified unit that
+is self-contained and independent from other applications. The word “monolith” is often attributed to something 
+large and glacial, which isn’t far from the truth of a monolith architecture for software design. 
+ 
+A monolithic architecture is a singular, large computing network with one code base that couples all 
+of the business concerns together.  To make a change to this sort of application requires updating the entire 
+stack by accessing the code base and building and deploying an updated version of the service-side interface. 
+This makes updates restrictive and time-consuming. 
+
+Monoliths can be convenient early on in a project's life for ease of code management, cognitive overhead, 
+and deployment. This allows everything in the monolith to be released at once.
+
+#Advantages of a monolithic architecture
+Organizations can benefit from either a monolithic or microservices architecture, depending on a 
+number of different factors. 
+When developing using a monolithic architecture, the primary advantage is fast development speed due to 
+the simplicity of having an application based on one code base. 
+
+The advantages of a monolithic architecture include: 
+
+>Easy develoement & deployment – One executable file or directory makes deployment easier.
+
+>Development – When an application is built with one code base, it is easier to develop.
+
+>Performance – In a centralized code base and repository, one API can often perform the same function 
+>that numerous APIs perform with microservices.
+
+>Simplified testing – Since a monolithic application is a single, centralized unit, end-to-end testing 
+>can be performed faster than with a distributed application. 
+
+>Easy debugging – With all code located in one place, it’s easier to follow a request and find an issue.
+
+
+#Disadvantages of a monolithic architecture
+As with the case of Netflix, monolithic applications can be quite effective until they grow too large and 
+scaling becomes a challenge. Making a small change in a single function requires compiling and testing the 
+entire platform, which goes against the agile approach today’s developers favor. 
+
+The disadvantages of a monolith include: 
+
+>Slower development speed – A large, monolithic application makes development more complex and slower.
+
+>Scalability – You can’t scale individual components.
+
+>Reliability – If there’s an error in any module, it could affect the entire application’s availability.
+
+>Barrier to technology adoption – Any changes in the framework or language affects the entire application, 
+>making changes often expensive and time-consuming.
+
+>Lack of flexibility – A monolith is constrained by the technologies already used in the monolith.
+
+>Deployment – A small change to a monolithic application requires the redeployment of the entire monolith.
+
+>                                   ************************
+
+>microservices :-
+
+A microservices architecture, also simply known as microservices, is an architectural method that relies 
+on a series of independently deployable services. These services have their own business logic and database
+ with a specific goal. Updating, testing, deployment, and scaling occur within each service. Microservices 
+ decouple major business, domain-specific concerns into separate, independent code bases. 
+ 
+ Microservices don’t reduce complexity, but they make any complexity visible and more manageable by 
+ separating tasks into smaller processes that function independently of each other and contribute to 
+ the overall whole. 
+
+Adopting microservices often goes hand in hand with DevOps, since they are the basis for 
+continuous delivery practices that allow teams to adapt quickly to user requirements.
+
+#Advantages of microservices
+Microservices are by no means a silver bullet, but they solve a number of problems for growing software 
+and companies. Since a microservices architecture consists of units that run independently, each 
+service can be developed, updated, deployed, and scaled without affecting the other services. 
+
+Software updates can be performed more frequently, with improved reliability, uptime, and performance. 
+We went from pushing updates once a week, to two to three times a day. 
+
+the advantages of microservices are: 
+
+>Agility – Promote agile ways of working with small teams that deploy frequently.
+
+>Flexible scaling – If a microservice reaches its load capacity, new instances of that service can rapidly 
+>be deployed to the accompanying cluster to help relieve pressure. We are now multi-tenanant and stateless 
+>with customers spread across multiple instances. Now we can support much larger instance sizes. 
+
+>Continuous deployment – We now have frequent and faster release cycles. Before we would push out updates 
+>once a week and now we can do so about two to three times a day. 
+
+>Highly maintainable and testable – Teams can experiment with new features and roll back if something doesn’t work. 
+>This makes it easier to update code and accelerates time-to-market for new features. 
+>Plus, it is easy to isolate and fix faults and bugs in individual services.
+
+>Independently deployable – Since microservices are individual units they allow for fast and easy 
+>independent deployment of individual features. 
+
+>Technology flexibility – Microservice architectures allow teams the freedom to select the tools they desire. 
+
+>High reliability – You can deploy changes for a specific service, without the threat of bringing 
+>down the entire application.
+
+>Happier teams – The Atlassian teams who work with microservices are a lot happier, since they are 
+>more autonomous and can build and deploy themselves without waiting weeks for a pull request to be approved.
+
+#Disadvantages of microservices
+When we moved from a small number of monolithic codebases to many more distributed systems and services 
+powering our products, unintended complexity arose. We initially struggled to add new capabilities with 
+the same velocity and confidence as we had done in the past. Microservices can add increased complexity 
+that leads to development sprawl, or rapid and unmanaged growth. It can be challenging to determine 
+how different components relate to each other, who owns a particular software component, or how to 
+avoid interfering with dependent components. 
+
+disadvantages of microservices can include: 
+
+>Development sprawl – Microservices add more complexity compared to a monolith architecture, 
+>since there are more services in more places created by multiple teams. If development sprawl 
+>isn’t properly managed, it results in slower development speed and poor operational performance. 
+
+>Exponential infrastructure costs – Each new microservice can have its own cost for test suite, 
+>deployment playbooks, hosting infrastructure, monitoring tools, and more.
+
+>Added organizational overhead – Teams need to add another level of communication and collaboration 
+>to coordinate updates and interfaces. 
+
+>Debugging challenges – Each microservice has its own set of logs, which makes debugging more complicated. 
+>Plus, a single business process can run across multiple machines, further complicating debugging. 
+
+>Lack of standardization – Without a common platform, there can be a proliferation of languages, 
+>logging standards, and monitoring. 
+
+>Lack of clear ownership – As more services are introduced, so are the number of teams running 
+>those services. Over time it becomes difficult to know the available services a team can leverage 
+>and who to contact for support.
+
+                                  **************************
+
+Upstream and Downstream requests and response:
+
+--------------------->upstream Service------------------------->
+>Microservice A --------> Microservice B --------> Microservice C
+<--------------------downstream Service<------------------------
+
+>so Microservice B is upstream microservice for Microserice A and 
+>Microservice B is downstream microservice for Microserice C
+
+
+>Monolith or microservice application, both provides the same set of functionality, difference between them
+>is the seperation of the concerns.
+>it is important to understand that microserices dont live in a isolation, they enable Seperation of the concerns, 
+>but they still must interact with each other.
+>the issues inside the monolithic application are now outside in the layers between microservices .i.e. the 
+>connectivity between the services.
+
+
+>Challenges with Microservices :
+
+>1. security between the services
+traffic between two microservice is in plain http , which can be easily compromised, 
+so security is majpr concern for microservices. 
+
+>2. service discovery : Eureka
+microservices can be deployed on different hosts, so discovery of one microservice by another microservice is 
+another concern as communication between them is happening over the ip, so it is important for microservices to 
+know ip addresses of each other. we need to have service registry.
+
+>3. tracing : jaeger
+as microservices are spread across the hosts, it is difficult to trace the requests and responses from them.
+
+>4. logging : ELK
+as in microservices we have multiple services , logging becomes as issue.
+
+>5. testing : cucumber
+testing the connectivity between microservices becomes an issue as number of services increase.
+
+>6. fault tolerance : circuit breakers
+if one microservices in loop goes down all application may stop working, 
+so there needs a mechanism to trminate the requests if microservices becomes unreponsive.
+
+>7. monitoring : grafana
+each application needs a monitoring to better manage the resources.
+
+
+>-------------------------------------------------------------------------------------------------------------
+
+>ref_ https://cloud.google.com/architecture/service-meshes-in-microservices-architecture 
+>ref_ https://medium.com/microservices-in-practice/service-mesh-for-microservices-2953109a3c9a
+
+
+>Need for Service Mesh : - 
+
+service mesh is all about service to service communication, it is capable of easily identifying the 
+network issues between microservices, where these issues are occuring, at what rate these issues are occuring,
+what are successful and failed requests, what are their percentage, what is their response time..etc, 
+all such matrix is provided by service mesh.
+
+
+with service mesh, we are removing additional logic like Ingress & Egress of Traffic to microservices, Routing of 
+the traffic to microservices, Retries and Timeouts in case of failure or unresponsiveness of microservices,
+Secure TLS communication between microservices, managing various certificates , Metrics of various 
+microservices parameters, from application logic. 
+all the above discussed responsibilities and function is carried our by service mesh.
+
+>So moving the additional logic out from the code to seperate layer called Infrastructure layer that has
+>numerous Proxies (side car containers). So main application container will carry only application logic,
+>while all task discussed will be delegated to proxy container. 
+
+>with service mesh, we are injecting secondary proxy container w=along with each microservice container, which 
+>implements the additional logic.
+
+>also , these proxy container can be developed using any technology, and need not to be of same
+>technlogy as main microservices. so we can own choice of proxy container language. 
+
+>these proxies are part of the DATA PLANE as these are included with main microservices containers, so
+>these are components of the data plane which are intelligently routing the traffic.
+
+>However, to configure the proxies, we need a CONTROL PLANE component, these control plane component are
+>responsible for configuring the proxies for implementing various routing rules.
+
+
+#Service mesh Advantages_
+
+>1.business and communication logic is now seperated.
+>2.developer can now work only on core business logic.
+>3.much cleaner and lean docker images.
+>4.rich set of matrices from the application/mesh like success/failed connection, retries, timeouts,
+>  thanks to the proxies intercepting the traffic.
+>5.identifying the performance issues using tracing with JAEGER.
+>6.dashboard to visualize the whole mesh like KIALI/GRAFANA.
+>7.chaos testing by injecting delayes and failures using tools like MONKEY.
+>8.Weighted traffic and request based routing, canaries, A/B testing with propagating headers.
+>9.additional features like mTLS between services, circuit breaking, traffic mirroring.
+
+>     microservices--1                                 microservices--2
+ |CoreLogic|<-------->PROXY1  <----------------->  PROXY2<--------->|CoreLogic|
+
+
+>Service Mesh_
+
+>1.a service mesh is a dedicated frastructure layer for handling the microservice to microservice communication.
+
+>2.it is responsible for the reliable delivery of requests through the complex topology of services that 
+>  comprises of mordern , cloud native application.
+
+>3.Implemented as a proxy in each pod, which is responsible for intercepting traffi that 
+>  goes in and out of the microservices.
+
+>4.proxies allow to control traffic and gain insights throughout the system in the microservices architecture.
+
+>5.it provides the observability , traffic shifting (for canary releasing), tracing, features like circuit
+>  breaking and retries, timeouts and automatic mutual TLS can be configured.
+
+>6.a service mesh does not require code changes. Instead it adds a layer of additional containers that 
+>  implemets the features reliably and anostic to technology or programming language.
+
+
+>Without Service mesh_
+ microservices A  <---------------->  microservices B
+
+>with Service mesh_
+
+#     microservice--1                                 microservice--2
+  |CoreLogic|<-------->PROXY1  <----------------->  PROXY2<--------->|CoreLogic| 
+                        ^|                            ^|
+>                configs||metrics              configs||Metrics
+                        |v                            |v
+>                     ,,|,,,,,,,,,,,,,,,,,,,,,,,,,,,,,|,,,       
+>                     |           CONTROL PLANE          |
+>                     """"""""""""""""""""""""""""""""""""
+                          
+
+>Becouse of the Service mesh , may functionality listed below has been moved out of microservices logic 
+>put them on the proxies.
+SERVICE DEISCOVERY
+LOAD BALANCING
+COMMUNICATION RESILIENCY (retries, timeouts, circuit breaking, rate limiting)
+SECURITY (end to end encryption, authorization policies)
+OBSERVABILITY (layer7 metrices, tracing , alerting)
+ROUTING CONTROL (traffic shifting and monitoring)
+
+>only business logic and bussiness matrices stays in microservices.
+>incoming and outgoing requests are transparently routed through the proxies.
+
+>In addition to the layer ofproxies (DATA PLANE), a service mesh adds a so called CONTROL PLANE. it distributes
+>configuration updates to all proxies and receives metrices collected by the proxies for further processing.
+
+>Service mesh can be implemented using tools like ISTIO, LINKERD, CONSUL, TRAEFIK MESH, KUMA, 
+>AWS App MESH, OPEN SERVICE MESH(osm).
+
+>-------------------------------------------------------------------------------------------------------------
+
+>ISTIO_
+
+>1.Istio is tool which provide a service mesh for microservices. It addresses the challanges developers
+>  and operators face with a distributed or microservices architecture.
+
+>2.Istio is the most popularar service mesh , it was developed by google and IBM.
+>3.Istio implements all the service mesh features such as matrics, logging, tracing, traffic management,
+>  traffic routing, circuit breaking, mTLS and authorization.
+
+>4.Istion integrates with prometheous, grafana, and Jaegerand the service mesh dashboard kiali
+
+>5.Istio uses ENVOY by default as service proxy, a popular open source proxy.
+
+>6.In istio version 1.5, the whole control plane was unified into a single process (ISTIOD ,it consist of
+>  control plane components such as pilot, citadel, galley.)
+
+>7.ISTIOD communicates with the proxies to distribute configuration, receive recorded network traffic in the
+>  form of metrics and telemetry data and manage certificates.
+
+
+
+HOW DOES ISTION WORKS IN K8S :
+
+At high leval, istio works by deploying a proxy container alongside the main application container
+in the pod for each microservices in our application.
+
+This envoy proxy , which is often reffered to as a SideCar, intercpts all the traffic of the main
+application container, providing telemetry, mTLS, traffic routing feature for the application.
+
+this way it reduces the burden on main application container. it reduces the image size and reduces
+attack surfce area of the microservices.
+
+why SideCar pattern:
+
+>in realtime deployments, it is not advised to burden main application container with additional responsiblities,
+>and we try to keep application image as small as possible, which reduces the surface attack on application.
+
+>sidecar pattern , uses helper container to enhance or extend the functionality of main container.
+>this way developer can work on application seperatly and other responsibilities 
+>can be delegated to sidecar container
+
+>failures in sidecar container will not impact the main application container.
+
+>sidecar container is just like any other container, it will work in conjuction with main container, 
+>so that load on main container can be reduced.
+
+eg. A logging agent that collects logs and send them to the data aggregation system 
+    and sync it to the monitoring agent.
+
+
+ENVOY PROXY :
+
+>Istio uses EnvoyProxy as sidecar for all microservices injected as a side car container.
+>Envoy is a high performance proxy developed in c++ and it itercepts all inbound and outbound traffic for
+>all microservices in service mesh.
+
+>Proxies Implements features like_
+DYNAMIC SERVICE DEISCOVERY
+LOAD BALANCING
+TLS TERMINATION
+CIRCUIT BREAKING
+HEALTH CHECKS
+CANARY ROLLOUTS
+A/B ROLLOUTS/DARK DEPLOYMENTS
+FAULT INJECTION
+RICH METRICS
+TLS termination
+HTTP/2 and gRPC proxies
+Staged rollouts with %-based traffic split
+
+
+>Secure service-to-service communication in a cluster with TLS encryption, 
+>strong identity-based authentication and authorization
+
+>Automatic certificates rotation at proxy level.
+
+>Traffic routing using weighted and request based rules
+
+>Automatic load balancing for HTTP, gRPC, WebSocket, and TCP traffic
+
+>identifying the performance /relibility issues through metrics
+
+>debug services and tracing using zipkins and jaeger.
+
+>Fine-grained control of traffic behavior with rich routing rules, retries, failovers, and fault injection
+
+>A pluggable policy layer and configuration API supporting access controls, rate limits and quotas
+
+>Automatic metrics, logs, and traces for all traffic within a cluster, including cluster ingress and egress
+
+>metrics visualization using tools like prometheus, grafana.
+
+>                                    *******************************
+
+
+ISTIO ARCHITECTURE AND CORE FUNCTIONS :
+
+>with version 1.5, control plane components like Pilot, Citadel, Galley were combined into single 
+>component called istiod. 
+>Istiod replaces the control plane and handle configuration and certificate distribution 
+>sidecar injection and more.
+
+
+
+DATA PLANE vs CONTROL PLANE :
+
+#DATA_PLANE_ 
+
+>the data plane is only composed of Envoy Proxies, deployed as sidecar in each pod.
+
+>any incoming or outgoing requests from pod will pass through these sidecars.
+
+>these proxies control all the network communications between microservices.
+
+
+#CONTROL_PLANE_
+
+>control plane is the brain of the service mesh.
+>it provides service discovery, configuration ans certificates management to envoy proxies by issuing
+>TLS certificates at the runtime.
+
+>it collects telemetry and other mitrices from proxies.
+
+>PILOT, CITADEL, GALLEY, MIXER, SIDECAR INJECTOR, GATEWAY are the part of the control plane.
+
+>istio 1.5 itroduced ISTIOD, a control plane that combines all above components in to single component.
+
+>ref_ https://istio.io/v1.4/docs/ops/deployment/architecture/
+>ref_ https://istio.io/latest/docs/ops/deployment/architecture/
+
+
+>1.PILOT :- 
+it uses envoys api to communicates and configure them. it parses the high level rules defined in the istio
+manifest and converts that to envoy configuration.
+Configuratios for service discovery, traffic managements, A/B testing, Blue-Green deployments, Canry rollouts,
+retries, timeouts and circuit breaking etc, can be injected in to envoy proxies.
+
+
+>2.CITADEL :-
+it acts as loca CA authority, it provides secure communication among service by managing user authentication,
+issuing and rotating certificates to envoy and credentials managements.
+it enables mTLS, we can implemets mTLS by configuring every pod with a certificates. but we end up managing hundreds
+of certificates ourself like rotation and issuing.
+
+
+>3.GALLEY :- 
+Galley is Istio’s configuration validation, ingestion, processing and distribution component. 
+It is responsible for insulating the rest of the Istio components from the details of obtaining user 
+configuration from the underlying platform (e.g. Kubernetes).
+
+
+>4.Mixer :-
+Mixer is a platform-independent component. Mixer enforces access control and usage policies across the service mesh, 
+and collects telemetry data from the Envoy proxy and other services. The proxy extracts request level attributes,
+ and sends them to Mixer for evaluation.
+
+>5.SideCar Injectors :-
+it injects envoy sidecar container in to pods for enabled namepsaces.
+we have to enable Istio injection for namespaces in order toinject sidecar container proxies.
+>kubectl label namepsace default istio-injection=enabled
+
+
+
+Istio Features :
+
+>1. Traffic Control
+The main feature of Istio is its role in traffic management. It controls the flow of traffic between services
+by implementing routing rules through its Envoy proxies. By deploying proxies, Istio directs traffic 
+and API calls without making any changes to the service itself. This allows users to perform canary rollouts, 
+staged rollouts, and A/B testing.
+
+>2. Observability
+The platform controls and observes all incoming and outgoing traffic within the network layer. 
+Therefore, it collects large amounts of data that provide useful insight for future development.
+
+>3. Security
+While developers secure the application from potential threats and hacks, Istio authorizes, authenticates, 
+and encrypts all internal communication. Pods and services talk to each other and transfer data under 
+Istio’s policies.
+
+
+
+>                                    *******************************
+
+
+ISTIO INSTALLATION :
+
+>ref_ https://istio.io/latest/docs/setup/getting-started/
+
+WE can install istio in three different ways_
+
+>1. using, istioctl install/ Istio Operator
+>2. using, istioctl manifest generator
+>3. install using helms chart
+
+download the istio binary and add it to the system path.
+
+>On minikube
+1.start minikube cluster
+2.get minikube ip                   :- minikube ip 
+3.get minikube metallb addon enable :- minikube addon enable metallb
+4.configure metallb                 :- minikube addon configure metallb , (enter lb's startip and endip)
+
+
+>Istio Profiles 
+istio comes with build in configuration profiles, that can be used when installing istio for customization
+of istio control plane and of the sidecars for the istio data plane.
+
+>istioctl profile list   _ will give list of profiles.
+DEFAULT
+DEMO
+EMPTY
+EXTERNAL
+MINIMAL
+OPENSHIFT
+PREVIEW
+REMOTE
+
+default: enables components according to the default settings of the IstioOperator API. 
+This profile is recommended for production deployments and for primary clusters in a multicluster mesh. 
+You can display the default settings by running the istioctl profile dump command.
+
+demo: configuration designed to showcase Istio functionality with modest resource requirements. 
+It is suitable to run the Bookinfo application and associated tasks. This is the configuration that 
+is installed with the quick start instructions.
+
+minimal: same as the default profile, but only the control plane components are installed. 
+This allows you to configure the control plane and data plane components (e.g., gateways) using separate profiles.
+
+external: used for configuring a remote cluster that is managed by an external control plane or by a 
+control plane in a primary cluster of a multicluster mesh.
+
+empty: deploys nothing. This can be useful as a base profile for custom configuration.
+
+preview: the preview profile contains features that are experimental. This is intended to explore new 
+features coming to Istio. Stability, security, and performance are not guaranteed - use at your own risk.
+
+
+>  Core components           default	  demo   	minimal	   external	   empty   	preview
+>---------------------------------------------------------------------------------------			
+  istio-egressgateway		                 ✔				
+>---------------------------------------------------------------------------------------  
+  istio-ingressgateway	       ✔	      ✔				                                  ✔
+>---------------------------------------------------------------------------------------  
+  istiod	                     ✔	      ✔	       ✔			                         ✔
+>---------------------------------------------------------------------------------------
+
+installation :
+first download the istio binary and add it to the system path.
+
+>install with istioctl_
+istioctl install                          _ this will install default profile (not recommanded/need CR & CRD)
+istioctl install --set profile=demo -y    _ this will install demo frofile
+
+>customize the installation by generating manifests_
+istioctl manifest generate --set profile=demo > istio-installation.yaml (usig demo profile , any name for yaml)
+kubectl apply -f istio-installation.yaml
+istioctl verify-install -f istio-installation.yaml      _verify installation
+kubectl get all -n istio-syatem                         _check deployed objects
+istioctl version
+
+>uninstallation
+istioctl experimental          _ show beta & experimental commands
+istioctl x uninstall --purge
+
+
+>                                    *******************************
+
+using istio : 
+
+>get the list of namespace
+kubectl get ns
+
+>install kiali, jaeger, prometheus
+in downloaded istio folder, we will get yaml for all the tool
+change/add the service type for kiali, jaeger, grafana, prometheus  to node port and hard code the ports.
+
+kubectl apply -f grafana.yaml -f jaeger.yaml -f kiali.yaml -f prometheus.yaml 
+kubectl get all -n istio-system
+
+>Enable SideCar injection on a Nmaspace
+
+to automatically inject proxy containers into pods, the namespace to be used by an application must be 
+labled with  "istio-injection=enabled"
+
+>echeck if sidecar injection is enabled 
+istioctl analyze
+kubectl label namespace <ns name> istio-injection=enabled
+kubectl apply -f istio-injection.yaml (look above)
+
+>
+
+
+>-------------------------------------------------------------------------------------------------------------
+>to be continue............platinum members...
+
+>read_
+ingress gateway
+virtual service
+istio deployments startegies
+canary deployments

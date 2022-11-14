@@ -20,9 +20,11 @@ requests to the pods and this type of load balancing is called as DNS ROUND ROBI
 >However, headless service , when used with StatefulSets provides a 
 >unique identity to each pod managed by StatefulSet
 
+
 >--------------------------------------------------------------------------------------------------------------
 
-# SteteLess Applications vs Stateful Application
+
+# Stateless Applications vs Stateful Application
 
 >Stateless Application_
 
@@ -81,20 +83,59 @@ requests to the pods and this type of load balancing is called as DNS ROUND ROBI
 <statefulset_name>-ordinal
 
 
-1> Data Replication :
+Naming of Pods with Replication Controller/Deployments :
 
-> In case of deployments, each pod gets a random identity with hash of a RS and Pod Attached.
+> In case of deployments, each pod gets a random identity with hash of a ReplicaSet and Pod Attached.
 > Pod gets a new identity i.e hostname and Ip , across restart and reschedule. 
 
 > but in case of stateful application, we need a pod with stable IP , 
 > so that the write/read request or in case of other pod replicate the data from pod 
 > can be redirected to it in consistance manner even in case of pod recretaion.
 
+> in case of deployments, the names generated for the pods is in following formate_
+  <name of the deployment>-<hash value of the replica set>-<hash of the pod>
+>  eg_ mysql-123467-abcdef
 
-2> Sticky / Indentity Hostname :
+> in case of pod recreation, new pod gets a new name/identity, the first and second part of its name 
+> i.e. <name of the deployment>-<hash value of the replica set> , remains same but the HASH od POD 
+> will get changed, thus effective changing the name/identity.
 
-> Each pod created by StatefulSet has a ordinal value (0 through # replicas -1 ) and a stable n/w id, which is
-> '<statefulsetname>-ordinal' assigned to it.
+
+1> Data Replication :
+
+>kubernetes provide the replication algorithm for the purpose of replication of the data from 
+>one pod to another pod. 
+
+>this algorithm decides the order and way in which data is usually replicated from master pod to
+>another slave pods.
+
+>Stateful set follows the order creation and deletion, i.e if we creating several replicas of stateful pods
+>then, pods will not get created simultaneously, instead it gets created in order.
+
+>First pod created, ensure that it will replicate all data from the previous pod (i.e its ordinal - 1 pod)
+>till then next pod will remains in pending state. once pod replicates the data, the next pod will get created
+>this pod will replicates the data from its previous pod (in increasing order of Ordinal Number).
+
+>Incase of DataBases the first pod i.e. pod with ordinal 0(zero), will always act as a primary instance, 
+>and all other instances will replicates the data from this primary instance.
+
+>this order is all possible becouse of the stable names , pods gets in stateful sets. without stable names
+>pod will loose the connection with primary instance. 
+
+>One thing to note that, Replication algorithm is not embedded with Stateful Sets, We have use different 
+>replication algorithm as per need.
+>One of most used method for databases, is to use Helm chart of Database, which have Replication algorithm
+>embedded into it. This remove the overhead on devops team to use replication algorithm in stateful set manifest.
+
+>Helms chart of databases  by default comes with algorithm for Ordered Replication of data from previous pod.
+
+
+
+2> Sticky / Indentity Hostname (Naming of Pods with Stateful Sets):
+
+> Each pod created by StatefulSet has a ordinal value (0 through # replicas -1 ) and a stable n/w id, 
+> which is '<statefulsetname>-<ordinal>' assigned to it.
+  eg_ mysql-0  / mysql-1 ...etc
 
 >this makes it easier to make a perticular pod as master/primary and make other pods to replicate the data 
 >from this master pod
@@ -120,9 +161,8 @@ requests to the pods and this type of load balancing is called as DNS ROUND ROBI
  <statefulset_name>-ordinal
 
 >to target the pod, we can use the following syntax, so the all the desired request will go to only targeted pod
-<statefulset_name>-ordinal.<headless_svc_name>
-> eg_ mysql-0.db  -->a unique fqdn
-
+<statefulset_name>-<ordinal>.<headless_svc_name>
+> eg_ http://mysql-0.db-headless  ----> a unique fqdn
 >
     In stateful apps, the instance must have unique and persistance identity (stable hostname, IP's)
     that does not changes with restart or recreation or reschedule. 
@@ -139,15 +179,30 @@ requests to the pods and this type of load balancing is called as DNS ROUND ROBI
 
 3> Stable Persistant Storage:
 
-> Every stateful set pod will have a pesistance storage which is provisioned using PVC and PV 
+>ref_ PV AND PVC yaml
+
+> Every stateful set pod will have a persistance storage which is provisioned using PVC and PV 
 > either statically or dynamically using storage classes. 
 
+>every pod in a stateful set deployment will have its own PVC, as the slave/secondary pods replicates
+>data from primary database instance they need a persistance storage to store the data.
 
-4> Ordered Creation ,Deletion and Upgrades:
+>PV are not backed by locally attach storage on worker node but by networked storage system such as cloud providers
+>The api object captures the details of the implemetation of the storage be that NFS, iSCSI, or cloud
+>provider specific storage system.
+
+>Stateful sets provides a key named as 'volumeClaimTemplates' to dynamically provision a PVC from storage class.
+>Each pod inside theStatefulSet mounts these PVC's as volume to retain the data.
+
+>The PVC is named as _ <volumeClaimTemplates_name>-<pod_name>-<cardinalNumber>
+                  eg _ www-mysql-0
+
+
+4> Ordered Creation, Deletion and Upgrades:
 
 >Stateful sets assign a sticky identity- an ordinal number starting from zero.
 
->by default, statefulset pod are deployed in sequential order an are terminated in reverse ordinal.
+>by default, statefulset pod are deployed in sequential order and are terminated in reverse ordinal.
 
 >a new pod is created by cloning the previous pod's data unless the pod ordinal's zero.
 
@@ -159,9 +214,33 @@ requests to the pods and this type of load balancing is called as DNS ROUND ROBI
 >algorithm is maintained.
 
 >for example, if out of four replicas, if we scaled down to 3 , then only pod number 3 will be deleted. 
+       
 
->------------------
+>                            **********************************************
+>--------------------------------------------------------------------------------------------------------------
 
+USING BOTH HEADLESS SERVICE AND CLUSTER IP IN AN APPLICATION :
+
+>Lets suppose the scenario for a stateful application, where we have a multiple database instances deployed
+>in our deployment. only one the database instance is primary database, which is capable storing the data and
+>serving the read requests at the same time, while other replicas is for the purpose of only serving the read
+>requests and they replicate the data from primary datbase instance.
+
+>In this case, it is possible to use both HEADLESS AND CLUSTER IP SERVICE in our deployment of statful application
+
+>We can serve the all Write requests via Headless Service to the Primary database instance and 
+>all the Read request can be served by clusterip service from the replicated and primary datbase instances.
+
+>  the format for write requests be like_ 
+   http://<statefulsetname>-<ordinal>.<headless_service_name>
+eg : https://mysql-0.db-headless
+
+>  the format for read requests be like_ 
+   http://<clusterip_service_name>:port
+eg : http://db-clusteripservice:3306
+
+
+>--------------------------------------------------------------------------------------------------------------
 
 >Statefulset are valueable for application that requires one or  more of the following_
 
@@ -178,7 +257,7 @@ requests to the pods and this type of load balancing is called as DNS ROUND ROBI
 apiVersion: v1
 kind: Service
 metadata:
-  name: nginx
+  name: nginx  <--- headless service name
   labels:
     app: nginx
 spec:
@@ -201,7 +280,7 @@ spec:                                   # Deployment specs
   selector:
     matchLabels:
       app: nginx                        # has to match .spec.template.metadata.labels
-  serviceName: "nginx"
+  serviceName: "nginx"  <--- must, headless service name
   replicas: 3                           # by default is 1
   minReadySeconds: 10                   # by default is 0
   template:
@@ -258,3 +337,5 @@ spec:
 >kubectl get pv
 >kubectl get pvc    
          
+
+

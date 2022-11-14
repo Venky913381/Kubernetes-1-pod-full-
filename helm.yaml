@@ -50,45 +50,40 @@ before doing actual deployment,  we we want to do some testing, we will do it he
 
 >-------------------------------------------------------------------------------------------------------------
 
->1.helm create <chartname>
->2.helm install <release_name> <chart_name> / --debug --dry-run
->2.helm uninstall <release_name> <chart_name>
->3.helm list -a
->4.helm add repo <repo_url>
->3.helm repo list
->3.helm repo update
->3.helm index <chart_name>
->3.helm remove <repo_name>
->3.helm plugin install/uninstall <plugin_url>
->3.helm plugin list
->3.helm upgrade <release_name> <chart_name>
->3.helm lint <chart_name>
->3.helm template <chart_name>
->3.helm install -set <param=value> <release_name> <chart_name>
->3.helm install -f <custom_value_file> <release_name> <chart_name>
->3.helm upgrade <release_name> <chart_name> 
->3.helm rollback <release_name> <revision_version>
->3.helm delete <release_name>
->3.helm 
->3.helm
->3.helm
->3.helm
->3.helm
->3.helm
->3.helm
->3.helm
->3.helm
->3.helm
->3.helm
->3.helm
->3.helm
->3.helm
->3.helm
->3.helm
->3.helm
->3.helm
->3.helm
->3.helm
+>helm create <chartname>
+>helm install <release_name> <chart_name> / --debug --dry-run
+>helm uninstall <release_name> <chart_name>
+>helm list -a
+
+>helm add repo <repo_url>
+>helm repo list
+>helm repo update
+>helm search repo <repo_name>
+>helm remove <repo_name>
+
+>helm index <chart_name>
+
+>helm plugin install/uninstall <plugin_url>
+>helm plugin list
+
+>helm upgrade <release_name> <chart_name>
+>helm lint <chart_name>
+>helm template <chart_name>
+
+>helm install --set <param=value> <release_name> <chart_name>
+>helm upgrade <release_name> <chart_name> --set <param=value>  -->to override the existing parameters in values file
+>helm install -f <custom_value_file> <release_name> <chart_name>
+>helm show values <global_name i.e. chart/repo>  ---> shows the values file in chart
+
+>helm upgrade <release_name> <chart_name> 
+>helm rollback <release_name> <revision_version>
+>helm delete <release_name>
+ 
+
+>
+
+
+
 
 >----------------------------------------------------------------------------------------------------------
 

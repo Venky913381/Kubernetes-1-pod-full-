@@ -89,8 +89,8 @@ spec:
 
 >----------------------------------------------------***----------------------------------------------------------    
 
->ingress support path based routing, which have advantage over other exposing services like node port, cluster ip ,
->Load Balancer.
+>ingress support both Path based routing and Host/Url/Name base routing, which have advantage over 
+>other exposing services like node port, cluster ip ,Load Balancer.
 
 >Instead of exposing each service independently , we use ingress controller to expose the multiple services 
 >using same ip address. 
@@ -98,8 +98,8 @@ spec:
 >Ingress controller, typically do not eliminates the need for external load balancer, 
 >but it add extra layer of routing and control behind the load balancer.
 
->we only pay for one Load balancer or ip provided by cloud provider and Ingress controller is smart enough to
->route various requests using simple Host or URL based routing.
+>we only pay for one Load balancer or single ip provided by cloud provider and Ingress controller is 
+>smart enough to route various requests using simple Host or URL based routing.
 
 >Ingress controller allows us to map multiple DNS names to single IP and using routing rules, we can route
 >the traffic to the proper service based on its DNS names.
@@ -117,9 +117,14 @@ spec:
     Traffic routing is controlled by rules defined by Ingress Rules.An ingress does not expose 
     arbitrary port or protocol. Exposing services are done using NodePort or LoadBalancer.
 
+> so, ingress resource is nothing but the set of rules that we provides to Ingress Controller. and based upon 
+> provided rules in ingress resource, Ingress Controller routes the traffic.
+
     > There are two types of Ingress Rules
       1. Path Based Routing
       2. Host Based Routing
+
+
 
 > Ingress Controller :--> 
     is the one that is responsible for implementing all the ingress rules, usually with 
@@ -160,10 +165,10 @@ spec:
   ingressClassName: nginx
   rules:
   - host: 
-    http:                         # will respond to any host
-      paths:
-
-      - path: /nginx
+    http:                         # will respond to any host i.e. it may google.com or xxxx.com
+      paths:                      # all it cares about is path .i.e. google.com/nginx or xxxx.com/nginx
+       
+      - path: /nginx              #host is configure using LB/R53 OR HAPROXY outside
         pathType: Prefix
         backend:
           service:
@@ -281,13 +286,14 @@ features out of the box (like SSL, Auth, Routing, etc)
 (SSl termination, i.e. we have HTTPS traffic till ingress, once traffic goes inside ingress it will simply be http)
 
 >if we are running cluster on-prem, Ingress controller are to be exposed via NODEPORT and use Proxy
->between DNS server and Ingress Controller, unless we have other solution like MetalLB
+>like HAProxy between DNS server and Ingress Controller, unless we have other solution like MetalLB/CloudLB.
 
 >-----------------------------------------------------------------------------------------------------------------
 
 # Ingress Controller VS Ingress Resources_
 
 Ingress/Ingress Resources/Ingress Rules: 
+
 >An API object that manages external access to the services in a cluster, typically HTTP.
 >Ingress may provide load balancing, SSL termination and name-based virtual hosting.
 
@@ -302,6 +308,7 @@ Ingress/Ingress Resources/Ingress Rules:
 
 
 Ingress Controller:
+
 >is one  responsible for the implemetation of the all ingress rules, usually with a load balalncer, to help
 >handle the traffic.
 >even ingress controller acts like a proxy inside k8s platform.
@@ -338,6 +345,13 @@ Ingress Controller:
 >This is useful, when we are exposing another microservice in same application, using /path.
 eg_ www.google.com/gmail or www.google.com/drive or www.amazon.co.in/wishlist
 
+>In this case, all we care about is the path to perticular microservice. Host may be anything that mapped to
+>any DNS or application is even accessible on IP:PORT/PATH combination.
+
+>in this case, we need not proxy server like HAProxy, as we are not resolving IP:PORT combination to any DNS.
+
+
+
 >                            *********************************
 
 # Host/Name/URL Based Routing _
@@ -361,6 +375,13 @@ eg_ www.google.com/gmail or www.google.com/drive or www.amazon.co.in/wishlist
 >this is useful when , we are exposing completely different application/Microservice using seperate dns.
 eg_ www.google.com / www.flipkart.com / www.amazon.co.in 
 >it will respond to only specifc host as declared in rule. 
+
+>In this case , all we care about is the DNS name, application is only accessible over its DNS name configured
+>in a Ingress. application will not be accessible on IP:PORT combination. 
+
+>In this case, we need a proxy like HAPROXY to resolve the IP:PORT combination to DNS.
+>and need to map the DNS name to HAProxys IP address.
+>OR, if we external have a Load Balncer, we can expose ingress Controller as a Load Balancer.
 
 >-----------------------------------------------------------------------------------------------------------------
 
@@ -389,6 +410,7 @@ eg_ www.google.com / www.flipkart.com / www.amazon.co.in
 flow: Ingress_Resource ----> Ingress_Class ----> Ingress_Controller (Implements the rule) ----> Routing....
 
 >-----------------------------------------------------------------------------------------------------------------
+
 
 How Ingress Controller Decides to route traffic to specific application using its DNS/URL:
 
@@ -461,7 +483,9 @@ ref_ https://kubernetes.github.io/ingress-nginx/deploy/
 >kubectl get po,svc,ing -n ingress-ngix
 
 
+
 >                                   ***************************************
+
 
 # configuring Traefik as Ingress Controller_
 
@@ -512,7 +536,7 @@ Is Ingress Controller any different than Reverse Proxy :
 reverse proxy servers like Nginx, needs a proper configuration to redirect requests to backend/other services
 depending upon the requests.
 
-Every time a backend chnages the configuration needed to be modify accordingly, so when we add a new service 
+Every time a backend changes the configuration needed to be modify accordingly, so when we add a new service 
 to the cluster we need to configure "proxy_pass" to proxy the request to correct backend services.
 
 
@@ -531,5 +555,10 @@ to the cluster we need to configure "proxy_pass" to proxy the request to correct
 >we can check route in nginx conf file
 /etc/nginx
 cat nginx.conf | grep -A 10 </route name>
+
+
+read more on HAProxy_ :
+>ref_ https://jhooq.com/ingress-controller-nginx/
+>ref_ https://www.haproxy.com/documentation/hapee/latest/configuration/config-sections/frontend/#
 
 >-----------------------------------------------------------------------------------------------------------------
