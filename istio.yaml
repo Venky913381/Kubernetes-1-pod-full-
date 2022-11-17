@@ -4,7 +4,7 @@
 
 A monolithic architecture is a traditional model of a software program, which is built as a unified unit that
 is self-contained and independent from other applications. The word “monolith” is often attributed to something 
-large and glacial, which isn’t far from the truth of a monolith architecture for software design. 
+large and glacial, which isn't far from the truth of a monolith architecture for software design. 
  
 A monolithic architecture is a singular, large computing network with one code base that couples all 
 of the business concerns together.  To make a change to this sort of application requires updating the entire 
@@ -55,18 +55,19 @@ The disadvantages of a monolith include:
 
 >Deployment – A small change to a monolithic application requires the redeployment of the entire monolith.
 
+
 >                                   ************************
 
->microservices :-
+>microservices Application :-
 
 A microservices architecture, also simply known as microservices, is an architectural method that relies 
 on a series of independently deployable services. These services have their own business logic and database
- with a specific goal. Updating, testing, deployment, and scaling occur within each service. Microservices 
- decouple major business, domain-specific concerns into separate, independent code bases. 
+with a specific goal. Updating, testing, deployment, and scaling occur within each service. Microservices 
+decouple major business, domain-specific concerns into separate, independent code bases. 
  
- Microservices don’t reduce complexity, but they make any complexity visible and more manageable by 
- separating tasks into smaller processes that function independently of each other and contribute to 
- the overall whole. 
+Microservices don't reduce complexity, but they make any complexity visible and more manageable by 
+separating tasks into smaller processes that function independently of each other and contribute to 
+the overall whole. 
 
 Adopting microservices often goes hand in hand with DevOps, since they are the basis for 
 continuous delivery practices that allow teams to adapt quickly to user requirements.
@@ -135,16 +136,16 @@ disadvantages of microservices can include:
 >those services. Over time it becomes difficult to know the available services a team can leverage 
 >and who to contact for support.
 
-                                  **************************
+*                                  **************************
 
 Upstream and Downstream requests and response:
 
---------------------->upstream Service------------------------->
+------------------>upstream Service/Requests-------------------->
 >Microservice A --------> Microservice B --------> Microservice C
-<--------------------downstream Service<------------------------
+<-----------------downstream Service/Requests<-------------------
 
->so Microservice B is upstream microservice for Microserice A and 
->Microservice B is downstream microservice for Microserice C
+>so Microservice B is upstream microservice since Microservice A depends on it and 
+>Microservice B is downstream microservice for Microservice C, since it adds data to the value of service C.
 
 
 >Monolith or microservice application, both provides the same set of functionality, difference between them
@@ -229,22 +230,24 @@ all the above discussed responsibilities and function is carried our by service 
 >  thanks to the proxies intercepting the traffic.
 >5.identifying the performance issues using tracing with JAEGER.
 >6.dashboard to visualize the whole mesh like KIALI/GRAFANA.
->7.chaos testing by injecting delayes and failures using tools like MONKEY.
+>7.chaos testing by injecting delayes and failures using tools like CHAOS-MONKEY.
 >8.Weighted traffic and request based routing, canaries, A/B testing with propagating headers.
 >9.additional features like mTLS between services, circuit breaking, traffic mirroring.
 
->     microservices--1                                 microservices--2
- |CoreLogic|<-------->PROXY1  <----------------->  PROXY2<--------->|CoreLogic|
+>     microservices--1           (data plane traffic)        microservices--2
+ |CoreLogic|<-------->PROXY1  <------------------------>  PROXY2<--------->|CoreLogic|
 
 
->Service Mesh_
+Service Mesh :
 
->1.a service mesh is a dedicated frastructure layer for handling the microservice to microservice communication.
+>1.service mesh is a dedicated infrastructure layer for handling the microservice to microservice communication.
+>  it is nothing but the way to inject the sideCar container along side Main application Container in to the pod
+>  that mean, each and every pod will have a Proxy Side Car container along with main application container.
 
 >2.it is responsible for the reliable delivery of requests through the complex topology of services that 
->  comprises of mordern , cloud native application.
+>  comprises of modern , cloud native application.
 
->3.Implemented as a proxy in each pod, which is responsible for intercepting traffi that 
+>3.implemented as a proxy in each pod, which is responsible for intercepting traffic that 
 >  goes in and out of the microservices.
 
 >4.proxies allow to control traffic and gain insights throughout the system in the microservices architecture.
@@ -259,16 +262,17 @@ all the above discussed responsibilities and function is carried our by service 
 >Without Service mesh_
  microservices A  <---------------->  microservices B
 
->with Service mesh_
 
-#     microservice--1                                 microservice--2
-  |CoreLogic|<-------->PROXY1  <----------------->  PROXY2<--------->|CoreLogic| 
-                        ^|                            ^|
+>with Service mesh_
+>                                                                               -------|
+#       microservice--1         (Data Plane _mTLS)        microservice--2              |
+  |CoreLogic|<-------->PROXY1  <------------------>  PROXY2<--------->|CoreLogic|      |---> DATA PLANE
+>                       ^|                            ^|                        -------|
 >                configs||metrics              configs||Metrics
-                        |v                            |v
->                     ,,|,,,,,,,,,,,,,,,,,,,,,,,,,,,,,|,,,       
->                     |           CONTROL PLANE          |
->                     """"""""""""""""""""""""""""""""""""
+>                       |v                            |v
+>                     ,,|,,,,,,,,,,,,,,,,,,,,,,,,,,,,,|,,, -------|     
+>                     |           CONTROL PLANE          |        |-----> Control Plane {pilot, citadel, galley}
+>                     """""""""""""""""""""""""""""""""""" -------|
                           
 
 >Becouse of the Service mesh , may functionality listed below has been moved out of microservices logic 
@@ -280,10 +284,11 @@ SECURITY (end to end encryption, authorization policies)
 OBSERVABILITY (layer7 metrices, tracing , alerting)
 ROUTING CONTROL (traffic shifting and monitoring)
 
+
 >only business logic and bussiness matrices stays in microservices.
 >incoming and outgoing requests are transparently routed through the proxies.
 
->In addition to the layer ofproxies (DATA PLANE), a service mesh adds a so called CONTROL PLANE. it distributes
+>In addition to the layer of proxies (DATA PLANE), a service mesh adds a so called CONTROL PLANE. it distributes
 >configuration updates to all proxies and receives metrices collected by the proxies for further processing.
 
 >Service mesh can be implemented using tools like ISTIO, LINKERD, CONSUL, TRAEFIK MESH, KUMA, 
@@ -300,7 +305,7 @@ ROUTING CONTROL (traffic shifting and monitoring)
 >3.Istio implements all the service mesh features such as matrics, logging, tracing, traffic management,
 >  traffic routing, circuit breaking, mTLS and authorization.
 
->4.Istion integrates with prometheous, grafana, and Jaegerand the service mesh dashboard kiali
+>4.Istion integrates with prometheous, grafana, and Jaeger and the service mesh dashboard kiali
 
 >5.Istio uses ENVOY by default as service proxy, a popular open source proxy.
 
@@ -308,7 +313,7 @@ ROUTING CONTROL (traffic shifting and monitoring)
 >  control plane components such as pilot, citadel, galley.)
 
 >7.ISTIOD communicates with the proxies to distribute configuration, receive recorded network traffic in the
->  form of metrics and telemetry data and manage certificates.
+>  form of metrics and telemetry data and manage certificates for mutual TLS (mTLS) communication.
 
 
 
@@ -362,26 +367,30 @@ HTTP/2 and gRPC proxies
 Staged rollouts with %-based traffic split
 
 
->Secure service-to-service communication in a cluster with TLS encryption, 
+>Secure service-to-service communication in a cluster with mTLS encryption, 
 >strong identity-based authentication and authorization
 
->Automatic certificates rotation at proxy level.
+>Automatic certificates rotation at proxy level for secure mTLS communication ,without any change to microservice.
 
->Traffic routing using weighted and request based rules
+>Traffic routing using weighted and request based rules.
 
->Automatic load balancing for HTTP, gRPC, WebSocket, and TCP traffic
+>Tracing , Monitoring and logging for detecting and fixing the issues.
 
->identifying the performance /relibility issues through metrics
+>Automatic load balancing for HTTP, gRPC, WebSocket, and TCP traffic.
+
+>identifying the performance /relibility issues through metrics.
 
 >debug services and tracing using zipkins and jaeger.
 
->Fine-grained control of traffic behavior with rich routing rules, retries, failovers, and fault injection
+>Fine-grained control of traffic behavior with rich routing rules, retries, failovers, 
+>and fault injection for chaos testing.
 
->A pluggable policy layer and configuration API supporting access controls, rate limits and quotas
+>A pluggable policy layer and configuration API supporting access controls, rate limits and quotas.
 
 >Automatic metrics, logs, and traces for all traffic within a cluster, including cluster ingress and egress
 
 >metrics visualization using tools like prometheus, grafana.
+
 
 >                                    *******************************
 
@@ -390,18 +399,18 @@ ISTIO ARCHITECTURE AND CORE FUNCTIONS :
 
 >with version 1.5, control plane components like Pilot, Citadel, Galley were combined into single 
 >component called istiod. 
+
 >Istiod replaces the control plane and handle configuration and certificate distribution 
 >sidecar injection and more.
-
 
 
 DATA PLANE vs CONTROL PLANE :
 
 #DATA_PLANE_ 
 
->the data plane is only composed of Envoy Proxies, deployed as sidecar in each pod.
+>the data plane is only composed of Envoy Proxies, deployed as sidecar container in each pod.
 
->any incoming or outgoing requests from pod will pass through these sidecars.
+>any incoming or outgoing requests from pod will pass through these proxy sidecars.
 
 >these proxies control all the network communications between microservices.
 
@@ -410,7 +419,7 @@ DATA PLANE vs CONTROL PLANE :
 
 >control plane is the brain of the service mesh.
 >it provides service discovery, configuration ans certificates management to envoy proxies by issuing
->TLS certificates at the runtime.
+>mTLS certificates at the runtime.
 
 >it collects telemetry and other mitrices from proxies.
 
@@ -428,29 +437,38 @@ manifest and converts that to envoy configuration.
 Configuratios for service discovery, traffic managements, A/B testing, Blue-Green deployments, Canry rollouts,
 retries, timeouts and circuit breaking etc, can be injected in to envoy proxies.
 
+pilot is not a container running in a istiod pod, it is one of the component of istio application.
+pilot provides a service discovery i.e whenever a new pod gets created within the mesh, the pod will send its 
+own information to the pilot and this information is send by the envoy proxy container.
+Now the pilot , sends the information about this new pod in mesh to the all the other envoy proxy's 
+in mesh. so that other pods will discover it. its all done automatically by pilot.
+
 
 >2.CITADEL :-
-it acts as loca CA authority, it provides secure communication among service by managing user authentication,
+it acts as local CA authority, it provides secure communication among service by managing user authentication,
 issuing and rotating certificates to envoy and credentials managements.
 it enables mTLS, we can implemets mTLS by configuring every pod with a certificates. but we end up managing hundreds
-of certificates ourself like rotation and issuing.
+of certificates ourself like rotation and issuing. Citadel componet manages this task automatically.
 
 
 >3.GALLEY :- 
-Galley is Istio’s configuration validation, ingestion, processing and distribution component. 
+Galley is Istio's configuration validation, ingestion, processing and distribution component. 
 It is responsible for insulating the rest of the Istio components from the details of obtaining user 
 configuration from the underlying platform (e.g. Kubernetes).
+Galley reads the yaml configuration files and convert it in to istio format. so all the manifest
+we executes using kubectl, it first goes to the galley , where it gets converted in to istio format
+and after that it gets implemented.
 
 
->4.Mixer :-
+>4.Mixer :- (for < v1.5 , removed)
 Mixer is a platform-independent component. Mixer enforces access control and usage policies across the service mesh, 
 and collects telemetry data from the Envoy proxy and other services. The proxy extracts request level attributes,
- and sends them to Mixer for evaluation.
+and sends them to Mixer for evaluation.
 
 >5.SideCar Injectors :-
 it injects envoy sidecar container in to pods for enabled namepsaces.
-we have to enable Istio injection for namespaces in order toinject sidecar container proxies.
->kubectl label namepsace default istio-injection=enabled
+we have to enable Istio injection for namespaces in order to inject sidecar container proxies.
+>kubectl label namepsace <ns_name> istio-injection=enabled
 
 
 
@@ -469,9 +487,35 @@ Therefore, it collects large amounts of data that provide useful insight for fut
 >3. Security
 While developers secure the application from potential threats and hacks, Istio authorizes, authenticates, 
 and encrypts all internal communication. Pods and services talk to each other and transfer data under 
-Istio’s policies.
+Istio's policies.
 
+>4. Monitoring
+the proxies in thedata plane can measure basic information about the network traffic such as latency
+or throughput, and other matrices that can be used for implementing alarms and further anakysis.
 
+>5. Tracing
+a request to a microservice might result in other request, Tracing helps to understand these dependancies, thus 
+facilitating root cause analysis. this is done using unique id in headers of HTTP requests. as a part of 
+HTTP headers and that information is then transffered to each outgoing request.
+the code of the microservices has to capture these headers and transfer them in their outgoing request. The tracing
+data can also be used to create dependancy graphs.
+
+>6. Communication Resilience
+resilience ensures that each individual microservice still works even if other microservice fails.
+if microservice calls another microservice , and if that microservice fails/ n ot reachable , this will
+impact the upstream microservice.
+due to cascading error, the whole system will become quite unstable, To avoid cascading errors or to have 
+proper resilience , Istio provides features such as _ TIMEOUTS, RETRIES, AND CIRCUIT BREAKERS.
+
+>7. Routing
+istio offers advance routing capabilities ( like routing certain percentage of traffic to v1 of service A
+and rest of traffic to v2 of service A ) in the form of object like VirtualService, DestinationRules, 
+IngressGateways for canaries, A/B, Dark releasesetc.
+
+>8. mTLS
+istion uses mutula TLS authentication to encrypt microservice to microservice traffic .
+istio provides developers with certificates Authority (citadel) to generate , distributes and revoke 
+certificates for proxy.
 
 >                                    *******************************
 
@@ -486,7 +530,7 @@ WE can install istio in three different ways_
 >2. using, istioctl manifest generator
 >3. install using helms chart
 
-download the istio binary and add it to the system path.
+>first we need download the istio binary and add it to the system path. so that the istio command will works
 
 >On minikube
 1.start minikube cluster
@@ -541,19 +585,19 @@ features coming to Istio. Stability, security, and performance are not guarantee
 installation :
 first download the istio binary and add it to the system path.
 
->install with istioctl_
+>install with istioctl_   
 istioctl install                          _ this will install default profile (not recommanded/need CR & CRD)
-istioctl install --set profile=demo -y    _ this will install demo frofile
+istioctl install --set profile=demo -y    _ this will install demo profile    (not recommanded/need CR & CRD)
 
 >customize the installation by generating manifests_
 istioctl manifest generate --set profile=demo > istio-installation.yaml (usig demo profile , any name for yaml)
 kubectl apply -f istio-installation.yaml
 istioctl verify-install -f istio-installation.yaml      _verify installation
-kubectl get all -n istio-syatem                         _check deployed objects
+kubectl get all -n istio-syatem                         _check deployed objects in istio ns
 istioctl version
 
 >uninstallation
-istioctl experimental          _ show beta & experimental commands
+istioctl experimental/x/exp          _ show beta & experimental commands
 istioctl x uninstall --purge
 
 
@@ -568,6 +612,8 @@ kubectl get ns
 in downloaded istio folder, we will get yaml for all the tool
 change/add the service type for kiali, jaeger, grafana, prometheus  to node port and hard code the ports.
 
+istio provides the ingressGateway to expose the service/application ouside of thecluster.
+
 kubectl apply -f grafana.yaml -f jaeger.yaml -f kiali.yaml -f prometheus.yaml 
 kubectl get all -n istio-system
 
@@ -575,20 +621,1054 @@ kubectl get all -n istio-system
 
 to automatically inject proxy containers into pods, the namespace to be used by an application must be 
 labled with  "istio-injection=enabled"
+>kubectl label namepsace <ns_name> istio-injection=enabled
 
->echeck if sidecar injection is enabled 
+>check if sidecar injection is enabled 
 istioctl analyze
-kubectl label namespace <ns name> istio-injection=enabled
+kubectl label namespace <ns name> istio-injection=enabled (if not) 
 kubectl apply -f istio-injection.yaml (look above)
-
->
-
 
 >-------------------------------------------------------------------------------------------------------------
 >to be continue............platinum members...
 
 >read_
-ingress gateway
+istio traffic management
 virtual service
+destination rules
+ingress/egress gateway
+
 istio deployments startegies
 canary deployments
+
+>-------------------------------------------------------------------------------------------------------------
+
+Istio Traffic Management :
+
+The pod needs to meet some pre-requisites to be the part of istios service mesh, these are _
+
+>1.the name space , where pods are created need to be labeled with istion enabled label
+
+>2.all the pods needs to be always run behind one or nore service
+
+>3.pod should not run with security context with user id 1337.
+
+>4.pod should run with NET_ADMIN and NET_RAW capabilities
+
+>5.pods/deployments should have labels "app" abd "version" (it is best practice rather than requirement)
+
+
+Istio's Traffic managements have following componets :
+virtual service
+destination rules
+ingress gateways
+egress gateways
+service entries
+sidecars
+
+>ref_ https://istio.io/latest/docs/concepts/traffic-management/        --->(v1.14)
+>ref_ https://istio.io/v1.5/pt-br/docs/reference/config/networking/    --->(v1.5 )
+
+>                                                                               ------------|
+>                                 app.prod.sv.cluster.local                                 |
+>                                            |                                              |
+>                        -------------------------------------------                        |--->Virtual Service yml
+>                       |                                           |                       |
+>      app.prod.sv.cluster.local(old)                app2.prod.sv.cluster.local(new)        |
+>                    |                                                 |        ------------|
+>       --------------------------                        -------------------------     -------|
+>       |           |            |                       |            |           |            | --->Destination
+>     [pod1]     [pod2]       [pod3]                  [pod1]        [pod2]      [pod3]         |      rules
+>                                                                                       -------|       yaml
+>                {80%}                                              {20%}
+
+
+
+#VirtualService :
+
+A virtual service lets you configure how requests are routed to a service within an Istio service mesh, 
+building on the basic connectivity and discovery provided by Istio and your platform. Each virtual service 
+consists of a set of routing rules that are evaluated in order, letting Istio match each given request to 
+the virtual service to a specific real destination within the mesh. Your mesh can require multiple virtual 
+services or none depending on your use case.
+
+>A virtualService defines the 'set of traffic routing rules' to apply when a (HOST) is addressed.
+(host : the address usd by a client when attempting to connect to k8s service)
+(address can be a k8s service itself or it can be DNS name also)
+
+
+>                                  *********************************
+
+#DestinationRules :
+
+>destination rule defines the set of service/pods where traffic should go.
+
+DestinationRule defines policies that apply to traffic intended for a service after routing has occurred. 
+These rules specify configuration for load balancing, connection pool size from the sidecar, and outlier 
+detection settings to detect and evict unhealthy hosts from the load balancing pool.
+
+
+>-------------------------------------------------------------------------------------------------------------
+
+#Demo_1 (above diagram  )
+
+>Deployment_1 _
+
+apiVersion: apps/v1
+kind: Deployment 
+metadata:
+  name: app-deployment
+ 
+spec:
+  replicas: 1
+  selector: 
+    matchLabels:
+      chapter: istio
+      topic: traffic-management
+      app: app
+      version: v2
+      
+  template:   
+      metadata:
+        name: app-pod
+        labels: 
+          chapter: istio
+          topic: traffic-management
+          app: app
+          version: v2
+
+      spec:
+        containers:
+        - name: istio
+          image: deepcloud2208/app:v2
+          ports:
+          - containerPort: 80
+
+>service_1 _
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-svc
+  labels: 
+    chapter: istio
+    topic: traffic-management
+    app: app
+    version: v2
+spec:
+    type: ClusterIP
+    ports:
+    - port:  8080
+      targetPort:  80
+    selectors: 
+      chapter: istio
+      topic: traffic-management
+      app: app
+      version: v2  
+
+
+
+>Deployment_2 _
+
+apiVersion: apps/v1
+kind: Deployment 
+metadata:
+  name: app2-deployment
+ 
+spec:
+  replicas: 1
+  selector: 
+    matchLabels:
+      chapter: istio
+      topic: traffic-management
+      app: app2
+      version: v2
+      
+  template:   
+      metadata:
+        name: app2-pod
+        labels: 
+          chapter: istio
+          topic: traffic-management
+          app: app2
+          version: v2
+
+      spec:
+        containers:
+        - name: istio
+          image: deepcloud2208/app2:v2
+          ports:
+          - containerPort: 80
+
+>service_2 _
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: app2-svc
+  labels: 
+    chapter: istio
+    topic: traffic-management
+    app: app2
+    version: v2
+spec:
+    type: ClusterIP
+    ports:
+      port:  8080
+      targetPort:  80
+    selectors: 
+      chapter: istio
+      topic: traffic-management
+      app: app2
+      version: v2  
+
+
+
+>virtual Service _      
+
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: istio-virtual-svc
+
+spec:
+  hosts:
+  - app-svc.prod.svc.cluster.local               #top leval @ above diagram , FULL FQDN, prod is ns
+
+  http:
+  - name: virtual-service-routes
+    route:
+    - destination:
+        host: app-svc.prod.svc.cluster.local
+        subset: app-service-subset           # look at destination rules
+      weight: 80                             #80% trafffic will goes to this service
+
+  - route:
+    - destination:
+        host: app2-svc.prod.svc.cluster.local
+        subset: app2-service-subset          # look at destination rules
+      weight: 20                             #20% trafffic will goes to this service
+
+
+
+(note :- as we have two different services in Virtual Service, we need to create two diffeent destination rules.)
+>destination_rule_1 _
+
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: istio-destination-rule1
+
+spec:
+  host: app-svc.prod.svc.cluster.local
+  subsets:
+  - name: app-service-subset           #name will relate it to the Virtual service subset
+    labels:                            # it not labeling the subject, rather it is selectors to select 
+      app: app
+      version: v2
+      chapter: istio
+      topic: traffic-management
+    trafficPolicy:
+      loadBalancer:
+        simple: ROUND_ROBIN
+
+
+>destination_rule_2 _
+
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: istio-destination-rule2
+
+spec:
+  host: app2-svc.prod.svc.cluster.local
+  subsets:
+  - name: app2-service-subset
+    labels:                            # it not labeling the subject, rather it is selectors to select 
+      app: app2
+      version: v2
+      chapter: istio
+      topic: traffic-management
+    trafficPolicy:
+      loadBalancer:
+        simple: ROUND_ROBIN      
+
+
+
+>-------------------------------------------------------------------------------------------------------------
+**************************************************************************************************************
+>-------------------------------------------------------------------------------------------------------------
+
+
+>                                                                               
+>                              retail-svc.prod.svc.cluster.local                            
+>                                            |                                              
+>       (/electronics)  -------------------------------------------   (/books)                
+>                       |                                          |                       
+>   electronics-svc.prod.svc.cluster.local                books-svc.prod.svc.cluster.local        
+>                    |                                                 |        
+>       --------------------------                        -------------------------     
+>       |           |            |                       |            |           |            
+>     [pod1]     [pod2]       [pod3]                   [pod1]       [pod2]      [pod3]        
+>                                                                                       
+
+
+>in above schematic, there are three different services, electronics-svc, books-svc, retail-svc.
+>also electronics-svc, books-svc are not used directaly.
+
+>i.e. only , if we append /electronics to retail-svc.prod.svc.cluster.local , it takes us to electronics and 
+>if we append /books to retail-svc.prod.svc.cluster.local , it takes us to books.
+
+
+
+
+#demo_2
+
+>Deployment_1 _ books
+
+apiVersion: apps/v1
+kind: Deployment 
+metadata:
+  name: books-depl
+ 
+spec:
+  replicas: 1
+  selector: 
+    matchLabels:
+      chapter: istio
+      topic: traffic-management
+      app: books
+      version: v1
+      
+  template:   
+      metadata:
+        name: books-pod
+        labels: 
+          chapter: istio
+          topic: traffic-management
+          app: books
+          version: v1
+
+      spec:
+        containers:
+        - name: books-cont
+          image: deepcloud2208/books:v1
+          ports:
+          - containerPort: 80
+
+>service_1 _ books
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: books-svc
+  labels: 
+    chapter: istio
+    topic: traffic-management
+    app: books
+    version: v1
+spec:
+    type: ClusterIP
+    ports:
+    - port:  8080
+      targetPort:  80
+    selectors: 
+      chapter: istio
+      topic: traffic-management
+      app: books
+      version: v1
+
+> **************************
+
+>Deployment_1 _ electronics
+
+apiVersion: apps/v1
+kind: Deployment 
+metadata:
+  name: electronics-depl
+ 
+spec:
+  replicas: 1
+  selector: 
+    matchLabels:
+      chapter: istio
+      topic: traffic-management
+      app: electronics
+      version: v1
+      
+  template:   
+      metadata:
+        name: electronics-pod
+        labels: 
+          chapter: istio
+          topic: traffic-management
+          app: electronics
+          version: v1
+
+      spec:
+        containers:
+        - name: electronics-cont
+          image: deepcloud2208/electronics:v1
+          ports:
+          - containerPort: 80
+
+>service_1 _ electronics
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: electronics-svc
+  labels: 
+    chapter: istio
+    topic: traffic-management
+    app: electronics
+    version: v1
+spec:
+    type: ClusterIP
+    ports:
+    - port:  8080
+      targetPort:  80
+    selectors: 
+      chapter: istio
+      topic: traffic-management
+      app: electronics
+      version: v1
+
+> **************************
+
+>Deployment_1 _ retail
+
+apiVersion: apps/v1
+kind: Deployment 
+metadata:
+  name: retail-depl
+ 
+spec:
+  replicas: 1
+  selector: 
+    matchLabels:
+      chapter: istio
+      topic: traffic-management
+      app: retail
+      version: v1
+      
+  template:   
+      metadata:
+        name: retail-pod
+        labels: 
+          chapter: istio
+          topic: traffic-management
+          app: retail
+          version: v1
+
+      spec:
+        containers:
+        - name: retail-cont
+          image: deepcloud2208/retail:v1
+          ports:
+          - containerPort: 80
+
+>service_1 _ retail
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: retail-svc
+  labels: 
+    chapter: istio
+    topic: traffic-management
+    app: retail
+    version: v1
+spec:
+    type: ClusterIP
+    ports:
+    - port:  8080
+      targetPort:  80
+    selectors: 
+      chapter: istio
+      topic: traffic-management
+      app: retail
+      version: v1
+
+> **************************
+
+>virtual Service _      
+
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: retail-portal-svc
+
+spec:
+  hosts:
+  - retail-svc.prod.svc.cluster.local              
+
+  http:
+
+  - name: books-routes
+    match:                       # i.e. when retail-svc.prod.svc.cluster.local/books , below routing will
+    - uri:                       # get applied
+        prefix: "/books"  
+    rewrites: 
+      uri: "/"                   # as there is no service declaired by "/books", it is needed to rewrites the 
+    route:                       # service as  retail-svc.prod.svc.cluster.local/books, REWRITE BLOCK DO THAT.       
+    - destination:
+        host: books-svc.prod.svc.cluster.local
+        subset: books-service-subset                                
+
+
+  - name: electronics-routes
+    match: 
+    - uri:
+        prefix: "/electronics"  
+    rewrites: 
+      uri: "/"    
+  - route:
+    - destination:
+        host: electronics-svc.prod.svc.cluster.local
+        subset: electronics-service-subset          
+
+
+  - name: retail-routes  
+  - route:
+    - destination:
+        host: electronics-svc.prod.svc.cluster.local
+        subset: electronics-service-subset
+
+
+>destination_rule_1 _ books
+
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: books-destination-rule
+
+spec:
+  host: books-svc.prod.svc.cluster.local
+  subsets:
+  - name: books-service-subset         
+    labels:                           
+      app: books
+      version: v1
+      chapter: istio
+      topic: traffic-management
+    trafficPolicy:
+      loadBalancer:
+        simple: ROUND_ROBIN
+
+
+>destination_rule_2 _ electronics
+
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: electronics-destination-rule
+
+spec:
+  host: electronics-svc.prod.svc.cluster.local
+  subsets:
+  - name: electronics-service-subset         
+    labels:                           
+      app: electronics
+      version: v1
+      chapter: istio
+      topic: traffic-management
+    trafficPolicy:
+      loadBalancer:
+        simple: ROUND_ROBIN
+
+>destination_rule_3 _ retail
+
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: retail-destination-rule
+
+spec:
+  host: retail-svc.prod.svc.cluster.local
+  subsets:
+  - name: retail-service-subset         
+    labels:                           
+      app: retail
+      version: v1
+      chapter: istio
+      topic: traffic-management
+    trafficPolicy:
+      loadBalancer:
+        simple: ROUND_ROBIN        
+
+
+
+>-------------------------------------------------------------------------------------------------------------
+**************************************************************************************************************
+>-------------------------------------------------------------------------------------------------------------
+
+>                                                                               
+>                              retail-svc.prod.svc.cluster.local                            
+>                           50%             |          50%                                      
+>         (version_1)---------------------------------------------------(version_2)                
+>                    |                                                 |                             
+>                    |                                                 |        
+>       --------------------------                       -------------------------     
+>       |           |            |                       |            |           |            
+>     [pod1]     [pod2]       [pod3]                  [pod1]        [pod2]      [pod3] 
+
+>       chapter: istio                                       chapter: istio
+>       topic: traffic-management                            topic: traffic-management
+>       app: ab                                              app: ab
+:       version: v1                                          version: v2
+
+
+above, we are deploying two version of the same app version v1 and v2. so there will only be one service.
+
+
+#Demo_3
+
+>Deployment_1 _ 
+
+apiVersion: apps/v1
+kind: Deployment 
+metadata:
+  name: ab-depl1
+ 
+spec:
+  replicas: 1
+  selector: 
+    matchLabels:
+      chapter: istio
+      topic: traffic-management
+      app: ab
+      version: v1
+      
+  template:   
+      metadata:
+        name: ab-pod
+        labels: 
+          chapter: istio
+          topic: traffic-management
+          app: ab
+          version: v1
+
+      spec:
+        containers:
+        - name: ab-cont
+          image: deepcloud2208/ab:v1
+          ports:
+          - containerPort: 80
+
+
+>Deployment_2 _ 
+
+apiVersion: apps/v1
+kind: Deployment 
+metadata:
+  name: ab-depl2
+ 
+spec:
+  replicas: 1
+  selector: 
+    matchLabels:
+      chapter: istio
+      topic: traffic-management
+      app: ab
+      version: v2
+      
+  template:   
+      metadata:
+        name: ab-pod
+        labels: 
+          chapter: istio
+          topic: traffic-management
+          app: ab
+          version: v2
+
+      spec:
+        containers:
+        - name: ab-cont
+          image: deepcloud2208/ab:v2
+          ports:
+          - containerPort: 80
+
+
+
+>service_
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: ab-svc
+  labels: 
+    chapter: istio
+    topic: traffic-management
+    app: ab
+
+spec:
+    type: ClusterIP
+    ports:
+    - port:  8080
+      targetPort:  80
+    selectors: 
+      chapter: istio
+      topic: traffic-management
+      app: app
+
+
+>virtual Service _      
+
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: ab-vs
+
+spec:
+  hosts:
+  - ab-svc.prod.svc.cluster.local              
+
+  http:
+  - name: ab-routes 
+
+    route:                            
+    - destination:
+        host: ab-svc.prod.svc.cluster.local
+        subset: v1
+      weight: 50                                  
+                                            #both have same destination service, only subset is different
+  - route:
+    - destination:
+        host: ab-svc.prod.svc.cluster.local
+        subset: v2         
+      weight: 50
+
+
+>destination_rule_   (as we have only one service , only one dr needed)
+
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: ab-destination-rule
+
+spec:
+  host: ab-svc.prod.svc.cluster.local
+  subsets:
+
+  - name: v1   
+    labels:                           
+      app: ab
+      version: v1
+      chapter: istio
+      topic: traffic-management
+    trafficPolicy:
+      loadBalancer:
+        simple: ROUND_ROBIN
+  
+  - name: v2 
+    labels:                           
+      app: ab
+      version: v2
+      chapter: istio
+      topic: traffic-management
+    trafficPolicy:
+      loadBalancer:
+        simple: ROUND_ROBIN
+
+
+
+>-------------------------------------------------------------------------------------------------------------
+**************************************************************************************************************
+>-------------------------------------------------------------------------------------------------------------
+
+>till now, it is only possible to access the pods from within the cluster from one pod to another , 
+>to access the pods in mesh from outside of cluster, we need to defines the gateways.
+
+>gateway act as a entrypoint to the cluster.
+
+# Gateway 
+
+when we try to access/curl the service from outside of mesh or from node itself (from node, not pod) , 
+using full fqdn of service, request first goes to /etc/resolve.conf, from where it gets resolved to 
+CORE-DNS (kube dns) and then to the service, which do the load bancing , without keeping proxy container in loop. 
+it bypasses the proxy all together.
+
+when we try to access/curl the same from within the pod within mesh, service get routed via Proxy , and 
+based on routing rule it routes the traffic to itself or to other pods.
+
+>gateways are standalone envoy proxies i.e they runs as a pod. and only one container is
+>running, which is envoy proxy.
+
+>these gateways facilates the traffic from outside to in into the cluster and traffic from clutser 
+>to access the database, which may reside outside of the cluster.
+
+there are two types of gateways, Ingress gateway and egress gateway.
+>ingress gateway allow traffic from outside of the cluster in to the cluster, similarly,
+>egress gateway allow traffic from the cluster to exit the cluster, such as to Datbases , which may
+>reside outside of the cluster/mesh. 
+
+>as gateways are standalone proxy's , we can attach virtual service and destination rule to these proxies.
+>so it not just provide the Entry and Exit to the container but also provides the intelligent routing using VS&DR.
+
+> service browser ---> Ingress g/w ----> [frontend pod <---> Backend Pod]---> egress g/w ------> Database
+
+
+Istio Installation itself provides a both Ingress and Egress gateways , which are deploye using deployments
+and resides at istio-system namespace.
+However, we can provide our own custom ingress and egress gateways.
+Istio installation also provides a Ingress gateway service.
+
+Gateway object enables the ingress gateway proxy to accept the traffic from outside and Virtual service
+with "gateways:" keyword, will provies a routing rules needed to for this envoy proxy.
+
+we need to create a seperate routing rules i.e. seperate Vitual service for within cluster communication.
+
+in Istio provided ingress gateway , we automatically have a node port mappings to predefine  ports like
+port 80:31797, 443:30583, 15029:30923.. etc, we can only expose those port with istio provided gateway.
+
+>for ingress gateway, by default everything is allowed. i.e. all traffic is allowed inside the pod via proxy.
+
+>demo :
+
+>Deployment_1 _
+
+apiVersion: apps/v1
+kind: Deployment 
+metadata:
+  name: app-deployment
+ 
+spec:
+  replicas: 1
+  selector: 
+    matchLabels:
+      chapter: istio
+      topic: traffic-management
+      app: app
+      version: v2
+      
+  template:   
+      metadata:
+        name: app-pod
+        labels: 
+          chapter: istio
+          topic: traffic-management
+          app: app
+          version: v2
+
+      spec:
+        containers:
+        - name: istio
+          image: deepcloud2208/app:v2
+          ports:
+          - containerPort: 80
+
+>service_1 _
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-svc
+  labels: 
+    chapter: istio
+    topic: traffic-management
+    app: app
+    version: v2
+spec:
+    type: ClusterIP
+    ports:
+    - port:  8080
+      targetPort:  80
+    selectors: 
+      chapter: istio
+      topic: traffic-management
+      app: app
+      version: v2  
+
+
+>Deployment_2 _
+
+apiVersion: apps/v1
+kind: Deployment 
+metadata:
+  name: app2-deployment
+ 
+spec:
+  replicas: 1
+  selector: 
+    matchLabels:
+      chapter: istio
+      topic: traffic-management
+      app: app2
+      version: v2
+      
+  template:   
+      metadata:
+        name: app2-pod
+        labels: 
+          chapter: istio
+          topic: traffic-management
+          app: app2
+          version: v2
+
+      spec:
+        containers:
+        - name: istio
+          image: deepcloud2208/app2:v2
+          ports:
+          - containerPort: 80
+
+>service_2 _
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: app2-svc
+  labels: 
+    chapter: istio
+    topic: traffic-management
+    app: app2
+    version: v2
+spec:
+    type: ClusterIP
+    ports:
+      port:  8080
+      targetPort:  80
+    selectors: 
+      chapter: istio
+      topic: traffic-management
+      app: app2
+      version: v2  
+
+
+>Gateway Object_
+
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: istio-ingress-gateway
+
+spec:
+
+  selector:
+    app: istio-ingressgateway
+    istio: ingressgateway            #selector by label provided to istion ingress pod
+
+  servers:
+  - port:
+      number: 80
+      name: app
+      protocol: HTTP
+    hosts:
+    - uk.bookinfo.com
+    - "app-svc.prod.svc.cluster.local"
+    
+>Gateway Virtual Service
+
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: istio-virtual-svc
+
+spec:
+  hosts:                                #hosts has to be same as hosts in gateway file
+  - uk.bookinfo.com
+  - app-svc.prod.svc.cluster.local     
+
+  gateways:                              # wiring the gateway with virtual service 
+  - virtual-service-routes        
+
+  http:
+  - name: virtual-service-routes
+    route:
+    - destination:
+        host: app-svc.prod.svc.cluster.local
+        subset: app-service-subset         
+      weight: 80                            
+
+  - route:
+    - destination:
+        host: app2-svc.prod.svc.cluster.local
+        subset: app2-service-subset         
+      weight: 20 
+
+
+>destination_rule_1 _
+
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: istio-destination-rule1
+
+spec:
+  host: app-svc.prod.svc.cluster.local
+  subsets:
+  - name: app-service-subset          
+    labels:                           
+      app: app
+      version: v2
+      chapter: istio
+      topic: traffic-management
+    trafficPolicy:
+      loadBalancer:
+        simple: ROUND_ROBIN
+
+
+>destination_rule_2 _
+
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: istio-destination-rule2
+
+spec:
+  host: app2-svc.prod.svc.cluster.local
+  subsets:
+  - name: app2-service-subset
+    labels:                           
+      app: app2
+      version: v2
+      chapter: istio
+      topic: traffic-management
+    trafficPolicy:
+      loadBalancer:
+        simple: ROUND_ROBIN            
+
+
+
+
+>above, we have gateway pod deployed in istio-system namespace , while our application mesh is in a prod
+>namespace, and virtual service object is also applied to that gateway pod which is in istio-system name space.
+>this is all handle by istiod. as long as selectors match, is not care about namespaces.
+
+
+>using above Virtual service and gateway, access to the pod is only possible from outside of the cluster.
+>to access the pods from within the cluster, we need to specify seperate VIRTUAL SERVICE with rules.
+
+> curl -H "Host:deep.com" http://ec2ip:port
+
+
+To enable to access the service from within the cluster, we defines the new virtual service.
+
+>InterMesh Virtual Service
+
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: istio-virtual-svc
+
+spec:
+  hosts:
+  - app-svc.prod.svc.cluster.local     
+
+  http:
+  - name: virtual-service-routes
+    route:
+    - destination:
+        host: app-svc.prod.svc.cluster.local
+        subset: app-service-subset         
+      weight: 80                            
+
+  - route:
+    - destination:
+        host: app2-svc.prod.svc.cluster.local
+        subset: app2-service-subset         
+      weight: 20 
+
+>-------------------------------------------------------------------------------------------------------------
+**************************************************************************************************************
+>-------------------------------------------------------------------------------------------------------------        
