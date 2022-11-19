@@ -17,8 +17,8 @@ requests to the pods and this type of load balancing is called as DNS ROUND ROBI
 >    DNS ROUND ROBIN LOAD BALANCING mechanism and for each dns query/request it will result in new ip address
 >    as headless service is load balancing the requests. 
 
->However, headless service , when used with StatefulSets provides a 
->unique identity to each pod managed by StatefulSet
+>However, headless service , when used with StatefulSets provides a unique identity to each pod 
+>managed by StatefulSet
 
 
 >--------------------------------------------------------------------------------------------------------------

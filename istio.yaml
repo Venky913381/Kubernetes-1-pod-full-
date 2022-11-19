@@ -107,7 +107,7 @@ the advantages of microservices are:
 >more autonomous and can build and deploy themselves without waiting weeks for a pull request to be approved.
 
 #Disadvantages of microservices
-When we moved from a small number of monolithic codebases to many more distributed systems and services 
+When we moved from a small number of monolithic code bases to many more distributed systems and services 
 powering our products, unintended complexity arose. We initially struggled to add new capabilities with 
 the same velocity and confidence as we had done in the past. Microservices can add increased complexity 
 that leads to development sprawl, or rapid and unmanaged growth. It can be challenging to determine 
@@ -136,7 +136,7 @@ disadvantages of microservices can include:
 >those services. Over time it becomes difficult to know the available services a team can leverage 
 >and who to contact for support.
 
-*                                  **************************
+*                                  ************************** 
 
 Upstream and Downstream requests and response:
 
@@ -144,7 +144,7 @@ Upstream and Downstream requests and response:
 >Microservice A --------> Microservice B --------> Microservice C
 <-----------------downstream Service/Requests<-------------------
 
->so Microservice B is upstream microservice since Microservice A depends on it and 
+>so Microservice B is upstream microservice for Microservice A, since Microservice A depends on it and 
 >Microservice B is downstream microservice for Microservice C, since it adds data to the value of service C.
 
 
@@ -159,16 +159,18 @@ Upstream and Downstream requests and response:
 >Challenges with Microservices :
 
 >1. security between the services
-traffic between two microservice is in plain http , which can be easily compromised, 
-so security is majpr concern for microservices. 
+traffic between two microservice is in plain http format , which can be easily compromised, 
+so security is major concern for microservices. 
 
 >2. service discovery : Eureka
 microservices can be deployed on different hosts, so discovery of one microservice by another microservice is 
-another concern as communication between them is happening over the ip, so it is important for microservices to 
-know ip addresses of each other. we need to have service registry.
+concern as communication between them is happening over the ip, so it is important for microservices to 
+know ip addresses of each other. 
+we need to have service registry, for keeping the records of the ips of services.
 
 >3. tracing : jaeger
 as microservices are spread across the hosts, it is difficult to trace the requests and responses from them.
+as request might have to propagate multiple microservices to get proper response.
 
 >4. logging : ELK
 as in microservices we have multiple services , logging becomes as issue.
@@ -205,14 +207,16 @@ microservices parameters, from application logic.
 all the above discussed responsibilities and function is carried our by service mesh.
 
 >So moving the additional logic out from the code to seperate layer called Infrastructure layer that has
->numerous Proxies (side car containers). So main application container will carry only application logic,
->while all task discussed will be delegated to proxy container. 
+>numerous Proxies (side car containers). 
+>So main application container will carry only application logic,
+>while all other task discussed will be delegated to proxy container. 
 
->with service mesh, we are injecting secondary proxy container w=along with each microservice container, which 
+>with service mesh, we are injecting secondary proxy container along with each microservice container, which 
 >implements the additional logic.
 
 >also , these proxy container can be developed using any technology, and need not to be of same
->technlogy as main microservices. so we can own choice of proxy container language. 
+>technlogy as main microservices. so we can own choice of proxy container language. it also allow us to
+>use polyglot code , as per need.
 
 >these proxies are part of the DATA PLANE as these are included with main microservices containers, so
 >these are components of the data plane which are intelligently routing the traffic.
@@ -269,18 +273,18 @@ Service Mesh :
   |CoreLogic|<-------->PROXY1  <------------------>  PROXY2<--------->|CoreLogic|      |---> DATA PLANE
 >                       ^|                            ^|                        -------|
 >                configs||metrics              configs||Metrics
->                       |v                            |v
->                     ,,|,,,,,,,,,,,,,,,,,,,,,,,,,,,,,|,,, -------|     
+>                       ||                            ||
+>                     ,,|v,,,,,,,,,,,,,,,,,,,,,,,,,,,,|v,,  ------|     
 >                     |           CONTROL PLANE          |        |-----> Control Plane {pilot, citadel, galley}
->                     """""""""""""""""""""""""""""""""""" -------|
+>                     """"""""""""""""""""""""""""""""""""  ------|
                           
 
->Becouse of the Service mesh , may functionality listed below has been moved out of microservices logic 
+>Becouse of the Service mesh , many functionality listed below has been moved out of microservices logic 
 >put them on the proxies.
-SERVICE DEISCOVERY
+SERVICE DISCOVERY
 LOAD BALANCING
 COMMUNICATION RESILIENCY (retries, timeouts, circuit breaking, rate limiting)
-SECURITY (end to end encryption, authorization policies)
+SECURITY (end to end encryption, authorization policies, mtls)
 OBSERVABILITY (layer7 metrices, tracing , alerting)
 ROUTING CONTROL (traffic shifting and monitoring)
 
@@ -292,7 +296,7 @@ ROUTING CONTROL (traffic shifting and monitoring)
 >configuration updates to all proxies and receives metrices collected by the proxies for further processing.
 
 >Service mesh can be implemented using tools like ISTIO, LINKERD, CONSUL, TRAEFIK MESH, KUMA, 
->AWS App MESH, OPEN SERVICE MESH(osm).
+>AWS AppMESH, OPEN SERVICE MESH(osm).
 
 >-------------------------------------------------------------------------------------------------------------
 
@@ -301,7 +305,7 @@ ROUTING CONTROL (traffic shifting and monitoring)
 >1.Istio is tool which provide a service mesh for microservices. It addresses the challanges developers
 >  and operators face with a distributed or microservices architecture.
 
->2.Istio is the most popularar service mesh , it was developed by google and IBM.
+>2.Istio is the most popular service mesh , it was developed by google and IBM.
 >3.Istio implements all the service mesh features such as matrics, logging, tracing, traffic management,
 >  traffic routing, circuit breaking, mTLS and authorization.
 
@@ -323,10 +327,11 @@ At high leval, istio works by deploying a proxy container alongside the main app
 in the pod for each microservices in our application.
 
 This envoy proxy , which is often reffered to as a SideCar, intercpts all the traffic of the main
-application container, providing telemetry, mTLS, traffic routing feature for the application.
+application container, providing telemetry data, mTLS, traffic routing feature for the application.
 
 this way it reduces the burden on main application container. it reduces the image size and reduces
 attack surfce area of the microservices.
+
 
 why SideCar pattern:
 
@@ -362,12 +367,11 @@ CANARY ROLLOUTS
 A/B ROLLOUTS/DARK DEPLOYMENTS
 FAULT INJECTION
 RICH METRICS
-TLS termination
 HTTP/2 and gRPC proxies
 Staged rollouts with %-based traffic split
 
 
->Secure service-to-service communication in a cluster with mTLS encryption, 
+>Secure service-to-service communication in a cluster with mTLS encryption, and
 >strong identity-based authentication and authorization
 
 >Automatic certificates rotation at proxy level for secure mTLS communication ,without any change to microservice.
@@ -380,7 +384,7 @@ Staged rollouts with %-based traffic split
 
 >identifying the performance /relibility issues through metrics.
 
->debug services and tracing using zipkins and jaeger.
+>debug services and tracing using tools like zipkins and jaeger resp.
 
 >Fine-grained control of traffic behavior with rich routing rules, retries, failovers, 
 >and fault injection for chaos testing.
@@ -397,7 +401,7 @@ Staged rollouts with %-based traffic split
 
 ISTIO ARCHITECTURE AND CORE FUNCTIONS :
 
->with version 1.5, control plane components like Pilot, Citadel, Galley were combined into single 
+>with version 1.5, control plane components like Pilot, Citadel, Galley, Mixer were combined into single 
 >component called istiod. 
 
 >Istiod replaces the control plane and handle configuration and certificate distribution 
@@ -421,7 +425,7 @@ DATA PLANE vs CONTROL PLANE :
 >it provides service discovery, configuration ans certificates management to envoy proxies by issuing
 >mTLS certificates at the runtime.
 
->it collects telemetry and other mitrices from proxies.
+>it collects telemetry data and other matrices from proxies.
 
 >PILOT, CITADEL, GALLEY, MIXER, SIDECAR INJECTOR, GATEWAY are the part of the control plane.
 
@@ -445,10 +449,11 @@ in mesh. so that other pods will discover it. its all done automatically by pilo
 
 
 >2.CITADEL :-
-it acts as local CA authority, it provides secure communication among service by managing user authentication,
-issuing and rotating certificates to envoy and credentials managements.
-it enables mTLS, we can implemets mTLS by configuring every pod with a certificates. but we end up managing hundreds
-of certificates ourself like rotation and issuing. Citadel componet manages this task automatically.
+it acts as local Certification Authorization authority, it provides secure communication among service by 
+managing user authentication, issuing and rotating certificates to envoy and credentials managements.
+
+it enables mTLS, we can implemets mTLS by configuring every pod with a certificates. but we end up managing 
+hundreds of certificates ourself like rotation and issuing. Citadel componet manages this task automatically.
 
 
 >3.GALLEY :- 
@@ -617,7 +622,7 @@ istio provides the ingressGateway to expose the service/application ouside of th
 kubectl apply -f grafana.yaml -f jaeger.yaml -f kiali.yaml -f prometheus.yaml 
 kubectl get all -n istio-system
 
->Enable SideCar injection on a Nmaspace
+>Enable SideCar injection on a Namaspace
 
 to automatically inject proxy containers into pods, the namespace to be used by an application must be 
 labled with  "istio-injection=enabled"
@@ -636,7 +641,7 @@ istio traffic management
 virtual service
 destination rules
 ingress/egress gateway
-
+istion service Entry
 istio deployments startegies
 canary deployments
 
@@ -654,7 +659,7 @@ The pod needs to meet some pre-requisites to be the part of istios service mesh,
 
 >4.pod should run with NET_ADMIN and NET_RAW capabilities
 
->5.pods/deployments should have labels "app" abd "version" (it is best practice rather than requirement)
+>5.pods/deployments should have labels "app" and "version" (it is best practice rather than requirement)
 
 
 Istio's Traffic managements have following componets :
@@ -671,11 +676,11 @@ sidecars
 >                                                                               ------------|
 >                                 app.prod.sv.cluster.local                                 |
 >                                            |                                              |
->                        -------------------------------------------                        |--->Virtual Service yml
+>                       ---------------------------------------------                       |--->Virtual Service yml
 >                       |                                           |                       |
 >      app.prod.sv.cluster.local(old)                app2.prod.sv.cluster.local(new)        |
 >                    |                                                 |        ------------|
->       --------------------------                        -------------------------     -------|
+>       --------------------------                       --------------------------     -------|
 >       |           |            |                       |            |           |            | --->Destination
 >     [pod1]     [pod2]       [pod3]                  [pod1]        [pod2]      [pod3]         |      rules
 >                                                                                       -------|       yaml
@@ -685,14 +690,17 @@ sidecars
 
 #VirtualService :
 
-A virtual service lets you configure how requests are routed to a service within an Istio service mesh, 
-building on the basic connectivity and discovery provided by Istio and your platform. Each virtual service 
-consists of a set of routing rules that are evaluated in order, letting Istio match each given request to 
-the virtual service to a specific real destination within the mesh. Your mesh can require multiple virtual 
-services or none depending on your use case.
+>A virtual service lets you configure how requests will be routed to the service within an Istio service mesh.
+
+Each virtual service consists of a set of routing rules that are evaluated in order, letting Istio match each
+given request to  the virtual service to a specific real destination within the mesh. 
+
+building on the basic connectivity and discovery is provided by Istio and your platform. 
+
+Your mesh can require multiple virtual services or none depending on your use case.
 
 >A virtualService defines the 'set of traffic routing rules' to apply when a (HOST) is addressed.
-(host : the address usd by a client when attempting to connect to k8s service)
+(host : the address used by a client when attempting to connect to k8s service)
 (address can be a k8s service itself or it can be DNS name also)
 
 
@@ -702,7 +710,8 @@ services or none depending on your use case.
 
 >destination rule defines the set of service/pods where traffic should go.
 
-DestinationRule defines policies that apply to traffic intended for a service after routing has occurred. 
+DestinationRule defines policies that apply to traffic intended for a service after routing has occurred.
+
 These rules specify configuration for load balancing, connection pool size from the sidecar, and outlier 
 detection settings to detect and evict unhealthy hosts from the load balancing pool.
 
@@ -710,6 +719,10 @@ detection settings to detect and evict unhealthy hosts from the load balancing p
 >-------------------------------------------------------------------------------------------------------------
 
 #Demo_1 (above diagram  )
+
+here we are having two version of same application, one is old one and other is new one. 
+Both microservices are backed by their own set of services_
+
 
 >Deployment_1 _
 
@@ -902,11 +915,11 @@ spec:
 >                                                                               
 >                              retail-svc.prod.svc.cluster.local                            
 >                                            |                                              
->       (/electronics)  -------------------------------------------   (/books)                
+>       (/electronics)  --------------------------------------------   (/books)                
 >                       |                                          |                       
 >   electronics-svc.prod.svc.cluster.local                books-svc.prod.svc.cluster.local        
 >                    |                                                 |        
->       --------------------------                        -------------------------     
+>       --------------------------                       --------------------------     
 >       |           |            |                       |            |           |            
 >     [pod1]     [pod2]       [pod3]                   [pod1]       [pod2]      [pod3]        
 >                                                                                       
@@ -1395,7 +1408,7 @@ based on routing rule it routes the traffic to itself or to other pods.
 >running, which is envoy proxy.
 
 >these gateways facilates the traffic from outside to in into the cluster and traffic from clutser 
->to access the database, which may reside outside of the cluster.
+>to access the database or other application, which may reside outside of the cluster.
 
 there are two types of gateways, Ingress gateway and egress gateway.
 >ingress gateway allow traffic from outside of the cluster in to the cluster, similarly,
@@ -1408,7 +1421,7 @@ there are two types of gateways, Ingress gateway and egress gateway.
 > service browser ---> Ingress g/w ----> [frontend pod <---> Backend Pod]---> egress g/w ------> Database
 
 
-Istio Installation itself provides a both Ingress and Egress gateways , which are deploye using deployments
+Istio Installation itself provides a both Ingress and Egress gateways , which are deployed using deployments
 and resides at istio-system namespace.
 However, we can provide our own custom ingress and egress gateways.
 Istio installation also provides a Ingress gateway service.
@@ -1545,8 +1558,8 @@ metadata:
 spec:
 
   selector:
-    app: istio-ingressgateway
-    istio: ingressgateway            #selector by label provided to istion ingress pod
+    app: istio-ingressgateway        # to select Gateway Pod, provided by istio installation.
+    istio: ingressgateway            # selector by label provided to istio ingress pod
 
   servers:
   - port:
@@ -1557,7 +1570,7 @@ spec:
     - uk.bookinfo.com
     - "app-svc.prod.svc.cluster.local"
     
->Gateway Virtual Service
+>Gateway Virtual Service / Virtual Service
 
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
@@ -1629,17 +1642,19 @@ spec:
         simple: ROUND_ROBIN            
 
 
+>flow
+DNS--->Gateway--->Virtual Service--->service FQDN--->Destination Rule--->Labels--->pod/microservice
 
 
 >above, we have gateway pod deployed in istio-system namespace , while our application mesh is in a prod
 >namespace, and virtual service object is also applied to that gateway pod which is in istio-system name space.
->this is all handle by istiod. as long as selectors match, is not care about namespaces.
+>this is all handle by istiod, As long as selectors match, is not care about namespaces.
 
 
 >using above Virtual service and gateway, access to the pod is only possible from outside of the cluster.
 >to access the pods from within the cluster, we need to specify seperate VIRTUAL SERVICE with rules.
 
-> curl -H "Host:deep.com" http://ec2ip:port
+>curl -H "Host:<deep.com>" http://ec2ip:port
 
 
 To enable to access the service from within the cluster, we defines the new virtual service.
@@ -1672,3 +1687,51 @@ spec:
 >-------------------------------------------------------------------------------------------------------------
 **************************************************************************************************************
 >-------------------------------------------------------------------------------------------------------------        
+
+
+#Service Entry _
+
+>ref_ https://istio.io/v1.5/pt-br/docs/reference/config/networking/service-entry/#ServiceEntry-Location
+
+>service entry is a firewall rule for istio and works ONLY FOR EGRESS TRAFFIC. i.e. it controls the outgoing 
+>request. it is similar to the k8s network policy , but difference between is that, Service entry allow us to 
+>have LAYER-7 firewall rules, Where we can mentioned the DNS/fqdn name insted of ip addresses of the pods.
+
+
+>Envoy proxy allow all the traffic outside of service mesh to in, this is default behaviour. 
+>however, this is not the ideal behaviour, ideally all traffic should be denied. this behaviour can be changed 
+>in istio's config map, named istio.
+
+>using service , we create a network policies or service entries , and we can apply this entries to the proxies.
+>and as per the rules traffic can be allowed or denied.
+
+>
+
+
+apiVersion: networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  name: external-svc-https
+spec:
+  hosts:
+  - api.dropboxapi.com           #only to these hosts , egress traffic is allowed.
+  - www.googleapis.com           #from inside of service mesh, application can access these webpages.
+  - api.facebook.com
+  - www.google.com
+ # - "*.compute-1.amazonaws.com"       # using RE, RESOLUTION needed to be set to NONE.
+
+  ports:                         #on these port on host, service is accessible. fqdn, ip:port combination
+  - number: 443
+    name: https
+    protocol: TLS
+
+  resolution: DNS                           #DNS, cuz, in host we gave given fqdn
+
+  location: MESH-EXTERNAL  #MESH-INTERNAL   #these iterates that, host are external, if they are not within mesh
+                                            #it can be in different n/w or on different cluster or on-prem also.
+
+
+
+>------------------------------------------------------------------------------------------------------------- 
+
+

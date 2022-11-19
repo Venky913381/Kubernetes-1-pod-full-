@@ -1974,13 +1974,39 @@ file multiple context and cluster.
 >setting the KUBECONFIG environment variable or by setting the --kubeconfig flag while running kubectl commands_
   kubectl --kubeconfig /pathto_/kube.config get pods
 
+>Kubectl performs following task in k8s cluster_
+
+Client Side Validation :
+1. check yaml syntax
+2. check for misconfigurations
+3.check for non supported resource
+4. fail fast mechanism to avoid loading the API server
+
+Forms the HTTP request :
+1. forms API calls
+2. incudes authentication tokens and certifications for user validations.
+3. reads kubeconfig file
+4. submits pod spec to the api server
+5. Communicates with API server
+                            
+API server performs below task :
+1. then api server perform user authentication and authorization.
+2. verifies the APi
+3. communicates with varies k8s components like ETCD, CONTROLLER, SCHEDULERS.
+
+
+>user kubernetes lens tool for managing multiple clusters.
+
+>to view the kube config details
+kubectl config view
+
 >to get context_
 kubectl config get context
 
 >to change context_
 kubectl config use-context <contect-name>
 
->to change namespace
+>to change/set namespace in kubeconfig file for upcoming commands
 kubectl config set-context --current --namespace=<ns_name>
 
 >krew_

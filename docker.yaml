@@ -1,7 +1,8 @@
+>
 
-# multistage docker file
+multistage docker file :
 
-# 1 >
+>1 >
 
 FROM golang:alpine AS Builder
 WORKDIR /helloworld
@@ -15,20 +16,20 @@ COPY --from=Builder /helloworld/helloworld .
 ENTRYPOINT ["./helloworld"]
 
 
-#alpine is the smallest, stripped of all version for any image.
-#alpine:latest, will not have any runtime , or libraries, it is simple bash shell.
+>alpine is the smallest, stripped of all version for any image.
+>alpine:latest, will not have any runtime , or libraries, it is simple bash shell.
 
-#once executable is available from previous build, we did not need the code or runtime, so 
-#it is ok to delete it, and we do this by adding another stage.
+>once executable is available from previous build, we did not need the code or runtime, so 
+>it is ok to delete it, and we do this by adding another stage.
 
-#COPY --from=Builder /helloworld/helloworld  : copying from builder stage, a helloworld build from /helloworld dir 
-# to pwd.
+>COPY --from=Builder /helloworld/helloworld  : copying from builder stage, a helloworld build from /helloworld dir 
+>to pwd.
 
-#need only one entrypoint/cmd , to later stage.
+>need only one entrypoint/cmd , to later stage.
 
 #--------------------------------------------------------------------------------------------------------------
 
-# 2 >
+>2 >
 
 FROM maven AS Builder1
 RUN mkdir /usr/src/mymaven
@@ -43,7 +44,8 @@ RUN rm -rf ROOT && mv java-tomcat-maven-example.war ROOT.war
 CMD ["java","-jar","/usr/src/mymaven/target/ROOT.war"]
 
 
-#--------------------------------------------------------------------------------------------------------------
+>--------------------------------------------------------------------------------------------------------------
+
 
 >1.containers are increasingly became popular, but it do present some security risk to the 
 > application as well as data
@@ -147,7 +149,7 @@ CMD ["java","-jar","/usr/src/mymaven/target/ROOT.war"]
 
 >15.Container Security Tools_
     
-    1)these tools scans the containers for all the vulnerabilituies and monitor them regularly against any attack, 
+    1)these tools scans the containers for all the vulnerabilities and monitor them regularly against any attack, 
       issue or new bugs.
 
     2)they mostaly work by scanning installed os packages and compairing versions to CVE 
@@ -158,19 +160,19 @@ CMD ["java","-jar","/usr/src/mymaven/target/ROOT.war"]
 
 >----------------------------------------------------------------------------------------------------------------
 
->16.USING Anchore image Analyzer CLI_
+USING Anchore image Analyzer CLI :
 
     1)adding container image to analyse_ 
-        anchore-cli image add <image_name>
+>        anchore-cli image add <image_name>
 
     2)waiting for image to complate the analysis_ (to check if analysis is complete or not)
-        anchore-cli image wait <image>
+>        anchore-cli image wait <image>
 
     3)list images analysed by anchore_ 
-        anchore-cli image list 
+>        anchore-cli image list 
 
     4)veiw the scan result and list out all of the known vulnerabilities_
-        anchore-cli image <image>  
+>        anchore-cli image <image>  
 
     5)to run policy check 
         anchore-cli evaluate check <image> --detail
@@ -178,44 +180,46 @@ CMD ["java","-jar","/usr/src/mymaven/target/ROOT.war"]
 
 >-----------------------------------------------------------------------------------------------------------------
 
->17.Using Trivy Image Analyser CLI__
+Using Trivy Image Analyser CLI :
 
     1) trivy --help 
 
     2) scanning image to analyse_ 
-       trivy image <image:tag> 
+>       trivy image <image:tag> 
 
     3) setting image vulnerabilty severity as per users need_ 
-       trivy image <image:tag> --severity=<LEVEL> -->CRITICAL/HIGH/MEDIUM/LOW
+>       trivy image <image:tag> --severity=<LEVEL> -->CRITICAL/HIGH/MEDIUM/LOW
 
     4) to get format in json format/ other format also available
-       trivy image <image:tag> --severity=<LEVEL> --format json
+>       trivy image <image:tag> --severity=<LEVEL> --format json
 
 
 
 
-#------------------------------------------------------------------------------------------------------------------            
+#--------------------------------------------BEST-PRACTICES_2-----------------------------------------------------            
+
+
 
 >every command in dockerfile, runs a root user/commands, it never requires a sudo permission.
 
 
 >Best Practice for bilding images 
 
-1.never use the latest image  and if possible pass the image version as argument 
+>1.never use the latest image  and if possible pass the image version as argument 
 
 ARG TAG=18.04
 FROM ubuntu:$TAG 
 
 
-2.while copying the files , use full paths, Regular expression and user 'Dockerignore' file to 
-  avoid copying uncessary files.
-  Also chnage the working directory before copying the files.
+>2.while copying the files , use full paths, Regular expression and user 'Dockerignore' file to 
+>  avoid copying uncessary files.
+>  Also chnage the working directory before copying the files.
 
 WORKDIR /appl 
 COPY *.java . 
 
 
-3.merge the multipleRUN commands in to single command, it will reduce the number of layers.
+>3.merge the multipleRUN commands in to single command, it will reduce the number of layers.
 
 RUN apt get update && apt install curl -y  && curl -k http://ip 
 
@@ -227,16 +231,16 @@ RUN apt update -y && \
 
 
 
-4.never pass the secrete data in environmental variable , pass it as environmental variable ,
-while buiding image only.
+>4.never pass the secrete data in environmental variable , pass it as environmental variable ,
+>while buiding image only.
 
 ENV DATABASE postgres
 
 >docker run --name dummydatabase -e PASSWORD=1234 test:1.0   --->passing env var using -e flag.
 
 
-5.CMD AND ENTRYPOINT instruction , we need to use executable format. we can also remove sh/bash for security purpose
-  before execution on CMD/ ENTRYPOINT , and we can call binary directaly.
+>5.CMD AND ENTRYPOINT instruction , we need to use executable format. we can also remove sh/bash for security purpose
+>  before execution on CMD/ ENTRYPOINT , and we can call binary directaly.
 
   > suppose we are pinging some ip on image ixecution, then_
 
@@ -257,11 +261,11 @@ ENV DATABASE postgres
 
 
 
-6.one of the best practice is use non root user for entrypoint and cmd instruction, this can be done by 
-  switching to non root user using USER instruction.
-  Now this will create a problem, while running a RUN instruction that needs a root permission. this can be
-  metigated by running a all instructions as root user and switching to normal user , just before the 
-  CMD/ ENTRYPOINT instruction. 
+>6.one of the best practice is use non root user for entrypoint and cmd instruction, this can be done by 
+>  switching to non root user using USER instruction.
+>  Now this will create a problem, while running a RUN instruction that needs a root permission. this can be
+>  metigated by running a all instructions as root user and switching to normal user , just before the 
+>  CMD/ ENTRYPOINT instruction. 
 
   ARG TAG=18.04
   FROM ubuntu:$TAG 
@@ -276,10 +280,10 @@ ENV DATABASE postgres
 
 
 
-7.using distroless images_
-  these images do not any debugging utilities like sh, ping, ls, curl etc.
-  however, google also provides distroless images with nonroot user, images with debugging utilities, 
-  and debugging utilities with nonroot user. 
+>7.using distroless images_
+>  these images do not any debugging utilities like sh, ping, ls, curl etc.
+>  however, google also provides distroless images with nonroot user, images with debugging utilities, 
+>  and debugging utilities with nonroot user. 
 
  >https://github.com/GoogleContainerTools/distroless
 
@@ -291,10 +295,10 @@ FROM gcr.io/distroless/static-debian11:debug
 
 
 
-8. one other best practice is to if possible ,not execute changing instruction at start of the docker file. 
-   instruction like COPY, in which data keep on chnaging , it is advisable to use this at end , this is becouse
-   docker build the images using cache of already build images and all the instruction after changed instruction
-   will run again , increasing the execution time and engedging the storage. 
+>8. one other best practice is to if possible ,not execute changing instruction at start of the docker file. 
+>   instruction like COPY, in which data keep on chnaging , it is advisable to use this at end , this is becouse
+>   docker build the images using cache of already build images and all the instruction after changed instruction
+>   will run again , increasing the execution time and engedging the storage. 
  
   ARG TAG=18.04
   FROM ubuntu:$TAG 
@@ -310,7 +314,7 @@ FROM gcr.io/distroless/static-debian11:debug
 
 
 
-9.while building images, remove unnecessary dependancies also after building remove package manager cache.
+>9.while building images, remove unnecessary dependancies also after building remove package manager cache.
 
   ARG TAG=18.04
   FROM ubuntu:$TAG 
@@ -327,7 +331,117 @@ FROM gcr.io/distroless/static-debian11:debug
 *****************************************************************************************************************
 
 
->DOCKER SECURITY.
+DOCKER CONTAINER SECURITY :
+
+>As docker containerization engine uses host operating kernel, it is important to use Secure and 
+>No severe vulnerabilities operating system as a host operating system.
+
+>Also is importamt to use latest version of the docker engine and to make sure that nothing is vulnerable
+>on the sytstem which we are using as host operating system.
+
+>Use of minimal operating systems like Clear Linux is one of thebest practices , we can implement for 
+>security of the system.
+
+Apart from using secure host system, we need to implement following measures for securing docker images _ :
+
+
+>1. Always launch/run Container with Unpreviledge User _
+
+to achieve this this need a docker images with unpriviledge user, for this purpose we need to build
+our own images with unpriviledge user.
+
+>add non root/ non sudo user
+FROM ubnuntu:18.04
+RUN groupadd -r swapnil && useradd -r -g swapnil swapnil   # useradd -r -g sudo swapnil swapnil, to give sudo
+
+
+>docker run -u swapnil -it --rm <imageid> /bin/bash   ; login with user swapnil (-u)
+
+However , in this aproch we can still escalate the priviledges to the sudo/root user.
+
+
+
+>2. Block access to the root /sudo user completely _
+
+as discussed above, even if we have a non root user ,we can still escalate priviledges to the root user,
+this can be source of vulnerability. this is eliminated by completaly blocking the root user _
+we can also block the terminals access to the root user, so that root user will not be able to access the 
+terminal , even after having the password. 
+
+>remove root user / block the terminal access to root user
+FROM ubnuntu:18.04
+RUN groupadd -r swapnil && useradd -r -g swapnil swapnil
+
+RUN chsh -s /usr/sbin/nologin root                # here we are blocking the terminal for root, 
+                                                  # using chsh changeShell command.
+
+
+
+>3. Stop the Logined user for escalating priviledges _
+
+We can also stop the user from escalating the priviledges, this can be done while spinning up new  docker 
+container, as follow using  --security-opt=no-new-priveledges   flag
+
+
+>docker run -it --rm -u swapnil --security-opt=no-new-priveledges <image id>
+
+
+
+>4. we can add Capabilities as per need to the image _
+
+>ref_ https://man7.org/linux/man-pages/man7/capabilities.7.html
+
+So, using capabilities, we can decide, which capabiliies does we wants our container to run with.
+
+>docker run --cap-drop all --cap-add <name of capability in man page> -it <image> 
+
+here, we have first dropped all the capabilities for kernal and then add specific capabilities that we needed.
+
+
+
+>5. Lauching the container with read-only permission_
+
+with read only mode we can ensure that user will not made any changes to the file system of the container.
+this will not even allow ROOT user to make any changes to the file system.
+
+>docker run --read-only -u swapnil -it ---rm <image id>
+
+using following , we can allow user to make changes to temporary filesystem
+
+>docker run --read-only --tmpfs /<dir_path>  -u swapnil -it ---rm <image id>
+
+now, user can make changes in specified  /<dir_path> only.
+
+
+
+>6.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

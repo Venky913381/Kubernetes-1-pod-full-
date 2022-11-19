@@ -122,7 +122,7 @@ HelmFile:
 
 >ref:https://jhooq.com/helmfile-manage-helmchart/    , for all details and mode.
 
->1.You can bundle several Helm Charts into a Single Helmfile to manage your kubernetes eco system
+>1.You can bundle several Helm Charts into a Single Helmfile to manage your kubernetes eco-system
 >2.Helmfile helps you to keep isolation between the different environments(developemnt, staging, production)
 
 >3.It can help you to identify the differences between the new changes which you want to apply 
