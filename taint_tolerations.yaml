@@ -7,7 +7,7 @@ Node affinity is a property of Pods that attracts them to a set of nodes,
 (either as a preference or a hard requirement). Taints are the opposite,  they allow a node to Repel a set of pods.
 
 Tolerations are applied to pods. Tolerations allow the scheduler to schedule pods with matching taints. 
-'Tolerations allow scheduling but don't guarantee scheduling', the scheduler also evaluates other parameters 
+Tolerations allow scheduling but don't guarantee scheduling, the scheduler also evaluates other parameters 
 as part of its function.
 
 Taints and tolerations work together to ensure that pods are not scheduled onto inappropriate nodes. 
@@ -18,7 +18,7 @@ not tolerate the taints.
 
 A toleration "matches" a taint if the keys are the same and the effects are the same, and:
 >1.the operator is Exists (in which case no 'value' should be specified), or
->2.the operator is Equal and the values are equal.
+>2.the operator is Equal and the values are Equal.
 
 There are two special cases:
 >1.An empty key with operator Exists matches all keys, values and effects which means this will tolerate everything.
@@ -73,8 +73,7 @@ spec:
 #PreferNoSchedule
 
 you can use effect of PreferNoSchedule. This is a "preference" or "soft" version of NoSchedule.
-the system will try to avoid placing a pod that does not tolerate the taint on the node, 
-but it is not required.
+the system will try to avoid placing a pod that does not tolerate the taint on the node.
 
 > kubectl taint node <noddename> mysize=large:PreferNoSchedule
 
@@ -127,7 +126,7 @@ tolarations:
 
 
 tolarations:
-    - effect: NoSchedule        --> it will tolerate everything
+    - effect: NoSchedule        --> it will tolerate everything, as no key is specified.
       key: ""                          
       operator: "Exists"                  
 

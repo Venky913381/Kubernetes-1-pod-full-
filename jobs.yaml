@@ -1,5 +1,7 @@
 >
 
+>ref_ https://kubernetes.io/docs/concepts/workloads/controllers/job/
+
 1.RUN TO COMPLETION JOB:
 
 >A Job creates one or more Pods and will continue to retry execution of the Pods until a specified number 
@@ -44,12 +46,15 @@ spec:
 >activeDeadlineSeconds : is the time, we gave for to execute,if not executed within this time,pod will be terminated
 
 
->RestartPolicy applies to the Pod, and not to the Job itself,
+>RestartPolicy applies to the Pod, and not to the Job itself.
+
 >there is no automatic Job restart once the Job status is "type: Failed". 
 >That is, the Job termination mechanisms activated with .spec.activeDeadlineSeconds 
 >and .spec.backoffLimit result in a permanent Job failure that requires manual intervention to resolve
 
 >------------------------------------------------------------------------------------------------------------
+
+>ref_ https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/
 
 2.CRON JOBS: 
 
@@ -63,6 +68,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: hello
+
 spec:
   schedule: "* * * * *"
   jobTemplate:

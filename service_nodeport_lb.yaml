@@ -60,15 +60,14 @@ Most of the time you should let Kubernetes choose the port.
 
 For these reasons, It is not recommend using this method in production to directly expose your service. 
 If you are running a service that doesn't have to be always available, or you are very cost sensitive,
-this method will work for you. A good example of such an application is a demo app or something temporary.
-
+this method will work for you. 
 
 
 if minikube is running on aws ec2:
 
 >You need to port forward the traffic from your EC2 node to minikube, as minikube itself will
 >runs as separate Virtual Machine on ec2.
-Once you have kubectl setup on the host machine, talking to the minikube cluster, 
+Once you have kubectl setup on the host machine,to communicate with the minikube cluster, 
 you can use kubectl port-forward to forward traffic to any service/pod running inside minikube.
 
 >kubectl port-forward --address 0.0.0.0 svc/<svc-name> <host-port>:<service-port>
@@ -119,9 +118,8 @@ All traffic on the port you specify will be forwarded to the service.
 >There is no filtering, no routing, etc. This means you can send almost any kind of traffic to it, 
 >like HTTP, TCP, UDP, Websockets, gRPC, or whatever.
 
-
 >The big downside is that each service you expose with a LoadBalancer will get its own IP address, 
->and you have to pay for a LoadBalancer per exposed service, which can get expensive!
+>and you have to pay for a LoadBalancer per exposed service, which can get expensive.
 
 >with cloud lb, we need to pay for each of the service that is exposed using LB as the service. as service grows
 >in number, complexity to manage SSL's, scallings, Auth..etc also increases.
@@ -132,8 +130,9 @@ All traffic on the port you specify will be forwarded to the service.
 >ingress controller can perform load balancing , Auth, SSL and (Host)URL/Path based routing configuration by being 
 >inside the cluster, living as a deployment or a DAEMON SET.
 
->Ingress helps user access the application using single externally accessible URL, that you can configure 
->to route to different services within the cluster based on url, at the same time terminates the SSL/TLS.
+>Ingress helps user access the multiple application using single externally accessible URL, 
+>that you can configure to route to different services within the cluster based on url, 
+>at the same time terminates the SSL/TLS.
 
 
 

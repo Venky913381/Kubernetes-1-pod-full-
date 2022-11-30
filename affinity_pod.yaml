@@ -21,9 +21,10 @@
 
 # Pod Affinty and Pod antiAffinity_
 
->In pod Affinty and Pod antiAffinity , Node will select , How the perticular Pod will be placed Relative to other 
->pods based on the rules defined under rule of Pod affinity and AntiAffinity in pod spec manifest file.
->i.e. Pod will select the Node , based on the type Pod which is already running on that node.
+>In pod Affinity and Pod antiAffinity ,scheduler will decide , How the perticular Pod will be placed Relative 
+>to other pods (which already exist on the node) based on the rules defined under rule of Pod affinity and 
+>AntiAffinity in pod spec manifest file. i.e. Scheduler will select the Node , based on the type of Pod which is 
+>already running on that node.
 
 >In pod Affinty and Pod antiAffinity , allows you to specify rules about How pods should be placed relative to
 >other pods running on perticular node.
@@ -31,10 +32,12 @@
 >Pod Affinity, we can tell the scheduler to co-locate a new pod on the same node as 'Other Pod', 
 >if the label selector on the new pod matches the label on current pod running on the node.
 >i.e. it will check the label of existing pod, so that new pod will get schedule on the 
->same node as existing pod is. so that both pods will be on same node. i.e IT WILL CO-LOCATE THE BOTH PODS.
+>same node as existing pod is. so that both pods will be on same node. 
+i.e IT WILL CO-LOCATE THE BOTH PODS ON THE SAME NODE.
 
 >Pod Anti Affinity, can Prevent the scheduler from co-locating/i.e. NotTO Co-locate a new pod on the same node 
 >as pod with the same label, if the label selector on the new pod matches the label on the current pod.
+i.e. IT WILL PREVENT THE PODS FROM CO-LOCATING ON THE SAME NODE.
 
 >we have two kinds of scheduling methods under affinty rules_
 1. HARD SCHEDULING - (required)
@@ -144,6 +147,12 @@ spec:
 
 >Above Anti Affinity, rule states that , if the existing pod is already deployed on the node, then the pod with
 >Anti Affinity rules must not get schedule on that node.
+i.e.
+>if the pod with label app:nginx, is already deployed on the node, then the new pod with with anti affinity
+>rule, must not get scahedule on the node having label app:nginx, 
+>But it must also avoid placing the on the node having topology key as topologyKey: any-common-lable.
+(above, ref_ https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity)
+
 
 >This is achieved using Labels, in anti Affinity rules, we are defining the matchExpression rules,
 >which searches for the the node, for the pod with matching label, if it found that pod is on that node,
@@ -159,7 +168,7 @@ spec:
 
 >-----------------------------------------------------------------------------------------------------------------
 
-> weight :- Weight is used to define the prefference of node selection, when we give multiple Match Expressions and 
+> weight :- Weight is used to define the prefference of node selection, when we give multiple Matching nodes and 
 >           and there are multiple nodes that satisfies the affinity conditions. so K8S rates the nodes and based 
 >           on its values assign weight to it.
 
@@ -208,7 +217,8 @@ spec:
                   - cache
             topologyKey: kubernetes.io/hostname
 
->above, AntiAffinity rule, will ensure that no two redis pod will get schedule on same node.
+>above, AntiAffinity rule, will ensure that no two redis pod will get schedule on same node. at the same time
+>if deployed first, it will get schedule on the node with given topology key.
 
 
 apiVersion: apps/v1
@@ -261,3 +271,6 @@ spec:
         
 
 >----------------------------------------------------------------------------------------------------------------
+
+>check, if we can apply the same rule in case multiple "LabelSelector" or multiple "matchExpressions"
+>in pod affinit/antiaffinty rule, like node affinity rule.

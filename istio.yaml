@@ -14,7 +14,9 @@ This makes updates restrictive and time-consuming.
 Monoliths can be convenient early on in a project's life for ease of code management, cognitive overhead, 
 and deployment. This allows everything in the monolith to be released at once.
 
+
 #Advantages of a monolithic architecture
+
 Organizations can benefit from either a monolithic or microservices architecture, depending on a 
 number of different factors. 
 When developing using a monolithic architecture, the primary advantage is fast development speed due to 
@@ -22,7 +24,7 @@ the simplicity of having an application based on one code base.
 
 The advantages of a monolithic architecture include: 
 
->Easy develoement & deployment – One executable file or directory makes deployment easier.
+>Easy development & deployment – One executable file or directory makes deployment easier.
 
 >Development – When an application is built with one code base, it is easier to develop.
 
@@ -36,9 +38,10 @@ The advantages of a monolithic architecture include:
 
 
 #Disadvantages of a monolithic architecture
+
 As with the case of Netflix, monolithic applications can be quite effective until they grow too large and 
 scaling becomes a challenge. Making a small change in a single function requires compiling and testing the 
-entire platform, which goes against the agile approach today’s developers favor. 
+entire platform, which goes against the agile approach today's developers favor. 
 
 The disadvantages of a monolith include: 
 
@@ -72,7 +75,9 @@ the overall whole.
 Adopting microservices often goes hand in hand with DevOps, since they are the basis for 
 continuous delivery practices that allow teams to adapt quickly to user requirements.
 
+
 #Advantages of microservices
+
 Microservices are by no means a silver bullet, but they solve a number of problems for growing software 
 and companies. Since a microservices architecture consists of units that run independently, each 
 service can be developed, updated, deployed, and scaled without affecting the other services. 
@@ -106,7 +111,9 @@ the advantages of microservices are:
 >Happier teams – The Atlassian teams who work with microservices are a lot happier, since they are 
 >more autonomous and can build and deploy themselves without waiting weeks for a pull request to be approved.
 
+
 #Disadvantages of microservices
+
 When we moved from a small number of monolithic code bases to many more distributed systems and services 
 powering our products, unintended complexity arose. We initially struggled to add new capabilities with 
 the same velocity and confidence as we had done in the past. Microservices can add increased complexity 
@@ -144,7 +151,7 @@ Upstream and Downstream requests and response:
 >Microservice A --------> Microservice B --------> Microservice C
 <-----------------downstream Service/Requests<-------------------
 
->so Microservice B is upstream microservice for Microservice A, since Microservice A depends on it and 
+>Microservice B is upstream microservice for Microservice A, since Microservice A depends on it and 
 >Microservice B is downstream microservice for Microservice C, since it adds data to the value of service C.
 
 
@@ -204,7 +211,7 @@ with service mesh, we are removing additional logic like Ingress & Egress of Tra
 the traffic to microservices, Retries and Timeouts in case of failure or unresponsiveness of microservices,
 Secure TLS communication between microservices, managing various certificates , Metrics of various 
 microservices parameters, from application logic. 
-all the above discussed responsibilities and function is carried our by service mesh.
+all the above discussed responsibilities and function is carried out by service mesh.
 
 >So moving the additional logic out from the code to seperate layer called Infrastructure layer that has
 >numerous Proxies (side car containers). 
@@ -228,7 +235,7 @@ all the above discussed responsibilities and function is carried our by service 
 #Service mesh Advantages_
 
 >1.business and communication logic is now seperated.
->2.developer can now work only on core business logic.
+>2.developer needs to work only on core business logic.
 >3.much cleaner and lean docker images.
 >4.rich set of matrices from the application/mesh like success/failed connection, retries, timeouts,
 >  thanks to the proxies intercepting the traffic.
@@ -473,6 +480,8 @@ and sends them to Mixer for evaluation.
 >5.SideCar Injectors :-
 it injects envoy sidecar container in to pods for enabled namepsaces.
 we have to enable Istio injection for namespaces in order to inject sidecar container proxies.
+this is done by labeling the namespace for Sidecar proxy injection as below
+
 >kubectl label namepsace <ns_name> istio-injection=enabled
 
 

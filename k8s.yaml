@@ -9,7 +9,7 @@
 >kubectl get all/<resource> --all-namespaces         --->to get all the resources in all namespaces
 
 >kubectl logs <pod_name>                              ---> to get logs of the k8s pod
->kubectl logs -f <pod_name>                           ---> to get logs of the k8s pod
+>kubectl logs -f <pod_name>                           ---> to get logs of the k8s pod in follow mode
 >kubectl logs -f <pod_name> -c <container_name>       ---> to get logs of the container inside k8s pod
 >kubectl logs -f <pod_name> --all-containers          ---> -f for follow/continuos logs
 
@@ -32,7 +32,7 @@
 
 >kubectl label <type> <name> label1=value1              ---> to label the existing pod
 >kubectl label --override <type> <name> label1=value2   ---> to override the existing pod label
->kubectl label <type> --all label1=value1               ---> to label all resource type in one go
+>kubectl label <type> --all label1=value1               ---> to label all <type> resources in one go
 >kubectl label <type> <name> label1-                    ---> (-) to delete the lable
 
 >kubectl delete <type> <name>
@@ -46,7 +46,7 @@
 >kubectl config view          ---> to view the configuration file. (--minify, to minify o/p)
 >kubectl config get-clusters  ---> (--help, for more options)
 
->kubectl api-resources --namespaced=true/false  ---> to filter the obects supporting namespace.
+>kubectl api-resources --namespaced=true/false  ---> to filter the objects supporting namespace.
 >kubectl top nodes/pods                         ---> to get resource usage matrices (need matrics server installed)
 >kubectl api-versions                           ---> to get api version of k8s objects
 >kubectl get componentstatuses/cs               ---> to get the status of components of cluster
@@ -66,7 +66,7 @@
 >minikube addons list                              ---> to get list of addons comes with minikube
 >minikube addons enable/disable <addon_name>       ---> to enable/disable addons
 
->minikube start --container-runtime='runtime_name'/--drive='driver' --->if other than default docker
+>minikube start --container-runtime='runtime_name'/--drive='driver'    ---> if other than default docker
 >minikube service  <service name> --url
 
 #---------------------------------------------------------------------------------------------------------------
@@ -77,8 +77,9 @@
 Container Orchastration automates the deployment, management, scalling, and networking of the 
 containers across the cluster.it is focused on the managing the life cycle of container.
 
-Enterprises that need to deploy and manage hundreds or thousands of linux containers and hosts can benefits
-from container orchastration.
+Enterprises that need to deploy and manage hundreds or thousands of containers and hosts can benefits
+from container orchastration. as they do need to manage each every container independently, all container 
+can be managed in bulk using orchastration engine like Docker-Swarm or Kubernetes.
 
 k8s is open source container management tool, it provides a container runtime, container orchastration,
 container centric infrastructure orchastration, self healing mechanism, service discovery, load balancing,
@@ -102,16 +103,41 @@ and container scalling. it is wriitten in go languange.
 >1.Cloud Managed  :- EKS, AKS, GKE, CIVO, PLATFORM-9, 'KOPS is a utility to manage cluster on cloud' ...etc
 >2.Self Managed   :- OpenShift by RedHat and Docker Enterprise
 >3.Local Dev/Test :- Micro k8s by canonical, minikube, kind
->4.Vanilla K8s    :- the core k8s project(BareMetal), Kubeadm
+>4.Vanilla K8s    :- the core k8s project(BareMetal), Kubeadm, kubespreay, kube-sphere
 >5.SpecialBuilds  :- K3S by Rancher, is a light weigt k8s distribution.
 
 
 >k8s alternatives_
 
 >1. Container as a service             : ecs, fargate, azure container instance... etc
->2. managed k8s service                : eks, aks, gke, civo, platform9... etc
+>2. managed k8s service                : eks, aks, gke, civo, platform9,OpenShift... etc (paas)
 >3. paas using k8s                     : openshift, rancher offer k8s as paas
 >4. lightweight container orchastrator : docker swarm, hashicorp Nomad, apache mesos.. etc
+
+
+>Kubectl is command line utility to communicate with the Kubernetes API server.
+>kubectl converts the imperative commands/manifest instruction in to API calls to communicate with
+>Kube API server in Kubenetes. Kube API Server in k8s , is tasked with communicating with other 
+>kubernetes componetes in Master and passing the commands/instruction to them to complete the given task.
+
+>It is the responsibily of Controller Manager, to maintain the desired state of the cluster. it is tasked
+>with checking the health of pods in cluster and replacing them when needed.
+
+>Scheduler, take care of the responsibilty of resource allocation, scheduling the pod on the correct node
+>which satisfies the resource need of the pod. Scheduler look for the pods resource requirement and schedule
+>them on the correct node.
+
+>ETCD, is a database of key-value types in kubernetes. it stores the complete cluster information. All the
+>desire state information is stored in ETCD. also it store all cluster information, so if cluster goes
+>down , restoring cluster to previous state based on values stored in ETCD is possible.
+
+>Kubelet, is a componets in the Worker Node, it is tasked with reporting the workloads, health of the Pod
+>worker it running back to the Master Node. It keep checking with master node, wheather it has any more
+>workloads/pods to run. Master Notifies the Kubelet , if it has to run the new pod or not.
+
+>KubeProxy, will resolve or creates IP table rules. these routing rules is applied by the KubeProxy in
+>specific node, so the pod to pod comminucation via service is possible becouse of the rules created
+>by the KubeProxy component.
 
 
 #----------------------------------------------------POD---------------------------------------------------------
@@ -122,7 +148,7 @@ and container scalling. it is wriitten in go languange.
 
 > --image   : specifies image
 > -it       : interactive mode
-> -rm       : specifies, to remove pod, when stopped
+> -rm       : specifies, to remove pod, when it is stopped
 > --restart : specifies restart policy for container
 > --port=<> : specifies the port to be open on container
 > --expose  : this will create the service for the pod
@@ -2004,7 +2030,7 @@ kubectl config view
 kubectl config get context
 
 >to change context_
-kubectl config use-context <contect-name>
+kubectl config use-context <context-name>
 
 >to change/set namespace in kubeconfig file for upcoming commands
 kubectl config set-context --current --namespace=<ns_name>
@@ -2064,7 +2090,7 @@ to check the installation.
 
 >kubectx                           ---> to list context
 >kubectx -                         ---> to switch to the previous context
->kubectx <nameof_context>          ---> to change the context
+>kubectx <name_of_context>         ---> to change the context
 >kubectx --help
 
 # kubens (namespace)               ---> k8s namespace utility
@@ -2152,7 +2178,6 @@ datree test <k8s_manifest.yaml>
 >Enable/disable built-in rules
 After signing up, you'll be automatically redirected to your Centralized policy where you can configure 
 it according to your needs.
-
 
 
 

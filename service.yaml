@@ -3,7 +3,7 @@
 >Service in k8s
 
 >we need a services for enabling the pod-to-pod communication, also to enable external traffic to access 
->microservice/app deployed in k8s pod.
+>microservice/app deployed in k8s pod/cluster..
 
 >services can be defined through yaml manifest files or using imperative command. and can be deployed using 
 >kubectl apply -f <service_file.yaml> command.
@@ -11,7 +11,7 @@
 >Port :- port in service manifest file, represents the actual port that service listen on. if service listens 
 >        on port 3000, we can access the service through its <service_name>:3000
 
->Target Port :- target port represents the actual Container Port of the pod. it should match the container port
+>Target Port :- target port represents the actual Container Port. it should match the container port
 >               in the pod's manifest file.
 
 >Node Port   :- Node port represents the port of the Node , from which external traffic access the service. 
@@ -182,7 +182,7 @@ ports:
 
 Stateless : it will do Not store anything (data), previous session, nor it retrieve anything, eg . Nginx,apache
 
-Statfull  : this type of application stores state, so whenever application crashes or if any issue arises
+Statefull : this type of application stores state, so whenever application crashes or if any issue arises
             or app lost connection, whenever, it comes back it starts from the same state as data is stored. 
             this type of application can not always start from scratch.
 
@@ -191,7 +191,7 @@ Statfull  : this type of application stores state, so whenever application crash
 
 The default behaviour of the k8s is to assign internal ip address to the service.
 Through this ip address, the service will proxy all the client requests 
-and load balance them to the pods behind it.
+and load balance them to the pods behind it. i.e single service ip address exposes/represent multiple pods.
 
 >If we, DNS query the service name via utilities like nslookup, k8s returns the service's ip but 
 >not the ip's of the pod it manages.
@@ -205,24 +205,25 @@ assign any IP to the service  or nor to Load balance the requests.
 This type of service is knows as Headless Service.
 
 if a headless service manages more than one pod, service dns name will return a lists of pods managed
-by the service. The requests will accept the first IP address returned.
+by the service. The requests will accept the first IP address returned (after load balancing them).
 
 One of the misconception with Headless service is that, it do not Load Balances the request.
 Even though headless service return the ip addresses of the pods, it will still load balances the 
 requests to the pods and this type of load balancing is called as "DNS ROUND ROBIN LOAD BALANCING".
 
 >Whatever the name of our headless service is , it represents all the backend pods it manages. the name 
->of service is not resolving to the ip address of the service itself. infact headless service is acting
+>of service will not resolve to the ip address of the service itself. infact headless service is acting
 >like single DNS name for all the backend pods it manages. 
 
->As simple DNS call to headless service will result in a multiple DNS results , that is it return IPS 
->od all the backend pods it manages.That is why it is called as "DNS ROUND ROBIN LOAD BALANCING".
+>As simple DNS call to headless service will result in a multiple DNS results , that is it return IP's 
+>of all the backend pods it manages.That is why it is called as "DNS ROUND ROBIN LOAD BALANCING".
 
 >one of other misconception with headless service is that, it always forward the requests to first pod, 
 >NO, Headless service will Not always forward the request to first pod. this is becouse, headless sevrvice will
->load balance the requests across the pods through the service proxy.
+>load balance the requests across the pods through the service proxy. The request will get accepted by
+>first pod, after load balancing, just like cluster ip service.
 
-curl <headless-service-name>:<Container_Port> , here headless service will not resolve to first instance of the 
+curl <headless-service-name>:<Container_Port> , here headless service will NOT resolve to first instance of the 
 pod, and as it is load balances the requests, it will result in different ip's of pods every time requests is made.
 
 
@@ -231,21 +232,25 @@ pod, and as it is load balances the requests, it will result in different ip's o
 >    as headless service is load balancing the requests. 
 
 >However, headless service , when used with StatefulSets provides a unique identity to each pod
->managed by StatefulSet
+>managed by StatefulSet and make it possible to forward the request always to single pod as it provide
+>stable name and exposes the pod ip instead of service's ip.
 
 
 >Headless services are more useful when_
 
 1. Pod to pod communication.
 >   pod to pod communication , where we do not wants request to be load balance by service and insted of 
->   returning the service ip, we wants to dynamically fetch the ips of pods to be return. so that request
+>   returning the service ip, we wants to dynamically fetch the ips of pods managed by service. so that request
 >   can be forwared to only target pod and not any other pod.
 
 2. Master-slave configuration, where slaves needs to be aware of the master pod like Clustered databases.
+>  application where we have multiple instances of the databases, where one instance of database acts as a
+>  primary instance and other instances act as secondary or read replicas and replicated the data from primary
+>  instance. insuch cases, primary db instances needs to have stable name and ip address.   
 
 
->a headless service is a service without service IP but , instead of load balancing it will return the ips of our
->associated pods.
+>a headless service is a service without service IP , instead of forwarding request to pod and 
+>returning the response from pod , it load balances the requests and returns the ips of the pod it manages.
 
 >This allows us to interact directaly with pods instead of proxy. it is as simple as specifying
 >'None' for '.spec.clusterIP' and can be utilized with or without selectors.
@@ -325,8 +330,8 @@ spec:
 
 # Service Without Selectors_
 
->we can define the service without selectors, however , in this case, we need to define the endpoints resource of
->the pod using endpoints manifest file.
+>we can define the service without selectors, however , in this case, we need to define the seperate
+>endpoints resource of the pod using endpoints manifest file.
 
 Services most commonly abstract access to Kubernetes Pods thanks to the selector, 
 but when used with a corresponding Endpoints object and without a selector, 
@@ -366,7 +371,7 @@ spec:
        - containerPort: 80      # port exposed by container
 
 
->we need to manually get the ips of the pods before, proceeding with enpoints manifest.
+we need to manually get the ips of the pods before, proceeding with enpoints manifest.
 >kubectl get pods -o wide | awk {'print $1" " $3" " $6'} | column -t
 NAME                       STATUS   IP
 ngix-dpl-7d6b8c8944-8zsgk  Running  100.96.8.53

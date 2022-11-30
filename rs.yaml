@@ -21,10 +21,10 @@
 >Replica set uses SET BASE SELECTORS to manage pods.
 
 >the major difference between RC AND RS is the Rolling-Update command , which works with Replica set  
->but wonts works with Replication Controller . 
+>but won't works with Replication Controller . 
 >This is becouse rs are meant to be used as a backend for the Deplyments.
 
->Deployments are recommanded over Replica Set.
+>Replicaset is works as backend for Deployment. Deployments are recommanded over Replica Set.
 
 
 >Replica Set, using Match Labels
@@ -83,7 +83,7 @@ spec:
   replicas: 5                  
   selector:                   
     matchExpressions:
-    - key: appname           #appname in app or appname in app2, it is soft selection
+    - key: appname           #appname in app OR appname in app2, it is soft selection
       operator: In 
       values:
         - app              #pod must have all labels, .i.e. appname and type. only one will not work.
@@ -127,7 +127,7 @@ selector:
 >----------------------------------------------------------------------------------
 
 > In MatchLabels in rs file, conditions given under match labels will be considered and treated as LOGICAL AND. 
->i.e pod will need to match the all conditions to be controlled by rs.
+> i.e pod will need to match the all conditions to be controlled by rs.
 
 selector:                   
     matchLabels: 

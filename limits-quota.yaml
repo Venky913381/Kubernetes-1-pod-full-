@@ -1,5 +1,14 @@
 >
->Putting Hardware Resource restriction on Resources in Namespace
+
+>Namespace is like seperate virtual space within kubernetes.
+>kubernetes cluster may have multiple application deployed within same cluster. In this case, we can use seperate 
+>namespaces for each application deployement, which introduced layer of isolation between them.
+
+>Using namespace we can put limit on resource usage at namespace level, which ensure that each application 
+>have enough resources, not all resources is consumed by one application only.
+
+>using limit, Put Hardware Resource restriction on Resources in Namespace
+
 >to check resource restriction on namespace : - >kubectl describe ns test-space
 
 >apply limit to namespace using quota manifest
@@ -7,7 +16,21 @@
 
 >read more in subsection :- https://kubernetes.io/docs/concepts/policy/
 
+
+
+>we can control resource allocation in custom namespace in two different ways_
+1> ResourceQuota
+2> LimitRange
+
+
+> there are two types of quota/limits, 
+
+>1) OBJECT BASED QUOTA, where we limit the number of Object that can be created within the namespace.
+>2) COMPUTE BASED QUOTA, where we limit the node h/w resources to be used by k8s resource.
+
 >-------------------------------------------------------------------------------------
+
+
 Object Based Quota
 >A) putting maximum pod limit for namespace. (Object Based Quota)
     
@@ -16,6 +39,7 @@ kind: ResourceQuota
 
 metadata: 
   name: nslimit
+  namespace: test-space
 
 spec:
   hard:                
@@ -44,6 +68,7 @@ kind: ResourceQuota
 
 metadata: 
   name: nslimit2
+  namespace: test-space
 
 spec:
   hard: 
@@ -53,13 +78,17 @@ spec:
     limits.cpu: 1
     limits.memory: 600Mi
 
+>it is important to note that, above is not the request/limit for the individual pod or container, but
+>the combine limit/request for the namespace. i.e. all the objects creatred within that namespace
+>will have only described compute resources to their disposal.    
+
 >even if we put the resource limit on namespace, we need to put individual limits on pod in pod specs.
 >else pod creation will error out.
 
->if we do not put requests in pod def and only describe limit , then pod will occupy the resources
+>if we do not put requests in pod defination and only describe limit , then pod will occupy the resources
 >equivalent to the max resource limit, i.e. request==limit.
 
->if we do not put limits in pod def and only describe requests , then pod creation will error out,
+>if we do not put limits in pod defination and only describe requests , then pod creation will error out,
 >becouse, it will exceeds the Namespace limit(if specified), i.e. requests==all resource capacity.
 
 >----------------------------sample test pod--------------------------
@@ -83,10 +112,10 @@ spec:
         limits: 
           memory: 300Mi
           cpu: 300m     
->-------------------------------------------------------------------------------          
+>-------------------------------------------------------------------------------------------------------          
 
-> to get rid of specifying the request and limit parameter in pod file  
-> we can use limit range.................
+> to get rid of specifying the request and limit parameter in pods file  
+> we can use limit range object.
 
 > kubectl get limit / limitrange
 > kubectl describe ns <test-space>
@@ -107,7 +136,7 @@ spec:
     type: Container    
       
 > above will set the default Request equivalent to the default limit.
-> we can set the different default request by specifying the following..
+> we can set the different default requests by specifying the following..
 
 apiVersion: v1
 kind: LimitRange
@@ -130,7 +159,7 @@ spec:
 >-----------------------------------------------------------------------------------
 >apart from setting default limit and default request we can also set the MAX and MIN limit
 >on the h/w resources to be used by pod/container. this will ensure that pod/container must/at least get
->resource h/w allocation defined by MIN AND MAX.
+>resource h/w allocation defined by MIN AND MAX, even if default requested resources is not available.
 
 > This will be helpful, if any pod , contains a service, that have a minimum requirement of h/w resources. MAX/MIN 
 > will ensure that , container for that service will get the resources it needed.
@@ -159,6 +188,11 @@ spec:
       memory: 600Mi 
 
     type: Container
+
+
+
+>MIN , must needed to be smaller that default Request.
+>MAX , must needed to be larger  than default Limit.
 
 >------------------------------------------------------------------------------    
 

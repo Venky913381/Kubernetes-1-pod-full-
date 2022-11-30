@@ -1,0 +1,313 @@
+>
+
+Access Control in Kubernetes, WHY and HOW _ :
+
+>In kubernetes cluster our application is running in the pod which may be provisioned on the managed 
+>cluster such as a aws eks. Now the pod requires access to the various aws resources like 
+>AWS EC2 OR AWS ALB or Security Group etc.. for the proper functioning and provisioning.
+
+>In case of deployment on regular ec2 machine , to access the various aws resources from within the ec2
+>we attach the IAM policy to it or Attach the Role with policies allowing access to those Resources to ec2 machine.
+
+>Similary , we need a IAM role with proper policies, to attach to the pod , so that pod can have a access
+>to the various needed aws resources. 
+>But this is not so straight forward, If we want anything to be attached to the pod we need to declare
+>that in the pod controller like RS or deployment.
+
+>But, RS or Deployments are kubernetes Construct, while IAM role is aws resource, i.e. we can not just put
+>the cloud specific construct in kubernetes manifest.
+>We need to abstract the cloud specific construct in k8s construct to enable it to handle cloud resources
+>from within the k8s resources.
+This is where the service account comes in to picture_
+
+>at first we have an aws Policies which allows access to the aws resources , these policies are now
+>attached to the IAM Role and then we associates this IAM role to the kubernetes Service account.
+
+[AWS-RESOURCES] ----> AWS POLICIES ----> AWS IAM ROLE -----> K8S SERVICE ACCOUNT ----> DEPLOYMENTS
+
+>Now, once we have a service account creates, this service account can be attached to the Deployments manifest.
+
+
+>As all the deployments/pods are running in aws eks managed cluster, The service account and IAM role
+>needs to have a way to communicates with aws iam service to validate policies and credentials etc.
+>To do that aws provides a IAM OIDC provider at cluster level and it allows the Aws Iam to validate
+>polices and credentials.
+
+
+>when , we do not specifies the service account exclusively, A Default service account is used.
+>we can get this using_
+kubectl get sa       :- toget service account
+kubectl get sa  -A   :- to get all service accounts 
+
+>If we have cluster running of aws eks_
+kubectl describe sa <sa_name> -n <ns_name>   :- will give the details related to sa, including ARN of the
+.                                               AWS IAM role attached to it.
+
+
+>Service account ties to IAM Role.
+>IAM role is all about specific implementation in AWS, it has nothing to do with actual k8s cluster.
+
+Now , Pods also needs a kubernetes cluster access, thats where ROLE/CLUSTER ROLE come in play_ :
+
+>like IAM Role, grants access to cloud specific resources, Role/ClusterRole in kuberntes grants
+>access to the cluster specific resources like , It enables us to create, Delete, List -> NODES,
+>PODS, NAMESPACES etc.
+
+>kubectl command, will give the list of all role/cluster roles in cluster
+kubectl get role/ clusterrole
+
+>By default, Admin cluster role is available in k8s, which govern the access to all the k8s resources_
+kubectl describe clusterrole admin
+
+
+>ref_ https://kubernetes.io/docs/reference/access-authn-authz/rbac/
+
+
+Role and ClusterRole_ :
+
+An RBAC Role or ClusterRole contains rules that represent a set of permissions. 
+Permissions are purely additive (there are no "deny" rules).
+
+>A Role always sets permissions within a particular namespace; when you create a Role, 
+>you have to specify the namespace it belongs in. i.e. it is namespace wide resource.
+
+>ClusterRole, by contrast, is a non-namespaced resource. i.e. it is cluster wide resource.
+
+The resources have different names (Role and ClusterRole) because a Kubernetes object always has 
+to be either namespaced or not namespaced; it can't be both.
+
+
+ClusterRoles have several uses. You can use a ClusterRole to :
+
+define permissions on namespaced resources and be granted access within individual namespace(s)
+define permissions on namespaced resources and be granted access across all namespaces
+define permissions on cluster-scoped resources
+
+the bottam line is_ 
+>If you want to define a role within a namespace, use a Role; 
+>if you want to define a role cluster-wide, use a ClusterRole.
+
+
+Role Binding/ Cluster Role Binding_ :
+
+
+
+
+>-----------------------------------------------------------------------------------------------------------
+
+>To enable RBAC, start the API server with the --authorization-mode flag set to a comma-separated list 
+>that includes RBAC_
+
+>kube-apiserver --authorization-mode=Example,RBAC --other-options --more-options
+
+>-----------------------------------------------------------------------------------------------------------
+
+flow_
+> Service Account -----> Cluster Role Binding -----> Cluster Role --------> Deployments/PODS/USERS
+
+
+> Service Account :-
+> ref_ https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
+
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: my-service-account
+  namespace: my-namespace
+  labels:
+    app.kubernetes.io/name: my-app
+
+
+
+> Cluster Role :-
+> ref_ https://kubernetes.io/docs/reference/access-authn-authz/rbac/
+
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: my-cluster-role
+  labels:                             #cluster role is not namespaced, cluster wide
+    app.kubernetes.io/name: my-app
+
+rules:
+- apiGroups: 
+    - "my-app-1"
+    - extensions
+- resources: 
+    - configmaps          # these are k8s resources
+    - endpoints
+    - events
+    - ingresses
+    - ingresses/status 
+    - services 
+- verbs: 
+    - get 
+    - list                # this is like access permission for above k8s resources
+    - update   
+    - watch
+    - patch 
+
+
+- apiGroups: 
+    - "my-app-2"
+    - extensions
+- resources: 
+    - nodes
+    - pods 
+    - secrets
+    - services 
+    - namespaces
+- verbs:
+    - get 
+    - list
+    - watch   
+
+
+cluster role is reusable, if we have another namespace , and if we have created a service account in that
+namespace, then we can associate same cluster role to that service account as well.
+
+
+
+> Cluster Role Binding :- (see role binding examples in above ref)
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: my-cluster-role-binding
+
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: my-cluster-role
+
+subjects: 
+- apiGroup: my-app-2
+  kind: ServiceAccount              # have various values, depending on need. check docs
+  name: my-service-account
+  namespace: my-namespace
+
+
+
+> Deployment :-
+
+apiVersion: apps/v1
+kind: Deployment 
+
+metadata:
+  name: deploy1
+  labels: 
+    label1: dep1 
+spec: 
+  replicas: 5
+  selector: 
+    matchLabels:
+      appname: app
+  template:   
+      metadata:
+        name: pod1
+        labels: 
+          appname: app
+
+      spec:
+        containers:
+        - name: cont1
+          image: coolgourav147/nginx-custom 
+        serviceAccunt: my-service-account     # under pod's spec
+
+>-----------------------------------------------------------------------------------------------------------
+
+>Kubernetes Security_ 
+
+there are two aspects of security in k8s, One is Security of the Application and Other is Security for User.
+
+> in kubernetes, security to the application is provided using the Role/ClusterRole, 
+> Role Bindings/ cluser role Bindings as discussed above.
+
+TO ACHIEVE USER SECURITY FOR HUMAN USER_ :
+
+>let say, we want to grant granular permission to the DevOps user in k8s Namespace, permissions
+>like Create, Get, List, Update, Watch, Patch on k8s objects like Deployments, ReplicaSets, Pods.
+>then _
+
+>1. create the k8s role defining access to resource in namespace (role).
+>2. map k8s username to role using Role Binding.
+>3. map AWS IAM username to k8s username and Group using Configmap or aws-auth
+
+# role binding to the k8s user_
+
+>1. ROLE_
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: deploy-role
+  labels:                            
+    app.kubernetes.io/name: my-app
+  namespace: my-namespace
+
+rules:
+  - apiGroups: 
+      - "my-apps"
+  - resources: 
+      - deployments
+      - replicasets
+      - pods
+  - verbs:
+      - get 
+      - create
+      - update
+      - delete
+      - list
+      - watch     
+
+
+
+>2. ROLE BINDING_
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: my-role-binding
+  namespace: my-namespace
+
+roleRef:
+  apiGroup: ""
+  kind: Role
+  name: deploy-role
+
+subjects:
+- kind: user
+  name: devops-user
+  apiGroup: ""
+
+
+
+>3. ConfigMap
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-configmap
+  
+data:
+  mapUsers: |
+    - userarn: arn:aws:iam:214242355345:user/devops-user
+      username: devops-user
+      groups: 
+        - deploy-role
+
+
+>thus allows us to give granuler permission to different user in our k8s cluster to access 
+>different k8s resources. 
+>this makes it possible, to have different users with different set of permission having
+>different set of access in the different namespaces  running is same or different nodes.
+
+read _ IRSA (IAM Role for Service Account)
+
+
+>-----------------------------------------------------------------------------------------------------------
+
+
+

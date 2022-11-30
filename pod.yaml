@@ -21,6 +21,7 @@
 >and communicates using localhost.
 
 >lifecycle of Pod_
+
 1. pending    :- pod is accepted, but container is yet to be created.
 2. running    :- pod is scheduled on node, and all containers are created and at least one is in running state.
 3. succeeded  :- all container in pod existed with status 0 and will not be restarted
@@ -42,7 +43,7 @@ possible values are, Always, OnFailure, and Never.
 
 Some of the errors linked to the actual application are:
 
->1.Misconfigurations             : Like a typo in a configuration file.
+>1.Misconfigurations             : Like a typo error in a configuration file.
 >2.A resource is not available   : Like a PersistentVolume that is not mounted.
 >3.Wrong command line arguments  : Either missing, or the incorrect ones.
 >4.Bugs & Exceptions             : That can be anything, very specific to your application.
@@ -128,7 +129,7 @@ spec:
       args: ["sleep", "50"] 
 
 
- > kubectl exec podtree -c containerone -it -- bash
+ > kubectl exec podtree -c containerone -it -- /bin/bash
 
 >-------------------------------------------------- 2
 
@@ -183,7 +184,7 @@ spec:
 >kubectl apply -f <filename.yaml>  / --dry-run=client
 >kubectl get pod / -o wide / --show-labels / -w (watch, to monitor in realtime)
 
->kubectl delete pod <pod_name> / -f <manifest>
+>kubectl delete pod <pod_name>
 >kubectl delete -f <pod_manifest.yml>
 
 >kubectl exec <podname> -c <containerName> -it -- <command>
@@ -209,7 +210,7 @@ we can telnet between the containers_
 > read more on_ Types of Containers in K8S_
 
   1. sidecar container           (log exporter)        --> send the logs created by main container to buckets
-  2. ambassador/envoy container  (proxy pattern)       --> proxies-database connection
+  2. ambassador/envoy container  (proxy pattern)       --> proxies-database connection/service mesh
   3. adapter container           (log format changer)  --> simplifies monitoring output for service 
   4. init container              (initilazation for main container) --> Do initialization works for main container
   5. Ephemeral containers        (debugging container for main container build with distroless images)
@@ -225,7 +226,7 @@ we can telnet between the containers_
 >So scanning the each layer is very crucial operation in DevSecOps.
 
 >container scanning, is the process of identifying vulnerabilities within containers by using scanning tools
->like Synk, Anchore etc.
+>like Synk, Anchore , trivy etc.
 
 >it is key to container security and enables developers and cyber security teams to fix security threats in 
 >containerized application before deployments.
@@ -234,8 +235,8 @@ we can telnet between the containers_
 #Smaller Docker Images
 
 >container images should be small and lightweight.
->They should pack only the application code and its dependancies. Rest everything to be scrapped off to bring down 
->its size including the build dependancies.
+>They should pack only the application code and its dependancies. Rest everything to be scrapped off 
+>to bring down its size including the build dependancies.
 >the  smaller the images the lesser is the attack on the surface to the container and morever
 >are easy to distribute and deploy.
 
@@ -267,10 +268,10 @@ we can telnet between the containers_
 
 >1. Init Container_
 
-> init container will execute to perform activities that are needed in order for
-> successful execution of main app container. it executes to its completion and once
-> executed it will not run again. until init container executions completes, other main
-> container will not start and remains in pending state.
+>init container will execute to perform activities that are needed in order for
+>successful execution of main app container. it executes to its completion and once
+>executed it will not run again. 
+>until init container executions completes, other main container will not start and remains in pending state.
 
 >init containers may contains Utilities or custom code for setup that are not present in an app image.
 >like, sed, awk, python or dig during setup, also functions like cloning a git repo in to volume.
@@ -351,7 +352,7 @@ spec:
 
 >sidecar pattern , uses helper container to enhance or extend the functionality of main container.
 >this way developer can work on application seperatly and other responsibilities 
->can be delegated to sidecar container
+>can be delegated to sidecar container.
 
 >failures in sidecar container will not impact the main application container.
 
@@ -408,7 +409,7 @@ spec:
 >it hides the complexity of calling external services by providing simple endpoints , like accessing 
 >database servers.
 
->Istio uses envoy proxy containers for traffic management, TLS, dark releases, canary deployments,
+>Istio service mesh uses envoy proxy containers for traffic management, mTLS, dark releases, canary deployments,
 >Blue-green deployements and A/B rollout.
 
 

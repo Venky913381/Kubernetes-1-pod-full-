@@ -10,11 +10,12 @@ apiVersion: v1
 kind: Pod
 metadata: 
   name: pod1 
-v
+
 spec:
   containers:
     - name: vol1 
       image: nginx 
+
       volumeMounts:
         - mountPath: /data 
           name: test-vol
@@ -23,8 +24,8 @@ spec:
     - name: test-vol
       emptyDir: {}        
 
->data will remain inside the pod and will be available to the containers inside that pod.
->this data will not be available to other containers on other pods or other pods on other machines.
+>data will remain inside the pod and will be available only to the containers inside that pod.
+>this data will not be available to other containers on other pods on same machine or other pods on other machines.
 
 >emptyDir is a temporary storage and it have a lifecycle similar to the pod. i.e. once pod is deleted
 >volume and data will also be lost.
@@ -42,11 +43,10 @@ spec:
 
 # 2.HostPath ( Creating volume outside of pod, i.e. on Node machine. (HOstPath) )
 
->if we delete the POD data will be preserved in directory in sync on Host Machine, 
->and when new POD is created by controller, all
->the data will be present in new POD inside the container.
-
->i.e data volumes is created inside the Host Machine, and will be available to all the PODs on that machine.
+>if we delete the POD, data will be preserved in directory in sync on Host Machine, 
+>and when new POD is recreated by controller, all the data will be present in new POD inside the container.
+.i.e.
+>data volumes is created On the Host Machine storage, and will be available to all the PODs on that machine.
 
 apiVersion: v1 
 kind: Pod
@@ -67,7 +67,7 @@ spec:
           path: /tmp/data    
 
 
->this type of volume mounts a file or directory created on node where pod is running.
+>this type of volume mounts a File or Directory created on node where pod is running.
 
 >hostpath directory referes to directory created on node where pod is running.
 
@@ -79,22 +79,24 @@ spec:
 
 >-------------------------------------------------------------------------------------------------------------
 
-# EKS ON AWS  ( Persistance data )                             
+# EKS ON AWS  ( Persistance data , with cluster on the cloud)                             
 
 >In above two cases , if pod is get schedule on any machine , other than its original machine in cluster data will 
 >no longer be available to the pod.
->In this all we need a volume which is available to the all the machines in the cluster,Here AWS EKS comes to rescu
+>In this all we need a volume which is available to the all the machines in the cluster, 
+>Here AWS EKS (cluster in cloud) comes to rescue_
 
 >In this approch , we create a managed k8s cluster on aws eks, and create a ebs volume, which will remain
->available to the all nodes.  (managed cluster .i.e. AWS ITSELF WILL MANAGED MASTER NODE/CONTROL PLANE)
+>available to the all nodes participating in the managed cloud cluster.  
+(managed cluster .i.e. AWS ITSELF WILL MANAGED MASTER NODE/CONTROL PLANE)
 
 >If pod get schedule on a perticular node, then EBS volume will get attached to that node automatically and
->if we delete and create the pod , on another machines in cluster, then that EBS volume will automatically get
->attached to that machine. and this way pod will always have access to the data.
+>if we delete and recreates the pod , on another machines in cluster, then that EBS volume will automatically get
+>attached to that machine. and this way pod will always have access to the volume and the data.
 
 >Create EKS cluster on K8s_
 >1)install awscli
->2)with help of IAM user log in to aws account.
+>2)with help of IAM user log in to aws account via aws-cli.
 >3)start accessing aws services over awscli
 
 #to create EKS cluster_
@@ -111,6 +113,7 @@ spec:
     - name: container5          
       image: nginx
       imagePullPolicy: IfNotPresent
+      
       volumeMounts:
         - mountPath: /data
           name: test-volume

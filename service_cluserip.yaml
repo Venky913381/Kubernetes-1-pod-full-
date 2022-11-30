@@ -137,7 +137,7 @@ spec:
 >exposing them to the public internet for security reasons.
 
 >to achieve this, the port-forwarding command allows us to securely forward a port on your local machine
->through the k8s API server to a POD running in your cluster.
+>through the k8s API server to a POD/SERVICE running in your cluster.
 
 >you can use this method to investigate issues and adjust your services locally without the need 
 >to expose them beforhand
@@ -159,7 +159,7 @@ pod-to-pod communication_ (without Service):
 
 >for pod to pod communication, we can use A/AAAA DNS record types.   
 
->pod in k8s are ephemeral , as even if we deletes/dies the pod, the deployment object will recreates the pod,
+>pod in k8s are ephemeral , as even if we deletes/dies the pod, the controller object will recreates the pod,
 >and the ip address of the pod will get changed. i.e. IP's addresses of pod is not stable.
 >So communication through ip address is not prefferable. That is why , we preffer communication via DNS address.
 
@@ -177,8 +177,8 @@ pod-to-pod communication_ (without Service):
 >pod to pod communication via IP:port combination is only possible if pod is running and we are able to
 >get ip address of the pod, however if pod recretes itself , gettting pod if dynamically is not possible.
 
->if we have pod ruuning, we can achieve pod to pod communication as_
-   http>//ip:port  
+>if we have pod running, we can achieve pod to pod communication as_
+  http>//ip:port  
 port is not a service port, but the port to which application listens like 3306 for mysql db, 5432 for postgres db.   
 
 
@@ -208,12 +208,12 @@ http://<service_name>.<namespace_name>.svc.cluster.local:<Port>    ---->fqdn
 
 http://svc/port 
 >above will resolve to the actual ip address of the service, this is done by quering the Core DNS service
->which is responsible for DNS resolution with k8s environment. Core-DNS runs in kube-system namespace and 
->through kube-dns service which runs in same kube-system namespace we can access this core-dns , which is 
->either runs a Deployment or DaemonSet.
+>which is responsible for DNS resolution with k8s environment. 
+>CORE-DNS runs in kube-system namespace and through KUBE-DNS service which runs in same kube-system 
+>namespace we can access this core-dns , which is either runs a Deployment or DaemonSet.
 
-> to access the Core DNS a created a service inside the same kube-system namespace. and through the ip address
-> of this service we can access the core dns.  This ip address is added to all the pod added in the cluster
+> to access the Core DNS, create a service inside the same kube-system namespace. and through the ip address
+> of this service we can access the core dns.  This ip address is added to all the pods added in the cluster
 > under /etc/resolve.conf
 
 >--------------------------------------------------------------------------------------------------------------

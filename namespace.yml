@@ -1,5 +1,6 @@
 >
->Namespace is like seperate virtual space within kubernetes.
+
+>Namespaces are like seperate virtual space within kubernetes.
 >kubernetes cluster may have multiple application deployed within same cluster. In this we can use seperate 
 >namespaces for each application deployement, which introduced layer of isolation between them.
 
@@ -17,7 +18,7 @@ to create a resource in a namespace other than default ns
 
 >kubectl <option> <resource> *<name>  -n <ns-name>    ---> -n / --namespace, options:- get, delete, apply, ...
 
-to set custon Namespace as defualt
+to set custom Namespace as defualt
 > kubectl config set-context --current --namespace=<ns-name>
 
 To access service in another namespace 
@@ -25,6 +26,7 @@ To access service in another namespace
 
 
 >we can control resources in custom namespace in two different ways_(check limit-quota for more)
+
 1> ResourceQuota
 >this will set the limits on the number of k8s objects that can be created in given namespace.
 
@@ -73,7 +75,7 @@ spec:
 >k8s namespace provides the scope for k8s names it contains , which means using the 
 >combination of an object name and namespace, each objects gets unique identity across the cluster.
 
->Not all k8s resources are namespaced, like k8s obects like Nodes PV are not namespaced.
+>Not all k8s resources are namespaced, like k8s obects like Nodes, PV are not namespaced.
 >they are cluster wide resources to be accessible by all objects in the cluster.
 
 >resources in same namespace can communicate with each other by their names.
@@ -88,7 +90,7 @@ spec:
 >core-dns pod, in kube-system namespace, manages the dns services and resolve the ip addresses
 >in k8s cluster and service.
 
->service/kubernetes , is a core-dns service , which provide the service for the 
+>kube-proxy, is a core-dns service , which provide the service for the 
 >pod-to-pod communication in default namespace.
 
 >cat /etc/resolve.conf, will give the information that k8s added to pod on creation. 
@@ -107,7 +109,7 @@ options ndots:5
 this is default namespace, by default all the resources get created in this namespace.
 
 >Kube-system_
-it is namespace for objects created by k8s system/control plane. any chnages to objects in this ns
+it is namespace for objects created by k8s system/control plane. any changes to objects in this ns
 would couse irreperable damages to the cluster itself.
 
 >kube-public_

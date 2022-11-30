@@ -1,0 +1,262 @@
+>
+Kubernetes Architecture :
+
+>Why We Need Container Orchastration_
+
+Container Orchastration automates the -> deployment, management, scalling, and networking of the 
+containers across the cluster. it is focused on the managing the life cycle of container.
+
+Enterprises that need to deploy and manage hundreds or thousands of containers and hosts can benefits
+from container orchastration. as they do need to manage each every container independently, all container 
+can be managed in bulk using orchastration engine like Docker-Swarm or Kubernetes.
+
+k8s is open source container management tool, it provides a container runtime, container orchastration,
+container centric infrastructure orchastration, self healing mechanism, service discovery, load balancing,
+and container scalling. it is wriitten in go languange.
+
+>Container orchastration is used to automate the following tasks_
+
+>1.configuring and scheduling of the containers
+>2.provisioning and deployments of the containers
+>3.redundancy and availability of the containers
+>4.scalling up and down to spread the load evenly across host infrastructure
+>5.movement of containers from one host to another , if there is a shortage of compute resources in a host.
+>6.allocation of the resources between containers
+>7.external exposure of services running in a container with the outside world
+>8.load balancing and service discovery between contrainer
+>9.health monitoring of containers and hosts.
+
+
+>Certified Kubernetes Distribution_
+
+>1.Cloud Managed  :- EKS, AKS, GKE, CIVO, PLATFORM-9, 'KOPS is a utility to manage cluster on cloud' ...etc
+>2.Self Managed   :- OpenShift by RedHat and Docker Enterprise
+>3.Local Dev/Test :- Micro k8s by canonical, minikube, kind
+>4.Vanilla K8s    :- the core k8s project(BareMetal), Kubeadm, kubespreay, kube-sphere
+>5.SpecialBuilds  :- K3S by Rancher, is a light weigt k8s distribution.
+
+
+>k8s alternatives_
+
+>1. Container as a service             : ecs, fargate, azure container instance... etc
+>2. managed k8s service                : eks, aks, gke, civo, platform9,OpenShift... etc (paas)
+>3. paas using k8s                     : openshift, rancher offer k8s as paas
+>4. lightweight container orchastrator : docker swarm, hashicorp Nomad, apache mesos.. etc
+
+
+
+>---------------------------------------------------------------------------------------------------------
+
+Master Node : 
+
+>master node is reposible for managing the complete cluster. we can access the master node via CLI, 
+>GUI or API.
+
+>The master watches over the nodes in cluster and is responsible for the actual orchastration of the 
+>containers on the worker nodes.
+
+>for achieving the fault torerance there can be more than one master node in the cluster.
+
+>it is the access point from which the user interacts with the cluster to manage the scheduling and 
+>deployments of the containers.
+
+>it has four componets , API SERVER, ETCD, SCHEDULER and CONTROLLER. All toghether knows as Control Plane.
+
+>Even If master is failed in any way, Workload will remain persistant on worker node. However, it will
+>not be possible to communicate and control the cluster, as all communication and control of workloads and pods
+>happens over the master node.
+
+
+#Master Node Components _
+
+kubectl:
+>Kubectl is command line utility to communicate with the Kubernetes API server.
+>API server exposes k8s api and serves like the front end for the control plane.
+
+>kubectl converts the imperative commands/manifest instruction in to API calls to communicate with
+>Kube API server in Kubenetes. 
+>Kube API Server in k8s , is tasked with communicating with other kubernetes componetes in 
+>Master and passing the commands/instruction to them to complete the given task.
+>Kube API validates and executes the REST commands. it also makes sures that Configurations in the ETCD matches 
+>with configuratins of the containers deployed in the cluster. 
+
+
+Controller_manager:
+>Controller Manager, is the brain behind the orchastration and is responsible to maintain the desired state 
+>of the cluster. it is tasked with checking the health of pods in cluster and replacing them when needed.
+>it is reponsible for noticing and responding when nodes, containers or endpoints goes down. the controller
+>makes decision to bring up new containers in such cases.
+>There are various controllers like_
+NODE CONTROLLER, REPLICATION CONTROLLER, ENDPOINT CONTROLLER, JOB CONTROLLER, DEAMON SET CONTROLLER etc...
+
+
+Scheduler:
+>Scheduler, take care of the responsibilty of resource allocation, scheduling the pod on the correct node
+>which satisfies the resource need of the pod. Scheduler look for the pods resource requirement and schedule
+>them on the correct node.
+>scheduler is also responsible for the distribution of the workloads across the multiple nodes. scheduling 
+>decision includes factors such as Pods resource requirement, H/W-S/W policy requirements, Affinity and 
+>Anti-Affinity rules, taints and Tolerations etc.
+
+
+ETCD:
+>ETCD, is a database of key-value types in kubernetes. it stores the complete cluster information. All the
+>desire state information is stored in ETCD. also it store all cluster information, so if cluster goes
+>down , restoring cluster to previous state based on values stored in ETCD is possible.
+
+
+*                             ***************************************
+
+Worker Node: 
+
+>worker node is reponsible for the execution of the tasks dispatched by the Master node. 
+>It is the actual component in k8s cluster which does the job of execution of the Pods and running the
+>containers. 
+>It contains the Container Runtime Engine such as Docker, to spin up the container on the direction
+>provided by the Kubernetes master node.
+
+#Worker Node Components _
+
+Kubelet:
+>Kubelet, is a componets in the Worker Node, it is tasked with reporting the workloads, health of the Pod
+>worker it running,  back to the Master Node. It keep checking with master node, wheather it has any more
+>workloads/pods needed to run. Master Notifies the Kubelet , if it has to run the new pod or not.
+
+Kube_Proxy:
+>Kube-proxy is a network proxy that runs on each node in cluster , implementing part of the k8s service concept.
+>it routes the traffic coming into node from service and forward the requests to correct pod on the node.
+
+>KubeProxy, will resolve or creates IP table rules. these routing rules is applied by the KubeProxy in
+>specific node, so the pod to pod communication via service is possible becouse of the rules created
+>by the KubeProxy component.
+
+
+
+>-----------------------------------------------------------------------------------------------------------
+
+
+Container Runtime Environment [CRE]:
+
+>It is underlaying software that is used to run the containers like Docker. but there are also other options 
+>such as_ Docker, rkt, CRI-O, ContainerD.
+
+>Kubernetes is completely decoupled from specific runtimes. The container runtime interface enables it.
+
+>CRE , is reponsible for creating and mainting the isolated workspaces for the containers.
+>it creates a abstraction like Namespace and Cgc vc cv cc c croups , which maintains the isolation between various objects.
+Namespaces, decides what to use and  Cgroups, decides how much to use
+
+
+>-----------------------------------------------------------------------------------------------------------
+
+Container Runtime Interface [CRI]:
+
+>ref_ https://www.aquasec.com/cloud-native-academy/container-security/container-runtime-interface/
+>ref_ https://kubernetes.io/blog/2016/12/container-runtime-interface-cri-in-kubernetes/
+
+
+>The CRI is a plugin interface which enables the kubelet to use a wide variety of container runtimes, 
+>without having a need to recompile the cluster components
+
+>You need a working container runtime on each Node in your cluster, so that the kubelet can launch Pods 
+>and their containers.
+
+>The Container Runtime Interface (CRI) is the main protocol for the communication between the kubelet 
+>and Container Runtime.
+
+>The Kubernetes Container Runtime Interface (CRI) defines the main gRPC protocol for the communication 
+>between the cluster components kubelet and container runtime.
+
+>So , it is like a set of the rules, that all the CRE provider must follow in order to communicates
+>with K8S API server via Kubelet. it acts as a abstraction layer to avoild large codebase for the kubelet.
+
+>to implement the CRI, CRE must be complient with the OPEN CONTAINER INITIATIVE [OCI]. 
+>OCI sets up the rules for CRI.
+
+>-----------------------------------------------------------------------------------------------------------
+
+Container Networking Interface [CNI]: 
+
+>ref_ https://jvns.ca/blog/2017/10/10/operating-a-kubernetes-network/
+>ref_ https://stackoverflow.com/questions/53534553/kubernetes-cni-vs-kube-proxy
+
+
+# pod to pod communication across the hosts
+
+CNI Plugin is focuses on building up an overlay network, without which Pods can't communicate with each other. 
+The task of the CNI plugin is to assign IP to the POD, when it gets scheduled. and to build a virtual device 
+for this IP, and make this IP accessable from every node of the cluster.
+
+
+# OVERLAY NETWORK
+
+Kubernetes assumes that every pod has an IP address and that you can communicate with services inside that 
+pod by using that IP address.
+
+>“overlay network” is the system that lets you refer to a pod by its IP address.
+>All other Kubernetes networking stuff relies on the overlay networking working correctly.
+
+>There are a lot of overlay network backends (calico, flannel, weave) and the landscape is pretty confusing.
+
+>Overlay network has 2 responsibilities_
+  1.Make sure your pods can send network requests outside your cluster.
+  2.Keep a stable mapping of nodes to subnets and keep every node in your cluster updated with that mapping. 
+    Do the right thing when nodes are added & removed.
+
+
+# KUBE-PROXY
+
+Just to understand kube-proxy, Here's how Kubernetes services work, A service is a collection of pods, 
+which each have their own IP address (like 10.1.0.3, 10.2.3.5, 10.3.5.6)
+
+Every Kubernetes service gets an IP address (like 10.23.1.2), kube-dns resolves Kubernetes service DNS names 
+to IP addresses_ (so my-svc.my-namespace.svc.cluster.local might map to 10.23.1.2)
+
+kube-proxy sets up iptables rules in order to do random load balancing between them.
+So when you make a request to my-svc.my-namespace.svc.cluster.local, it resolves to 10.23.1.2, and 
+then iptables rules on your local host (generated by kube-proxy) redirect it to one of 10.1.0.3 or 10.2.3.5
+or 10.3.5.6 at random.
+
+
+>kube-proxy's job is rather simple, it just redirect requests from Cluster IP to Pod IP.
+kube-proxy has two mode, IPVS and iptables. If your kube-proxy is working on IPVS mode, you can see the redirect 
+rules created by kube-proxy by running the command [ipvsadm -Ln] on any node in the cluster.
+
+
+>In short, OVERLAY networks define the underlying network which can be used for communicating the various 
+>component of kubernetes. While KUBE-PROXY is a tool to generate the IP tables , which let you connect 
+>to any of the pod(using servics) in kubernetes no matter on which node that pod exist
+
+
+>-----------------------------------------------------------------------------------------------------------
+
+Docker-Shim: 
+
+>ref_ https://kubernetes.io/blog/2022/05/03/dockershim-historical-context/
+
+>this is deprecated component of kubernetes.  Dockershim has been removed as of Kubernetes v1.24.
+>with deprecation of docker as runtime for k8s, Docker-shim is also deprecated.
+
+>As kubectl interacts and understands only CRI, which in tern communicates with CRI-O. 
+>CRI was not able to communicates with Docker over gRPC , in order to 
+>bridge the gap between CRI and Docker , kubernetes introduced the componets called as Docker-shim.
+
+>docker-shim communicates with Docker over the REST-API.
+
+>However , as of now ContainerD is implemeting the Docker-shim.
+
+
+>-----------------------------------------------------------------------------------------------------------
+
+KUBECTL: 
+
+>Kubectl is command line utility to communicate with the Kubernetes API server.
+>kubectl converts the imperative commands/manifest instruction in to API calls to communicate with
+>Kube API server in Kubenetes.
+
+>every kubenetes operation is exposed as an API endpoint and can be executed by an http request to the endpoint.
+
+>kubectl uses these api's to interact with the cluster. and can deploy and manages application on cluster.
+
+
+>-----------------------------------------------------------------------------------------------------------

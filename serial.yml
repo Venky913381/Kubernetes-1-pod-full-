@@ -1,0 +1,141 @@
+>
+
+Studying the Kubernetes :
+
+>Kubernetes Componets_
+  k8s API Server 
+  ETCD
+  k8s Controller Manager
+  k8s Scheduler
+  Kubectl
+  kubeProxy
+  kubelet
+
+>Kubernetes Architecture_
+  CRE 
+  CRI 
+  CNI
+  Dockershim
+  kube DNS 
+
+>Pod_ 
+  Init Containers
+  SideCar Pattern
+  Adapter Pattern
+  Envoy Pattern
+  Euphemeral Container
+  Static Containers
+  Daemon Sets
+
+>Replication controller 
+>Replica set 
+
+>Deployments_
+  Rolling Update Strategy
+  RollBacks
+  Recreate Strategy
+
+>Services_
+  Cluster ip 
+  Node port 
+  Load balancer
+  Headless service 
+  External Name 
+  External Ip 
+  EndPoint Objects 
+
+>Ingress resources_
+  Host Based Routing
+  Path Based Routing
+>Ingress Class
+>Ingress Controller_
+  Nginx
+  Traefik
+  HAProxy
+
+>Namespaces
+  CoreDNS
+  FQDN
+>Resource requests/limits in pod
+>Resource limit object in namespace
+
+>Config Maps
+>Secrets
+
+>Scheduling_ 
+   Node Selector
+   Node Name
+   Taints and Tolerations
+   Node Affinity
+   Pod Affinity and AntiAffinity
+
+>Kubernetes Storage Options_
+  EmptyDir
+  HostPath
+  Persistance Cloud Storage 
+
+>Persistant Volumes
+>Persistant Volume Claims
+
+>Probes in Kubernetes_
+  Readiness Probe 
+  Liveness Probe
+  StartUp Probe 
+
+>Daemon Set
+>Jobs
+>CronJobs
+
+>StatefulSets
+  headless-Service
+  PV & PVC 
+  FQDN
+
+>Horizontal Pod Autoscaler_
+  Heapster
+  kubernetes metrics server 
+
+
+>Role Based Access Control in Kubernetes_
+  Role 
+  Role Bindings 
+  Cluster Role 
+  Cluster Role Binding 
+  Service Account
+
+>EKS, CIVO, OpenShift, DigitalOcean
+
+>Krew Plugin Manager
+>Helm Package manager 
+>Datree configuration validator
+
+>Istio Mesh Controller_
+  virtual service
+  destination rules
+  ingress gateways
+  egress gateways
+  service entries
+  sidecars
+  kiali
+  Traffic Management
+ 
+>kubeadm
+>kubespreay
+>kube-sphere
+>skooner Dashboard
+>Lense Dashboard 
+>kubeapps
+>kube-shell
+
+>Kuberntes Networking_
+  Flannel
+  calico
+  V-Net
+  weave
+
+>Custom Resources
+>Custom Resource Definations
+
+
+
+>--------------------------------------------------------------------------------------------------------

@@ -14,8 +14,8 @@
 >becomes responsible for finding the best node for that pod to run on.
 
 >Automatic node scheduling prevents user from scheduling pod on unhealthy node.
->However, k8s provide the flexibility , to allow user to select the node, so that certain condition like RAM, SSD
->is fullfilled for execution of certain pod that need such specifications.
+>However, k8s provide the flexibility , to allow user to select the node, so that certain h/w condition 
+>like RAM, SSD , Processor etc.. can be fullfilled for execution of certain pod that need such specifications.
 
 >both NodeName and NodeSelector are considered as a Hard scheduling, and both are manual scheduling as we are
 >explicitly defing in the pod spec , where to schedule the pod.
@@ -91,7 +91,8 @@ spec:
 >it uses labels to select matching node on to which pod can be scheduled.  if the defined label does not exist
 >pod will go in to pending state forever.
 
-
+>using these method, it is possible to have choice of having pool of nodes, as we can attach same label to
+>multiple nodes, and scheduler will select any of these node as per availibility.
 
 Assigning label to node_
 > kubectl label node <nodename> <label>=<value>

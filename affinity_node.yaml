@@ -29,13 +29,14 @@
 
 >In Node Affinty and Node antiAffinity , Pod will be scheduled on the proper Node based on the rules defined under
 >Node affinity and AntiAffinity rules in pod spec manifest file.
+>i.e based the node affinity rules, Schedule will decides the node for the pod to get scheduled on.
 
->Node Affinity_
+Node Affinity_:
 
 >Node affinity is conceptually similar to nodeSelector, allowing you to constrain which nodes your Pod can 
 >be scheduled on based on node labels. However, it gives more flexibility to the user through the rules
->which we can defined. Instead of directaly giving node's name or label , we give condition based on which pod 
->select the node to get schedule. There are two types of node affinity rules_
+>which we can defined. Instead of directaly giving node's name or label , we give condition based on which 
+>scheduler select the node to schedule the pod. There are two types of node affinity rules/policies_
 
 #requiredDuringSchedulingIgnoredDuringExecution: 
 The scheduler can't schedule the Pod unless the rule is met / matching node is found. 
@@ -49,9 +50,7 @@ the scheduler still schedules the Pod.
 >Kubernetes schedules the Pod, the Pod continues to run.
 >You can specify node affinities using the .spec.affinity.nodeAffinity field in your Pod spec.
 
-For example, consider the following Pod spec:
-pods/pod-with-node-affinity.yaml Copy pods/pod-with-node-affinity.yaml to clipboard
-
+For example, consider the following Pod spec_
 
 apiVersion: v1
 kind: Pod
@@ -68,6 +67,7 @@ spec:
             values:
             - antarctica-east1
             - antarctica-west1
+
       preferredDuringSchedulingIgnoredDuringExecution:
       - weight: 1
         preference:
@@ -98,23 +98,68 @@ interpreting the rules. You can use In, NotIn, Exists, DoesNotExist, Gt and Lt.
 
 
 
->Note:
+Note: (as per doc, ref_  https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/)
+
 >If you specify both nodeSelector and nodeAffinity, both must be satisfied for the Pod to be scheduled onto a node.
 
->If you specify multiple nodeSelectorTerms associated with nodeAffinity types, 
+>If you specify multiple "nodeSelectorTerms" associated with nodeAffinity types, 
 >then the Pod can be scheduled onto a node if one of the specified nodeSelectorTerms can be satisfied. (LOGICAL OR)
+
+affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: topology.kubernetes.io/zone
+            operator: In
+            values:
+            - antarctica-east1
+            - antarctica-west1
+                                  #OR
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: topology.kubernetes.io/zone
+            operator: In
+            values:
+            - ap-south-1
+            - ap-south-2
+
+
+*                                   *************************
+
 
 >If you specify multiple "matchExpressions" associated with a single "nodeSelectorTerms", 
 >then the Pod can be scheduled onto a node only if all the matchExpressions are satisfied. (LOGICAL AND)
 
 
+affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+
+        - matchExpressions:
+          - key: topology.kubernetes.io/zone
+            operator: In
+            values:
+            - antarctica-east1
+            - antarctica-west1
+                                    #AND
+        - matchExpressions:
+          - key: topology.kubernetes.io/zone
+            operator: In
+            values:
+            - ap-south-1
+            - ap-south-2
+              
+
 >-----------------------------------------------------------------------------------------------------------------
 
 
->Node affinity weight
+Node affinity weight :
 
 You can specify a weight between 1 and 100 for each instance of the 
-"preferredDuringSchedulingIgnoredDuringExecution" affinity type. 
+>"preferredDuringSchedulingIgnoredDuringExecution" affinity type. 
 
 When the scheduler finds nodes that meet all the other scheduling requirements of the Pod, 
 the scheduler iterates through every preferred rule that the node satisfies and adds the 
@@ -122,9 +167,6 @@ value of the weight for that expression to a sum.
 
 The final sum is added to the score of other priority functions for the node. 
 Nodes with the highest total score are prioritized when the scheduler makes a scheduling decision for the Pod.
-
->For example, consider the following Pod spec:
-pods/pod-with-affinity-anti-affinity.yaml Copy pods/pod-with-affinity-anti-affinity.yaml to clipboard
 
 
 note: 
@@ -158,7 +200,7 @@ spec:
             operator: In                   
             values:
             - key-1
-
+                                 #AND
       - weight: 50
         preference:
           matchExpressions:
@@ -181,15 +223,49 @@ and schedules the Pod onto the node with the highest final score.
 >-----------------------------------------------------------------------------------------------------------------
 
 
->Node AntiAffinity_
+Node AntiAffinity_ :
+
+In kubernetes, there is exclusive policy such as a Node AntiAffinity, However, it is possible to emulate 
+the behaviour , which works opposite to Node Affinity rules.
 
 
 >Operator value of, "NotIn" and "DoesNotExist" allow you to define node anti-affinity behavior. 
 >Alternatively, you can use node taints to repel Pods from specific nodes.
 
+affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: topology.kubernetes.io/zone
+            operator: NotIn
+            values:
+            - antarctica-east1      #these are AZ's of the node in aws cloud.
+            - antarctica-west1
+
+>above rule specifies that, pod must NOT get schedule on the Node having key as topology.kubernetes.io/zone 
+>In the AZ , having values as antarctica-east1 and antarctica-west1, Which emulates the Node-Anti-Affinity
+>behaviour.
 
 
+affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
 
+        - matchExpressions:
+          - key: topology.kubernetes.io/zone
+            operator: DoesNotExist
+            values:
+            - antarctica-east1
+            - antarctica-west1            
+
+
+>above rule specifies that, Pod must NOT get schedule on the Node having key as topology.kubernetes.io/zone,
+>in the AZ , that does not exist (key) in the values (az) as antarctica-east1 and antarctica-west1. 
+i.e. 
+>Any Node having key as topology.kubernetes.io/zone ,that DOES NOT EXIST in AZ having values as antarctica-east1 
+>and antarctica-west1, pod will get schedule on that node. This emulates the anti Node Affinity behaviour.
 
 >-----------------------------------------------------------------------------------------------------------------
 

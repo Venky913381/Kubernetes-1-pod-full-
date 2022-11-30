@@ -1,6 +1,6 @@
 
 
-#a)----------------------necessicities for demo -------------------------------
+
 >
 >we use config map to decouple the application specific properties from application image. and we pass
 >this application specific properties as environmental variable during pod creation. 
@@ -12,6 +12,9 @@
 >kubectl create configmap <cm-name> --from-literal=<literal>="<value>"  ---> from literal , directaly from cmd.
 >kubectl create configmap <cm-name> --from-literal=param1="value1"  --from-literal=param2="value2" --fro....
 
+
+#a)----------------------necessicities for demo -------------------------------
+
 single property file: application.properties
 #databse_details
 database_ip="8.8.8.8"
@@ -22,8 +25,8 @@ database_username="swapnil"
 username="swapnil"
 password="12345"
 
->kubectl create cm <cm0-name> --from-file=application.properties   ---> from file (imperative)
->kubectl create cm <cm0-name> --from-file=file1 --from-file=file2 --from-file=file3 --fr.......
+>kubectl create cm <cm-name> --from-file=application.properties   ---> from file (imperative)
+>kubectl create cm <cm-name> --from-file=file1 --from-file=file2 --from-file=file3 --fr.......
 >-------------------------------------------------------------------------------------------------
 
 b)---------------------------------------------------------------------
@@ -39,7 +42,7 @@ test3.properties
 c)-----------------------config map from environmental file-----------
 file: env.sh
 
-var1=val1    #this is different from above i.e --from-file, 
+var1=val1    # this is different from above i.e --from-file, 
 var2=val2    # in the sense that it do not consider spaces or comments in it.
 var3=val3
 
@@ -76,6 +79,8 @@ data:
   admin.properties: |
     username="swapnil"
     password="12345"
+
+>kubectl apply -f <config_map_filr.yml>    
   
 >----------------------------------------INJECTING CONFIG MAP--------------------------------------
 

@@ -5,20 +5,25 @@
 >3) read, pod-to-pod communication in clusterip file
 
 >if a headless service manages more than one pod, service dns name will return a lists of pods managed
->by the service. The requests will accept the first IP address returned.
+>by the service. The requests will accept the first IP address returned after dns round robin load
+>balancing the backend pods.
 
 One of the misconception with Headless service is that, it do not Load Balances the request.
 Even though headless service return the ip addresses of the pods, it will still load balances the 
 requests to the pods and this type of load balancing is called as DNS ROUND ROBIN LOAD BALANCING.
 
-> Headless service will Not always forward the request to first pod.
+> Headless service will Not always forward the request to first pod, i.e it load balances the backend pods
+> and the request will be accepted by first pod after load balancing.
 
->curl <headless_service_name>:<container_port>  ---> this request is directaly forwaed to backend pod through
+>curl <headless_service_name>:<container_port>  ---> this request is directaly forwared to backend pod through
 >    DNS ROUND ROBIN LOAD BALANCING mechanism and for each dns query/request it will result in new ip address
 >    as headless service is load balancing the requests. 
 
->However, headless service , when used with StatefulSets provides a unique identity to each pod 
->managed by StatefulSet
+>The utility of headless service is lies, when it is used with Stateful Sets.
+>headless service , when used with StatefulSets [which provides a stable unique identity to each pod 
+>managed by StatefulSet], it possible to access the single pods using headless service, as now it is
+>possible to forward all request to single pod, despite of requests being load balnced using syntax_
+<statefulset_name>-<ordinal>.<headless_svc_name>
 
 
 >--------------------------------------------------------------------------------------------------------------
@@ -37,8 +42,8 @@ requests to the pods and this type of load balancing is called as DNS ROUND ROBI
 
 3> this applications are much faster and needs no external storage or backup.
 
-4> application are, web apps which serves the static web pages and need not to store any data. so all the request
-   coming to the application will get the same response.
+4> application are, web apps which serves the static web pages and need not to store any data. 
+   so all the request coming to the application will get the same response.
 
 5> we use cluster ip service as an abstraction and to load balance the incoming requests    
 
@@ -51,7 +56,7 @@ requests to the pods and this type of load balancing is called as DNS ROUND ROBI
    generated in one session for use in next session with that client. It also need permanant storage.
    eg_ Databases, kafka, elasticSearch
 
-2> In mordern web application, the stateless application connects with steteful applications to serve the
+2> In modern web application, the stateless application connects with stateful applications to serve the
    users requests.
 
 3> A stateful application needs a persistant storage for it to store its state and read later.
@@ -61,6 +66,8 @@ requests to the pods and this type of load balancing is called as DNS ROUND ROBI
 > User---> LB ---> FrontEnd/Stateless Application --->Headless Service ---> Stateful Application.
 
 >--------------------------------------------------------------------------------------------------------------
+
+>ref_ https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/
 
 # Stateful Sets_
 
@@ -79,7 +86,7 @@ requests to the pods and this type of load balancing is called as DNS ROUND ROBI
 >(hostname & ip) across restart and reschedule. the pod identity is generated in following syntax_
 <name of deployment>-<replicaset hash>-<pod hash> , if pod get replaced, pod_hash will changed.
 
->in stateful sets , each pod will get stable name .
+>in stateful sets , each pod will get stable name , which is combination of name of stateful set and ordinal number.
 <statefulset_name>-ordinal
 
 
@@ -94,12 +101,14 @@ Naming of Pods with Replication Controller/Deployments :
 
 > in case of deployments, the names generated for the pods is in following formate_
   <name of the deployment>-<hash value of the replica set>-<hash of the pod>
->  eg_ mysql-123467-abcdef
+>  eg_ mysql-1234567-abcdef
 
 > in case of pod recreation, new pod gets a new name/identity, the first and second part of its name 
-> i.e. <name of the deployment>-<hash value of the replica set> , remains same but the HASH od POD 
+> i.e. <name of the deployment>-<hash value of the replica set> , remains same but the HASH of POD 
 > will get changed, thus effective changing the name/identity.
 
+
+# WHY WE NEED A STABLE POD NAME ? _
 
 1> Data Replication :
 
@@ -124,6 +133,7 @@ Naming of Pods with Replication Controller/Deployments :
 
 >One thing to note that, Replication algorithm is not embedded with Stateful Sets, We have use different 
 >replication algorithm as per need.
+
 >One of most used method for databases, is to use Helm chart of Database, which have Replication algorithm
 >embedded into it. This remove the overhead on devops team to use replication algorithm in stateful set manifest.
 
@@ -140,10 +150,10 @@ Naming of Pods with Replication Controller/Deployments :
 >this makes it easier to make a perticular pod as master/primary and make other pods to replicate the data 
 >from this master pod
 
->if the pod dies, a new pod is created with SAME NAME, so replication algorithm wont break.
+>if the pod dies, a new pod is created with SAME NAME, so replication algorithm won't break.
 
 >How to setup pod to pod communication, so that other pod can copy data from main pod ?
->again , pod created by replication set , upon recretion will retain the old name but ip address will change.
+>again , pod created by stateful set , upon recretion will retain the old name but ip address will change.
 >and we can not set the communication between pod via name, bcuz, pod to pod dns resolution is not possible.
 >we have dns resolution by fqdn will have a pod's ips address.
 
@@ -168,8 +178,8 @@ Naming of Pods with Replication Controller/Deployments :
     that does not changes with restart or recreation or reschedule. 
     This makes it easier to elect a master instance.
 
-    For stateful application with a stateful controller, it is possible to set the first pod as primary and other
-    pods as replicas.
+    For stateful application with a stateful controller, it is possible to set the first pod as primary 
+    and other pods as replicas.
 
     The first pod will handle both read and write requests from user and other pod always sync with the first
     pod for data replication.
@@ -188,13 +198,13 @@ Naming of Pods with Replication Controller/Deployments :
 >data from primary database instance they need a persistance storage to store the data.
 
 >PV are not backed by locally attach storage on worker node but by networked storage system such as cloud providers
->The api object captures the details of the implemetation of the storage be that NFS, iSCSI, or cloud
+>The api object captures the details of the implementation of the storage be that NFS, iSCSI, or cloud
 >provider specific storage system.
 
 >Stateful sets provides a key named as 'volumeClaimTemplates' to dynamically provision a PVC from storage class.
 >Each pod inside theStatefulSet mounts these PVC's as volume to retain the data.
 
->The PVC is named as _ <volumeClaimTemplates_name>-<pod_name>-<cardinalNumber>
+>The PVC is named as _ <volumeClaimTemplates_name>-<pod_name>-<ordinalNumber>
                   eg _ www-mysql-0
 
 
@@ -213,10 +223,11 @@ Naming of Pods with Replication Controller/Deployments :
 >if we delete the pod, it will delete the pod in reverse order, not in random order. By doing this, the replication
 >algorithm is maintained.
 
->for example, if out of four replicas, if we scaled down to 3 , then only pod number 3 will be deleted. 
+>for example, if out of four replicas, if we scaled down to 3 , then only pod number 4 i.e.(ordinal-3) 
+>will be deleted. 
        
 
->                            **********************************************
+*                            **********************************************
 >--------------------------------------------------------------------------------------------------------------
 
 USING BOTH HEADLESS SERVICE AND CLUSTER IP IN AN APPLICATION :
@@ -224,9 +235,9 @@ USING BOTH HEADLESS SERVICE AND CLUSTER IP IN AN APPLICATION :
 >Lets suppose the scenario for a stateful application, where we have a multiple database instances deployed
 >in our deployment. only one the database instance is primary database, which is capable storing the data and
 >serving the read requests at the same time, while other replicas is for the purpose of only serving the read
->requests and they replicate the data from primary datbase instance.
+>requests and they replicate the data from primary database instance.
 
->In this case, it is possible to use both HEADLESS AND CLUSTER IP SERVICE in our deployment of statful application
+>In this case, it is possible to use both HEADLESS AND CLUSTER IP SERVICE in our deployment of stateful application
 
 >We can serve the all Write requests via Headless Service to the Primary database instance and 
 >all the Read request can be served by clusterip service from the replicated and primary datbase instances.
@@ -242,9 +253,9 @@ eg : http://db-clusteripservice:3306
 
 >--------------------------------------------------------------------------------------------------------------
 
->Statefulset are valueable for application that requires one or  more of the following_
+>Statefulset are valueable for application that requires one or more of the following_
 
-1> stable, unique network identifiers with help of headless service.
+1> stable, unique network identifiers (ip, hostnames) with help of headless service.
 2> stable, persistant storage
 3> ordered, graceful deployment and scalling
 4> ordered, automated rolling updates

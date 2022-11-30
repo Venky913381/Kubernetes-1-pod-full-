@@ -57,7 +57,7 @@ spec:
       maxUnavailable: 1     > max unavailable, suggest that during replacemnt of older deployments, at a time
     type: RollingUpdate     > only 1 pod will remain unavailable. i.e. pod will get replaced one by one. 
                             # if we gave value as 3 , then at a time 3 old pods will get replaced by 3 new pod. this 
-  selector:               > strategy will make sure that, 10 replicas as given (old+new),will always remain available
+  selector:              > strategy will make sure that, 10 replicas as given (old+new),will always remain available
     matchLabels:
       appname: app
  
@@ -142,7 +142,8 @@ spec:
 >--------------------------------------RECREATE STARTEGY--------------------------------------------
 
 > in this startegy, all the pods from old deployemnt will simulateneously get replaced by pods from
-> new deployment. this will cause the downtime, but new pods will get deployed faster.
+> new deployment. this will cause the downtime, as for a brief period no pod will be available to 
+> accept the traffic. but new pods will get deployed faster.
 > this startegy, generally not get used in production, but for testing , this will save the time.
 
 apiVersion: apps/v1
@@ -190,4 +191,4 @@ spec:
 > kubectl rollout undo --to-revision=<specific-rev-number>  deployement  <deploy-name>
 
 # to rolling back to most recent previous deployment_
-> kubectl rollout undo deployement  <deploy-name>
+> kubectl rollout undo deployment  <deploy-name>
