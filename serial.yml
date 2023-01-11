@@ -25,15 +25,20 @@ Studying the Kubernetes :
   Envoy Pattern
   Euphemeral Container
   Static Containers
+  pause container
   Daemon Sets
 
 >Replication controller 
 >Replica set 
-
 >Deployments_
   Rolling Update Strategy
   RollBacks
   Recreate Strategy
+
+>Probes in Kubernetes_
+  Readiness Probe 
+  Liveness Probe
+  StartUp Probe
 
 >Services_
   Cluster ip 
@@ -43,6 +48,7 @@ Studying the Kubernetes :
   External Name 
   External Ip 
   EndPoint Objects 
+  NamedPort
 
 >Ingress resources_
   Host Based Routing
@@ -69,6 +75,7 @@ Studying the Kubernetes :
    Node Affinity
    Pod Affinity and AntiAffinity
 
+
 >Kubernetes Storage Options_
   EmptyDir
   HostPath
@@ -76,24 +83,23 @@ Studying the Kubernetes :
 
 >Persistant Volumes
 >Persistant Volume Claims
-
->Probes in Kubernetes_
-  Readiness Probe 
-  Liveness Probe
-  StartUp Probe 
+>storage class
+ 
 
 >Daemon Set
 >Jobs
 >CronJobs
 
->StatefulSets
-  headless-Service
-  PV & PVC 
-  FQDN
 
 >Horizontal Pod Autoscaler_
   Heapster
   kubernetes metrics server 
+
+
+>StatefulSets
+  headless-Service
+  PV & PVC 
+  FQDN
 
 
 >Role Based Access Control in Kubernetes_
@@ -103,11 +109,12 @@ Studying the Kubernetes :
   Cluster Role Binding 
   Service Account
 
->EKS, CIVO, OpenShift, DigitalOcean
 
 >Krew Plugin Manager
 >Helm Package manager 
+>service mesh for k8s
 >Datree configuration validator
+
 
 >Istio Mesh Controller_
   virtual service
@@ -122,10 +129,23 @@ Studying the Kubernetes :
 >kubeadm
 >kubespreay
 >kube-sphere
+>KOPS
 >skooner Dashboard
 >Lense Dashboard 
 >kubeapps
+>kaniko
 >kube-shell
+
+
+
+>Managed Kubernetes Clusters_
+  EKS
+  GKE
+  AKS
+  CIVO
+  OpenShift
+  DigitalOcean
+
 
 >Kuberntes Networking_
   Flannel
@@ -137,5 +157,14 @@ Studying the Kubernetes :
 >Custom Resource Definations
 
 
-
 >--------------------------------------------------------------------------------------------------------
+
+*prepare_the_most_
+
+Ingress and Ingress Controlleer
+Scheduling
+PV and PVC 
+Stateful Sets
+Istio 
+EKS 
+pod & services

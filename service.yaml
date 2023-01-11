@@ -1,9 +1,11 @@
 >
 
->Service in k8s
+Service in k8s_ :
 
 >we need a services for enabling the pod-to-pod communication, also to enable external traffic to access 
->microservice/app deployed in k8s pod/cluster..
+>microservice/app deployed in k8s pod/cluster.
+
+>Service represent the collection of pod. i.e. it exposes multiple pods it manages via single ip.
 
 >services can be defined through yaml manifest files or using imperative command. and can be deployed using 
 >kubectl apply -f <service_file.yaml> command.
@@ -18,9 +20,9 @@
 >               It is used with Ip address of the node/ec2 , and service will be accessible.
 >               NodePort Ranges from port 30000 to port 32767.
 
->type : type represent the type of the service.
+>type : type represent the type of the service. {clusterip/nodeport/loadbalancer etc.}
 
->flow :  <ip_address>:NodePort ------>  Port ------> TargetPort   {for nodePort service}
+*flow :  <ip_address>:NodePort ------>  Port ------> TargetPort   {for nodePort service}
 
 >kubectl get service -l label=value  ---> to get service details filtered by labels.
 
@@ -37,8 +39,8 @@ metadata:
 spec:
   type: NodePort
   ports:                                                            
-  - nodePort: 32000  > on node , on nodes port, with web ip / browser / ip:port / this is endpoint
-    port: 9000       > on pod , machine port will mapped to this port on pod
+  - nodePort: 32000  > on node , on nodes port, with web ip / browser / ip:port 
+    port: 9000       > service port 
     targetPort: 80   > on container, container port
   selector:
     appname: myapp 
@@ -146,12 +148,12 @@ spec:
   - nodePort: 32000
     port: 9000      
     targetPort: 80  
-
     name: my-service
     protocol: tcp   
 
 > for using "name" container specs must mentioned the Port attributes with containerport and its name in container
-> spec as below.....
+> spec as below_
+
 ports:
 - containerPort: 80        
   name: my-service      
@@ -159,16 +161,16 @@ ports:
 
 >---------------------------------------------------------------------------------------------------------------
 
-> Read_More_
+*Read_More_
 
   1. NodePort      (expose service out of cluser)
   2. LoadBalancer  (expose service out of cluser)
   3. ClusterIP     (expose service only within cluser)
 
   4. External Name Service
-  5. Headless Service
-  6. External IP Service
+  5. External IP Service
 
+  6. Headless Service
   7. Port Forwarding
 
   8. Ingress/Ingress_Resources/Ingress_Rule
@@ -180,11 +182,11 @@ ports:
 
 >There are two types of applications, 1.Stateless application  and  2.Statefull application.
 
-Stateless : it will do Not store anything (data), previous session, nor it retrieve anything, eg . Nginx,apache
+Stateless : it will do Not store anything (data), previous session data, nor it retrieve anything, eg. Nginx,apache
 
-Statefull : this type of application stores state, so whenever application crashes or if any issue arises
-            or app lost connection, whenever, it comes back it starts from the same state as data is stored. 
-            this type of application can not always start from scratch.
+Statefull : this type of application stores state, session data, so whenever application crashes or if any 
+            issue arises or app lost connection, whenever, it comes back it starts from the same state as data 
+            is stored. this type of application can not always start from scratch.
 
 
 > Headless Service_
@@ -194,31 +196,35 @@ Through this ip address, the service will proxy all the client requests
 and load balance them to the pods behind it. i.e single service ip address exposes/represent multiple pods.
 
 >If we, DNS query the service name via utilities like nslookup, k8s returns the service's ip but 
->not the ip's of the pod it manages.
+>not returns the ip's of the pod it manages.
 
-if we are running the single instance of the database pod like mangodb , 
+if we are running the single instance of the database or service pod like mangodb , 
 we do not need to load balance as only one replica is available. 
 
-if, we do the dns query of service name to return the ip address of mangodb pod but not of service.
+if, we do the dns query of service name to return the ip address of pod but not of ip of service.
 to achieve this , we explicitly set the '.spec.clusterIP' of the service to 'None' to instruct k8s not to
-assign any IP to the service  or nor to Load balance the requests. 
+assign any IP to the service.
 This type of service is knows as Headless Service.
 
 if a headless service manages more than one pod, service dns name will return a lists of pods managed
 by the service. The requests will accept the first IP address returned (after load balancing them).
 
 One of the misconception with Headless service is that, it do not Load Balances the request.
-Even though headless service return the ip addresses of the pods, it will still load balances the 
+Even though headless service return the ip addresses of the pods it manages, it will still load balances the 
 requests to the pods and this type of load balancing is called as "DNS ROUND ROBIN LOAD BALANCING".
 
 >Whatever the name of our headless service is , it represents all the backend pods it manages. the name 
 >of service will not resolve to the ip address of the service itself. infact headless service is acting
 >like single DNS name for all the backend pods it manages. 
 
+i.e. in case of Cluster ip, Single service IP, represents the collection of the pods. while, incase of
+Headless service , single headless service DNS , represents the collection of backend pods it manages.
+
+
 >As simple DNS call to headless service will result in a multiple DNS results , that is it return IP's 
 >of all the backend pods it manages.That is why it is called as "DNS ROUND ROBIN LOAD BALANCING".
 
->one of other misconception with headless service is that, it always forward the requests to first pod, 
+>one of other misconception with headless service is that, it always forward the requests to first pod only, 
 >NO, Headless service will Not always forward the request to first pod. this is becouse, headless sevrvice will
 >load balance the requests across the pods through the service proxy. The request will get accepted by
 >first pod, after load balancing, just like cluster ip service.
@@ -231,12 +237,12 @@ pod, and as it is load balances the requests, it will result in different ip's o
 >    DNS ROUND ROBIN LOAD BALANCING mechanism and for each dns query/request it will result in new ip address
 >    as headless service is load balancing the requests. 
 
->However, headless service , when used with StatefulSets provides a unique identity to each pod
+>However, headless service , when used with StatefulSets which provides a unique identity to each pod
 >managed by StatefulSet and make it possible to forward the request always to single pod as it provide
 >stable name and exposes the pod ip instead of service's ip.
 
 
->Headless services are more useful when_
+Headless services are more useful when_:
 
 1. Pod to pod communication.
 >   pod to pod communication , where we do not wants request to be load balance by service and insted of 
@@ -277,11 +283,6 @@ spec:
       app: frontend    
 
 >headless services are needed for stateful set application.
-
->---------------------------------------------------------------------------------------------------------------
-
->Ingress Controller 
->Ingress Resources         #check ingress yaml file.
 
 
 >--------------------------------------------------------------------------------------------------------------
@@ -398,7 +399,7 @@ spec:
 apiVersion: v1
 kind: Endpoints
 metadata:
-  name: dummy-svc 
+  name: dummy-svc-ep 
 subsets: 
   - addresses:
     - ip: 100.96.8.53
@@ -427,7 +428,7 @@ subsets:
 >we will get environmental variable likes, <service_name>_SERVICE_HOST, <service_name>_SERVICE_IP
 
 >Using these variable we can access service as,
- curl <service_name>_SERVICE_HOST:<service_name>_SERVICE_HOST/<path_if_exist>
+ curl <<service_name>_SERVICE_HOST>:<<service_name>_SERVICE_HOST>/<path_if_exist>
 
 >this is similar the accessing the service using DNS or fqdn, where we access the service as below_
  curl <service_name>.<namespace_name>.svc.cluster.local

@@ -7,7 +7,7 @@
       4.Taints and Tolerations
 
 >kubernetes User normally do not need to choose a node to execute their pod, Instead , selection of appropriate
->pod is automatically handled by kubernetes scheduler.
+>Node is automatically handled by kubernetes scheduler.
 
 >k8s scheduler watches for the newly created pod that have no Node assigned and for every such pod, scheduler
 >becomes responsible for finding the best node for that pod to run on.
@@ -19,7 +19,7 @@
 
 >-----------------------------------------------------------------------------------------------------------------
 
-# Pod Affinty and Pod antiAffinity_
+# Pod Affinity and Pod antiAffinity_
 
 >In pod Affinity and Pod antiAffinity ,scheduler will decide , How the perticular Pod will be placed Relative 
 >to other pods (which already exist on the node) based on the rules defined under rule of Pod affinity and 
@@ -40,8 +40,8 @@ i.e IT WILL CO-LOCATE THE BOTH PODS ON THE SAME NODE.
 i.e. IT WILL PREVENT THE PODS FROM CO-LOCATING ON THE SAME NODE.
 
 >we have two kinds of scheduling methods under affinty rules_
-1. HARD SCHEDULING - (required)
-2. SOFT SCHEDULING - (preffered)
+1. HARD SCHEDULING - (requiredDuringSchedulingIgnoredDuringExecution)
+2. SOFT SCHEDULING - (prefferedDuringSchedulingIgnoredDuringExecution)
 
 >-----------------------------------------------------------------------------------------------------------------
 
@@ -145,11 +145,12 @@ spec:
 >                                               #we do know the node on which our first pod will get deployed.
 
 
->Above Anti Affinity, rule states that , if the existing pod is already deployed on the node, then the pod with
->Anti Affinity rules must not get schedule on that node.
+>Above Anti Affinity, rule states that , if the existing pod is already deployed on the node with labels specified
+>in anti affinity rules, then the pod with Anti Affinity rules must not get schedule on that node.
 i.e.
 >if the pod with label app:nginx, is already deployed on the node, then the new pod with with anti affinity
 >rule, must not get scahedule on the node having label app:nginx, 
+
 >But it must also avoid placing the on the node having topology key as topologyKey: any-common-lable.
 (above, ref_ https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity)
 
@@ -200,7 +201,7 @@ spec:
   template:
     metadata:
       labels:
-        app: cache
+        app: cache   # label to be used for scheduling rules.
     spec:
       containers:
       - name: redis
@@ -234,7 +235,7 @@ spec:
   template:
     metadata:
       labels:
-        app: flask
+        app: flask              # label to be used for scheduling rules.
     spec:
       containers:
       - name: flask

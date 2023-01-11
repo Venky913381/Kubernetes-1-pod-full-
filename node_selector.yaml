@@ -1,5 +1,5 @@
 >
->There are various ways to schedule a pod on node or select a Node to schedule/execute the pod,
+>There are various ways to schedule a pod on node or to select a Node to schedule/execute the pod,
 >these are_
       1.Node Name and Node Selector
       2.Node Affinity and Node-Anti-Affinity
@@ -8,7 +8,7 @@
 
 
 >kubernetes user normally do not need to choose a node to execute their pod, Instead , selection of appropriate
->pod is automatically handled by kubernetes scheduler.
+>pod is automatically handled by kubernetes scheduler itself.
 
 >k8s scheduler watches for the newly created pod that have no Node assigned and for every such pod scheduler
 >becomes responsible for finding the best node for that pod to run on.
@@ -18,7 +18,7 @@
 >like RAM, SSD , Processor etc.. can be fullfilled for execution of certain pod that need such specifications.
 
 >both NodeName and NodeSelector are considered as a Hard scheduling, and both are manual scheduling as we are
->explicitly defing in the pod spec , where to schedule the pod.
+>explicitly defining in the pod spec ,the node where we want to schedule the pod.
 
 >-----------------------------------------------------------------------------------------------------------------
 
@@ -57,6 +57,8 @@ spec:
 
 >node name in cloud environments like eks or gke are not always predictable or stable.
 
+>node have a unique name , while labels can be common among group of nodes.
+
 to get names of the nodes in our k8s cluster.
 >kubectl get nodes -o wide
 
@@ -84,15 +86,16 @@ spec:
     label: value 
 
 >nodeSelector is a feild in pod spec, which defines the node on which we wants pod to get 
->schedule using lables attached to the node.
+>schedule based on the lables attached to the node.
 
 >it is the simplest form of recommandation for node selection constraint.
 
 >it uses labels to select matching node on to which pod can be scheduled.  if the defined label does not exist
 >pod will go in to pending state forever.
 
->using these method, it is possible to have choice of having pool of nodes, as we can attach same label to
->multiple nodes, and scheduler will select any of these node as per availibility.
+>using these method, unlike NodeName, where we have only one node of choice,  it is possible to have choice 
+>of having pool of nodes, as we can attach same label to multiple nodes, and scheduler will select any of 
+>these node as per availibility.
 
 Assigning label to node_
 > kubectl label node <nodename> <label>=<value>

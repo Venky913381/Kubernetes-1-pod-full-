@@ -4,6 +4,8 @@
 >we need a services for enabling the pod-to-pod communication, also to enable external traffic to access 
 >microservice/app deployed in k8s pod.
 
+>Service represent the collection of pod. i.e. it exposes multiple pods it manages via single ip.
+
 >services can be defined through yaml manifest files or using imperative command. and can be deployed using 
 >kubectl apply -f <service_file.yaml> command.
 
@@ -62,14 +64,15 @@ spec:
 
     ports:
       - containerPort: 5000  #service will target this port to access microservice in container.
+        name: http
 
 >--------------------------------------------------------------------------------------------------------------
 
 >End Points
 
->endpoints tracks the ip addresses of the k8s object,that the service send traffic to.
+>endpoints tracks the ip addresses of the k8s object, that the service send traffic to.
 
->when a service selector matches a pod label, ip of that pod get added to your endpoints.
+>when a service selector matches a pod's label, ip of that pod get added to your endpoints.
 >i.e EndPoints are the final termination point of your microservice deployed in pod.
 
 >the endpoints for a service can be found by
@@ -121,17 +124,19 @@ spec:
     image: nginx
     ports:
       - containerPort: 5000 
+        name: http
 
   - name: backend
     image: nginx
     ports:
-      - containerPort: 7000        
+      - containerPort: 7000  
+        name: https      
 
 
 >--------------------------------------------------------------------------------------------------------------      
 
 
->Port Forwarding_ 
+*Port_Forwarding_ :
 
 >Port forwarding is the way to Temporarily Communicates with applications in your cluster without
 >exposing them to the public internet for security reasons.
@@ -142,8 +147,8 @@ spec:
 >you can use this method to investigate issues and adjust your services locally without the need 
 >to expose them beforhand
 
->kubectl port-forward , give us a direct network access to port of a pod for test purpose.
->it establishes a tunnel from the target pod to your localhost.
+>kubectl port-forward , give us a direct network access to port of a pod/service for test purpose.
+>it establishes a tunnel from the target pod to your localhost/ port on pod /port of service.
 >The command requires you to define the type or name of the resource as well as local and remote port numbers.
 
 >syntax_
@@ -152,30 +157,35 @@ kubectl port-forward --address <local-IP> <res-type>/<res-name> <local-port>:<re
 >eg_
 >kubectl port-forward --address 0.0.0.0 svc/<serviceName> <PortOnHost>:<PortOnPod>
 >kubectl port-forward --address 0.0.0.0 svc/<Service-Name> --namespace <NameSpace Name> Machine/HostPort:PodPort
+>kubectl port-forward --address 0.0.0.0 pod/<podName> <PortOnHost>:<PortOnPod>
 
 >--------------------------------------------------------------------------------------------------------------
 
-pod-to-pod communication_ (without Service):
+pod-to-pod communication_ (without Service, Using POD's IP_):
 
 >for pod to pod communication, we can use A/AAAA DNS record types.   
 
->pod in k8s are ephemeral , as even if we deletes/dies the pod, the controller object will recreates the pod,
->and the ip address of the pod will get changed. i.e. IP's addresses of pod is not stable.
+>pod in k8s are ephemeral , as even if we deletes pod or pod dies, the controller object will recreates the pod,
+>and the ip address of the pod will get changed. i.e. IP address of pod is not stable.
 >So communication through ip address is not prefferable. That is why , we preffer communication via DNS address.
 
 >However, DNS resolution just by pod name is not possible in k8s. In case of clusterIP service 
->it is possible, as Name of clusterIP service resolves to clusterIP service itself. that is why we use service as
->a abstraction/ proxy to expose the pod to the traffic.
+>it is possible, as Name of clusterIP service resolves to IP of clusterIP service itself. that is why we use 
+>service as a abstraction/ proxy to expose the pod to the traffic.
 
->Pod to pod communication without service do not load balances the requests.
+>pod to pod communication with pod's IP is possible by using fqdn as below, but again if controller recreates
+>the pod, pods ip will change and dynamic fetching of ip is not possible.
 
 >address syntax
   <pod's_ip_address>.<namespace_name>.pod.cluster-<domain.example>   ---->fqdn
 >eg_
   172-17-0-3.default.pod.cluster.local 
 
+>Pod to pod communication without service do not load balances the requests. this makes it possible to forward
+>the request/communicates with single pod only.
+
 >pod to pod communication via IP:port combination is only possible if pod is running and we are able to
->get ip address of the pod, however if pod recretes itself , gettting pod if dynamically is not possible.
+>get ip address of the pod, however if pod recretes itself , getting pod IP dynamically is not possible.
 
 >if we have pod running, we can achieve pod to pod communication as_
   http>//ip:port  
@@ -185,7 +195,7 @@ port is not a service port, but the port to which application listens like 3306 
 >                                     ********************************
 
 
-pod-to-pod communication_ (with ClusterIP  Service):
+pod-to-pod communication_ (with ClusterIP Service):
 
 >pod-to-pod communication with Service, each service gets its own IP address.
 
@@ -193,6 +203,7 @@ pod-to-pod communication_ (with ClusterIP  Service):
 >It always load balances the incoming requests between replicas.
 
 >service acts like a proxy placed before the pods, and pods are mapped to service with help of labels.
+i.e single service represent the collection of the pods.
 
 >service ips are stable, it balances the requests. so even if pods ip changes,it will redirect the traffic to
 >to correct pod, selected via labels using selectors.
@@ -209,8 +220,8 @@ http://<service_name>.<namespace_name>.svc.cluster.local:<Port>    ---->fqdn
 http://svc/port 
 >above will resolve to the actual ip address of the service, this is done by quering the Core DNS service
 >which is responsible for DNS resolution with k8s environment. 
->CORE-DNS runs in kube-system namespace and through KUBE-DNS service which runs in same kube-system 
->namespace we can access this core-dns , which is either runs a Deployment or DaemonSet.
+>CORE-DNS runs in kube-system namespace and through "KUBE-DNS Service" which runs in same kube-system 
+>namespace we can access this core-dns , which is either runs as a Deployment or DaemonSet.
 
 > to access the Core DNS, create a service inside the same kube-system namespace. and through the ip address
 > of this service we can access the core dns.  This ip address is added to all the pods added in the cluster
@@ -249,6 +260,7 @@ There are a few scenarios where you would use the Kubernetes proxy to access you
 
 Debugging your services, or connecting to them directly from your laptop for some reason
 Allowing internal traffic, displaying internal dashboards, etc.
+
 Because this method requires you to run kubectl as an authenticated user, 
 you should NOT use this to expose your service to the internet or use it for production services.
 

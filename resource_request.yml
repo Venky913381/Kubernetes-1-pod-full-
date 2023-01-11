@@ -19,17 +19,17 @@ spec:
       resources:
         requests:
           memory: 100Mi     # 200M
-          cpu: 100m       # milli cpu ,or  0.1 (w.o unit), n%
+          cpu: 100m         # milli cpu ,or  0.1 (w.o unit), n%
 
         limits: 
           memory: 200Mi
           cpu: 150m  
 
 
->we can check resources used by pod using
+we can check resources used by pod using
 > kubectl describe pod <podname>
 
-> to check resources for individual container   
+to check resources for individual container   
 > docker container stats <cid/cname>    
 
 >free -m

@@ -1,7 +1,5 @@
 >
 
->
-
 apiVersion: apps/v1
 kind: Deployment 
 
@@ -29,7 +27,7 @@ spec:
 > with below command, then , it is observed that as older deployment will gradually get replaced by newer deployments.
   kubectl rollout status deployment <deploy-name> 
 
-> the process will complated, only after all the older deployments gradually get replaced with newer deployments.
+> the process will completed, only after all the older deployments gradually get replaced with newer deployments.
 > this strategy is called as Rolling Update strategy and there is zero downtime, it is default startegy.
 
 
@@ -118,20 +116,27 @@ spec:
 > kubectl delete deployment <deploy-name>
 
 #------------------------------------------------------------------------------------------
+
+Change_Cause_ :
+
 > kubectl rollout history deployment <deployment-name>   --> will give all revision history, however this will
                                                            > not keep any explicit details of deployment.
-> to keep deployment record, run a command as_
+to keep deployment record, run a command as_
 >  kubectl apply -f <deploy.yaml> --record, But this not add any custom massage.
 
-> to add custom massage for deployment, add to yml file the following in metadata of deployemnt..
-> under annotation , " kubernetes.io/change-cause: <personalize text> "
-> afte adding annotation, there is no need to use --record flag
+to add custom massage for deployment, add to yml file the following in metadata of deployemnt..
+>under annotation :, " kubernetes.io/change-cause: <personalize text> "
+after adding annotation, there is no need to use --record flag
+
 #-------------------------------------------------------------------------------------------
-> ROLLBACK_TO_SPECIFIC_REVISION_IN_HISTORY__
+
+ROLLBACK_TO_SPECIFIC_REVISION_IN_HISTORY__:
+
 > kubectl rollout undo --to-revision=<specific-rev-number>  deployement  <deploy-name> 
 
 > if specific revision number is not specified, by default it will choose most recent last revision. 
 > .i.e. -->    kubectl rollout undo  deployement  <deploy-name>
+
 #------------------------------------------------------------------------------------------
 
 > by default,  k8s will keep the last "10" deployment record in memory, we can change this by using
@@ -179,7 +184,7 @@ spec:
 
 >-----------------------------------------------------------------------------
 
->RollOut Commands__
+RollOut Commands__:
 
 # to get the status of the current rollout_
 > kubectl rollout status deployment <deploy-name> 
@@ -192,3 +197,5 @@ spec:
 
 # to rolling back to most recent previous deployment_
 > kubectl rollout undo deployment  <deploy-name>
+
+>---------------------------------------------------------------------------------------------------------------

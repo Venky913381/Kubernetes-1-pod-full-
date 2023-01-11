@@ -14,7 +14,7 @@
 >pods can hold multiple containers as well, when we scale pod, the containers inside 
 >the pod will get scalled together, regardless of their individual needs.
 
->every pod is like a seperate logical machine with its own IP, HOSTNAME, PROCESS and so on, running a single
+>every pod is like a separate logical machine with its own IP, HOSTNAME, PROCESS and so on, running a single
 >application. it is just a sandbox to run the containers in.
 
 >any container in the same pod will share the same storage volume and network resource 
@@ -43,10 +43,11 @@ possible values are, Always, OnFailure, and Never.
 
 Some of the errors linked to the actual application are:
 
->1.Misconfigurations             : Like a typo error in a configuration file.
+>1.Misconfigurations             : Like a typo error in a configuration/manifest file.
 >2.A resource is not available   : Like a PersistentVolume that is not mounted.
 >3.Wrong command line arguments  : Either missing, or the incorrect ones.
 >4.Bugs & Exceptions             : That can be anything, very specific to your application.
+>5.Image name is incorrect       : image , we tried to spun the container from not exist or have improper tagging.
 
 
 errors from the network and permissions are:
@@ -59,8 +60,8 @@ errors from the network and permissions are:
 >A similar back-off period is ImagePullBackOff, which is a waiting status when a container image couldn’t be pulled.
 
 tools you can use to debug it, and in which order to use it, This could be our best course of action:
-Check the pod description.
-Check the pod logs.
+Check the pod description. (kubectl describe)
+Check the pod logs. (kubectl logs)
 Check the events.
 Check the deployment.
 
@@ -84,6 +85,7 @@ Check the deployment.
 
 >kubectl run pod --help
 >kubectl explain pod.spec / pod.metadata
+>kubectl explain pod --recursive
 
 apiVersion: v1
 kind: Pod
@@ -162,6 +164,7 @@ spec:
   - image: nginx
     name: appContainer
     imagePullPolicy: IfNotPresent
+
   initContainers:
   - name: init1container
     image: nginx
@@ -189,7 +192,7 @@ spec:
 
 >kubectl exec <podname> -c <containerName> -it -- <command>
 >kubectl describe pod <pod_name>
->kubectl label pod <name> label1=value1
+>kubectl label pod <pod_name> label1=value1
 
 >kubectl logs <pod_name> -c <container_name> / -f     ( for continuous logs)
 >kubectl logs <container_name>
@@ -197,7 +200,7 @@ spec:
 
 >--------------------------------------------------- 5
 
->in multicontainer pod, if we are opening any port on perticular container, then same port will be open on 
+>in multicontainer pod, if we are opening any port on perticular container, then same port can Not be open on 
 >another container in pod. i.e. containers in a pod uses shared network and can be accessible on localhost.
 
 we can telnet between the containers_  
@@ -215,13 +218,15 @@ we can telnet between the containers_
   4. init container              (initilazation for main container) --> Do initialization works for main container
   5. Ephemeral containers        (debugging container for main container build with distroless images)
   6. Main App Container          (container for main app or microservice)
+  7. Pause container
+  8. static Pod
  
 
->having a one container in one pod is desirable, however , there may arise a condition where we need to
+>having only one container in one pod is desirable, however , there may arise a condition where we need to
 >define multiple container in a single pod, either to assist/initilize/or to do extra works for the main container. 
 >Or in a case, where application/microservices are tightly coupled and needed to be in vicinity of each other.
 
->When it comes to container security, Distroless or Minimal base images, like alpine, reduces the attack surface.
+>When it comes to container security, Distroless images or Minimal base images,like alpine, reduces the attack surface.
 >Container images are composed of several layer of instructions. and each layer may be the source of vulnerability.
 >So scanning the each layer is very crucial operation in DevSecOps.
 
@@ -235,8 +240,9 @@ we can telnet between the containers_
 #Smaller Docker Images
 
 >container images should be small and lightweight.
->They should pack only the application code and its dependancies. Rest everything to be scrapped off 
+>They should pack only the application code and its dependancies. Rest everything needed to be scrapped off 
 >to bring down its size including the build dependancies.
+
 >the  smaller the images the lesser is the attack on the surface to the container and morever
 >are easy to distribute and deploy.
 
@@ -252,7 +258,7 @@ we can telnet between the containers_
 
 >Best practices for Building docker images
 
- 1.Do not run the container as a ROOT 
+ 1.Do not run the container as a ROOT user
  2.Avoid copying unnecessary files, use .dockerignore to ignore the files 
  3.Merge layers (--squash, flag with docker image build command)
  4.Using bareminimum Alpine or Language specific Distroless images as base image 
@@ -260,7 +266,7 @@ we can telnet between the containers_
  6.Health Checks
  7.Avoid exposing unecessary ports
  8.Hardcoding the credentials.
- 9.vunrebilities checking image using tols like Anchore, Sync etc...
+ 9.vulnerabilities checking image using tols like Anchore, Sync , trivy etc...
 
 >{watch euphemeral container video again......vimp}
 
@@ -274,7 +280,8 @@ we can telnet between the containers_
 >until init container executions completes, other main container will not start and remains in pending state.
 
 >init containers may contains Utilities or custom code for setup that are not present in an app image.
->like, sed, awk, python or dig during setup, also functions like cloning a git repo in to volume.
+>like, sed, awk, python or dig during setup, also functions like cloning a git repo in to volume, or checking if
+>other pods/ database pods are ready or not etc...
 
 >if pods, init containers fails, k8s repeatedly restart the pod until the init container succeeds.
 >however, if we set the restart policy for init container, then it will behave accordingly.
@@ -335,6 +342,7 @@ spec:
   - name: clone             #db service in another pod
     image: busybox:1.28
     command: ['sh','-c','until nslookup mydb; do echo waiting for mydb service to be up, 'sleep 2; done']
+
   containers: 
   - name: main
     image: busybox:1.28 
@@ -358,6 +366,9 @@ spec:
 
 >sidecar container is just like any other container, it will work in conjuction with main container, 
 >so that load on main container can be reduced.
+
+>sidecar container will keep running along with main application container, unlike init container, which
+>exit after doing the initialization tasks.
 
 eg. A logging agent that collects logs and send them to the data aggregation system 
     and sync it to the monitoring agent.
@@ -435,7 +446,7 @@ spec:
 >5. Ephemeral Container
 
 >when we build multistage images using Distroless images, it does not provide us with utilities like ping,
->bash, sh , curl etc. so it is impossible to exec in to that container for the purpose of debugging it.
+>bash, sh , curl etc. so it is impossible to exec/debug in to that container for the purpose of debugging it.
 
 >so, in such case, Ephemeral containers come in to picture, Ephemeral containers are those 
 >container which run in same pod as main app container and contains the Debugging utilities 
@@ -456,11 +467,36 @@ spec:
 
 >--------------------------------------------------------------------------------------------------------
 
->6. Static Pods
+>6. Pause Container
 
->Static Pods are managed directly by the kubelet daemon on a specific node, without the API server observing them.
->Whereas most Pods are managed by the control plane (for example, a Deployment, RS), 
->for static Pods, the kubelet directly supervises each static Pod (and restarts it if it fails).
+>Pause container is a additional container that gets created every time, when we created any new pod. 
+>Pause container is usually the first container that gets created when any pod gets created.
+
+>When any new pod is created, controller allot it a new ip address, behind the scene, it is really
+>not the pod that get the ip address, but ip address is actually get alloted to the Pause container.
+
+>Pause container's only job is to hold the network namespace. and Once pause container is ready, Bussiness
+>application is get created by scheduler.
+
+>if we deletes the pause container, kubernetes recreates the entire pod, including bussiness application containers.
+>however, if we deletes a business application container, controller will recreates the application container only.
+
+>pause container holds together the all other containers inside the pod.
+>pause container is an infra container, whole sole job is to hold all namespaces together. all other user
+>defined containers of the pod, then uses the namespace of the pod infrastructure container.
+
+>pause container is also reffered as Pod's Infrastructure Container.
+>we can get the pause container in pod, using simple docker command.
+ docker ps -a   OR   docker container ls -a
+
+
+>--------------------------------------------------------------------------------------------------------
+
+>7. Static Pods
+
+>Static Pods are managed directly by the kubelet daemon on a specific node, without the API server on master node
+>observing them. Whereas most Pods are managed by the k8s control plane (for example, a Deployment, RS), 
+>for static Pods, the kubelet on worker directly supervises each static Pod (and restarts, if it fails).
 
 >Static Pods are always bound to one Kubelet on a specific node.
 
@@ -474,3 +510,46 @@ Note: The spec of a static Pod cannot refer to other API objects (e.g., ServiceA
 
 
 >--------------------------------------------------------------------------------------------------------
+
+
+*_DEBUGGING_THE_Crash_Loop_BackOFF_State_of_pod_
+
+>CrashLoopBackOff state arises when container is failed to start and controller tries to restart it
+>again and again.
+
+>when container in a pod exited, the kubelet restart them with an exponential back-off delay (10s, 20s, 40s...)
+>that is capped at 5 minutes.
+
+>once a container has executed for 10 minutes without any problem, the kubelet resets the restart backoff
+>timer for that container.
+
+>CrashLoopBackOff is not an error on itself, but indicates that there’s an error which is happening
+>that prevents a Pod from starting properly. 
+
+
+Some of the errors linked to the actual application are:
+
+>1.Misconfigurations             : Like a typo error in a configuration/manifest file.
+>2.A resource is not available   : Like a PersistentVolume that is not mounted.
+>3.Wrong command line arguments  : Either missing, or the incorrect ones.
+>4.Bugs & Exceptions             : That can be anything, very specific to your application.
+>5.Image tag/name is incorrect   : image , we tried to spun the container from do not exist or have improper tagging.
+
+
+errors from the network and permissions are:
+
+>1.You tried to bind an existing port.
+>2.The memory limits are too low, so the container is Out Of Memory killed.
+>3.Errors in the liveness probes are not reporting the Pod as ready.
+>4.Read-only filesystems, or lack of permissions in general.
+
+
+>A similar back-off period is ImagePullBackOff, which is a waiting status when a container image couldn’t be pulled.
+
+tools you can use to debug it, and in which order to use it, This could be our best course of action:
+Check the pod description. (kubectl describe)
+Check the pod logs. (kubectl logs)
+Check the events.
+Check the deployment manifest for errors.
+
+********************************************************************************************************************

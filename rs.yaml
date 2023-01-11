@@ -18,7 +18,9 @@
 >Replica set is higher level objects that gives ability to easily run multiple instance for given pod.
 >it works similar to replication controller.
 
->Replica set uses SET BASE SELECTORS to manage pods.
+>Replica set uses SET BASE SELECTORS to manage pods. it is more expressive than equity based selection.
+>it makes us able to give multiple label selection choices. and we can also decide which label to select and
+>not to select , while selecting existing pods.
 
 >the major difference between RC AND RS is the Rolling-Update command , which works with Replica set  
 >but won't works with Replication Controller . 
@@ -86,9 +88,9 @@ spec:
     - key: appname           #appname in app OR appname in app2, it is soft selection
       operator: In 
       values:
-        - app              #pod must have all labels, .i.e. appname and type. only one will not work.
+        - app              #pod must have all labels(key), .i.e. appname and type. only one will not work.
         - app2             #pod needed to have at least one of above 2 label values to be controlled by RS.
-                           #will select all pod having Labels, appname-->app or app2 and type-->frontend
+                           #will select all pod having Labels, appname-->app or app2 or both and type-->frontend
     - key: type            > but, it will not select any app, app2 with type backend.
       operator: In 
       values:
@@ -132,7 +134,7 @@ selector:
 selector:                   
     matchLabels: 
       appname: app
-      type: frontend        # LOGICAL AND
+      type: frontend        # LOGICAL AND, i.e. all labels
       owner: swapnil
 
 >pod neded to have all the labels as shown above to be controlled by RS. i.e each label is AND operated.
@@ -147,7 +149,7 @@ matchExpressions:
     - key: appname
       operator: In 
       values:
-        - app1             # LOGICAL OR
+        - app1             # LOGICAL OR, i.e. app1 or app2 or both
         - app2
 >pod needed to have at least one of above 2 label  to be controlled by RS.      
 
@@ -164,7 +166,7 @@ matchExpressions:
     - key: type
       operator: In 
       values:
-        - frontend         #pod must be frontend in either app1 and app2
+        - frontend         #pod must be frontend in either app1 and app2 or both
 
 >as we have given two different conditions under match expression, two key will be considered as Logical AND.
 >i.e pod must match the both both key as values.        

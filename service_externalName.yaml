@@ -8,7 +8,7 @@ on the service port, will be routed to one of the service endpoints.
 externalIPs are not managed by Kubernetes and are the responsibility of the cluster administrator.
 
 
->EXTERNAL NAME_
+*EXTERNAL_NAME_
 
 >Services of type ExternalName map a Service to a DNS name, not to a typical selector 
 >such as my-service or cassandra. You specify these Services with the spec.externalName parameter.
@@ -25,7 +25,15 @@ spec:
   type: ExternalName
   externalName: my.database.example.com   
 
->so above service can be accesses by using name "my.database.example.com " externally.
+>so above service can be mapped to external DNS "my.database.example.com ".
+
+>in short, External name service map to the external DNS , this may be the databases out of cluster or databases
+>stored externally, or any other microservice pod that is deployed on other cluster and any microservice which
+>is completly external but can be accessed by external name service from within the cluster.
+
+
+flow:
+>request------>[k8s_cluster----->External name service]----> [out_of_cluster]--[DNS]-->[microservice/database]
 
 >--------------------------------------------------------------------------------------------------------------
 
@@ -35,7 +43,7 @@ CoreDNS or ingress-nginx because ExternalName is intended to specify a canonical
 To hardcode an IP address, consider using headless Services.
 
 
->EXTERNAL IP_
+*EXTERNAL_IP_
 
 If there are external IPs that route to one or more cluster nodes, Kubernetes Services 
 can be exposed on those external-IPs. 
@@ -61,5 +69,17 @@ spec:
       targetPort: 9376
   externalIPs:
     - 80.11.12.10
+
+
+>so above service can be mapped to external IP 80.11.12.10.
+
+>in short, External ip service map to the external ip , this may be the databases out of cluster or databases
+>stored externally, or any other microservice pod that is deployed on other cluster and any microservice which
+>is completly external but can be accessed by external ip service from within the cluster.
+
+
+
+flow:
+>request------>[k8s_cluster----->External ip service] ----> [out_of_cluster]--[IP]-->[microservice/database]
 
 >--------------------------------------------------------------------------------------------------------------

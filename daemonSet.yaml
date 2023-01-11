@@ -1,13 +1,16 @@
 >
 >ref_ https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/
 
->A DaemonSet's are similar to the Deployments, it ensures that all (or some) Nodes run a copy of a Pod. 
+>A DaemonSet's are similar to the Deployments or RS, it ensures that all (or some) Nodes in the cluster 
+>will run a at least one copy of a Pod. 
 
 >As nodes are added to the cluster, Pods are added to them. As nodes are removed from the cluster, 
 >those Pods are garbage collected. 
 >Deleting a DaemonSet will clean up the Pods it created.
 
->Both replica set and deployments are used for running a specific numbers of pods on k8s cluster.
+>Both replica set and deployments are used for running a specific numbers of pods on k8s cluster,
+>however, it do not gaurentees the pod creation on all nodes available in cluster.
+ 
 >but certain cases exist , where we want to run a pod on each and every node, that exist in a cluster,
 >and such node needs to run a exactly one instance only.
 
@@ -20,7 +23,6 @@ Some typical uses of a DaemonSet are:
 >running a cluster storage daemon, such as Glustered, Ceph on every node.
 >running a logs collection daemon, such as Filebeat, Fluented on every node.
 >running a node monitoring daemon, such as Nagios, Elk, Prometheous on every node.
-
 
 
 apiVersion: apps/v1

@@ -12,17 +12,17 @@ can be managed in bulk using orchastration engine like Docker-Swarm or Kubernete
 
 k8s is open source container management tool, it provides a container runtime, container orchastration,
 container centric infrastructure orchastration, self healing mechanism, service discovery, load balancing,
-and container scalling. it is wriitten in go languange.
+and container scalling. it is developed in GO languange by Google.
 
 >Container orchastration is used to automate the following tasks_
 
->1.configuring and scheduling of the containers
+>1.configuring and scheduling the containers
 >2.provisioning and deployments of the containers
 >3.redundancy and availability of the containers
->4.scalling up and down to spread the load evenly across host infrastructure
->5.movement of containers from one host to another , if there is a shortage of compute resources in a host.
+>4.loadbalacing and Autoscaling, i.e. scalling up and down to spread the load evenly across host infrastructure
+>5.movement of containers from one host to another, if there is a shortage of compute resources in a host.
 >6.allocation of the resources between containers
->7.external exposure of services running in a container with the outside world
+>7.external exposure of services running in a container with the outside world .i.e networking of containers
 >8.load balancing and service discovery between contrainer
 >9.health monitoring of containers and hosts.
 
@@ -39,7 +39,7 @@ and container scalling. it is wriitten in go languange.
 >k8s alternatives_
 
 >1. Container as a service             : ecs, fargate, azure container instance... etc
->2. managed k8s service                : eks, aks, gke, civo, platform9,OpenShift... etc (paas)
+>2. managed k8s service                : eks, aks, gke, civo, platform9, OpenShift... etc (paas)
 >3. paas using k8s                     : openshift, rancher offer k8s as paas
 >4. lightweight container orchastrator : docker swarm, hashicorp Nomad, apache mesos.. etc
 
@@ -49,41 +49,40 @@ and container scalling. it is wriitten in go languange.
 
 Master Node : 
 
->master node is reposible for managing the complete cluster. we can access the master node via CLI, 
->GUI or API.
+>master node is responsible for managing the complete cluster. we can access the master node via CLI, 
+>GUI or API. This is the machine on which Kubernetes is installed.
 
 >The master watches over the nodes in cluster and is responsible for the actual orchastration of the 
 >containers on the worker nodes.
 
->for achieving the fault torerance there can be more than one master node in the cluster.
+>for achieving the fault tolerance there can be more than one master node in the cluster.
 
 >it is the access point from which the user interacts with the cluster to manage the scheduling and 
 >deployments of the containers.
 
->it has four componets , API SERVER, ETCD, SCHEDULER and CONTROLLER. All toghether knows as Control Plane.
+>it has four componets , API SERVER, ETCD, SCHEDULER and CONTROLLER. All together known as Control Plane.
 
 >Even If master is failed in any way, Workload will remain persistant on worker node. However, it will
 >not be possible to communicate and control the cluster, as all communication and control of workloads and pods
->happens over the master node.
+>happens over the master node. master node is responsible for dispatching the workloads to the worker nodes.
 
+>we can communicate with master node through its frontend component, API-SERVER by using kubectl cli utility.
 
 #Master Node Components _
 
-kubectl:
->Kubectl is command line utility to communicate with the Kubernetes API server.
->API server exposes k8s api and serves like the front end for the control plane.
+API-SERVER:
+>It acts as Frontend for the kuberntes, Kubectl cli utility talks only with api server. To communicate
+>with other kubernetes manager components we have pass through api-server.
 
->kubectl converts the imperative commands/manifest instruction in to API calls to communicate with
->Kube API server in Kubenetes. 
->Kube API Server in k8s , is tasked with communicating with other kubernetes componetes in 
->Master and passing the commands/instruction to them to complete the given task.
->Kube API validates and executes the REST commands. it also makes sures that Configurations in the ETCD matches 
->with configuratins of the containers deployed in the cluster. 
+>The Kubernetes API server validates and configures data for the api objects which include pods, services, 
+>replicationcontrollers, and others. The API Server services REST operations and provides the frontend to 
+>the cluster's shared state through which all other components interact.
 
 
 Controller_manager:
 >Controller Manager, is the brain behind the orchastration and is responsible to maintain the desired state 
 >of the cluster. it is tasked with checking the health of pods in cluster and replacing them when needed.
+
 >it is reponsible for noticing and responding when nodes, containers or endpoints goes down. the controller
 >makes decision to bring up new containers in such cases.
 >There are various controllers like_
@@ -94,13 +93,14 @@ Scheduler:
 >Scheduler, take care of the responsibilty of resource allocation, scheduling the pod on the correct node
 >which satisfies the resource need of the pod. Scheduler look for the pods resource requirement and schedule
 >them on the correct node.
+
 >scheduler is also responsible for the distribution of the workloads across the multiple nodes. scheduling 
 >decision includes factors such as Pods resource requirement, H/W-S/W policy requirements, Affinity and 
 >Anti-Affinity rules, taints and Tolerations etc.
 
 
 ETCD:
->ETCD, is a database of key-value types in kubernetes. it stores the complete cluster information. All the
+>ETCD, is a database of the key-value types in kubernetes. it stores the complete cluster information. All the
 >desire state information is stored in ETCD. also it store all cluster information, so if cluster goes
 >down , restoring cluster to previous state based on values stored in ETCD is possible.
 
@@ -109,26 +109,48 @@ ETCD:
 
 Worker Node: 
 
->worker node is reponsible for the execution of the tasks dispatched by the Master node. 
+>worker node is responsible for the execution of the tasks dispatched by the Master node. 
 >It is the actual component in k8s cluster which does the job of execution of the Pods and running the
 >containers. 
 >It contains the Container Runtime Engine such as Docker, to spin up the container on the direction
 >provided by the Kubernetes master node.
+>It is  not needed to install kubernetes on worker node, only Container Runtime like Docker is needed 
+>to be install on worker node.
+
 
 #Worker Node Components _
 
 Kubelet:
->Kubelet, is a componets in the Worker Node, it is tasked with reporting the workloads, health of the Pod
->worker it running,  back to the Master Node. It keep checking with master node, wheather it has any more
+>Kubelet, is a componets in the Worker Node, it is tasked with reporting the workloads, health of the
+>pods it running,  back to the Master Node. It keep checking with master node, wheather it has any more
 >workloads/pods needed to run. Master Notifies the Kubelet , if it has to run the new pod or not.
 
 Kube_Proxy:
->Kube-proxy is a network proxy that runs on each node in cluster , implementing part of the k8s service concept.
+>Kube-proxy is a network proxy that runs on each node in cluster, it implements part of the k8s service concept.
 >it routes the traffic coming into node from service and forward the requests to correct pod on the node.
 
->KubeProxy, will resolve or creates IP table rules. these routing rules is applied by the KubeProxy in
+>KubeProxy, will resolve or creates IP-table rules. these routing rules is applied by the KubeProxy in
 >specific node, so the pod to pod communication via service is possible becouse of the rules created
 >by the KubeProxy component.
+
+
+*                             ***************************************
+
+
+#kuberntes CLI interface_
+
+kubectl:
+>Kubectl is command line utility to communicate with the Kubernetes API server.
+>API server exposes k8s api and serves like the front end for the control plane.
+
+>kubectl converts the imperative commands or declaratives manifests instruction in to API calls to 
+>communicate with Kube API server in Kubenetes. 
+
+>Kube API Server in k8s , is tasked with communicating with other kubernetes componetes in 
+>Master and passing the commands/instruction to them to complete the given task.
+
+>Kube API validates and executes the REST commands. it also makes sures that Configurations in the ETCD matches 
+>with configuratins of the containers deployed in the cluster. 
 
 
 
@@ -137,13 +159,14 @@ Kube_Proxy:
 
 Container Runtime Environment [CRE]:
 
->It is underlaying software that is used to run the containers like Docker. but there are also other options 
->such as_ Docker, rkt, CRI-O, ContainerD.
+>It is underlaying software that is used to run the containers and to support the containerization 
+>like Docker. but there are also other options such as_ Docker, rkt, CRI-O, ContainerD.
 
 >Kubernetes is completely decoupled from specific runtimes. The container runtime interface enables it.
 
 >CRE , is reponsible for creating and mainting the isolated workspaces for the containers.
->it creates a abstraction like Namespace and Cgc vc cv cc c croups , which maintains the isolation between various objects.
+>it creates a abstraction like Namespaces and Cgroups , which maintains the isolation 
+>between various objects.
 Namespaces, decides what to use and  Cgroups, decides how much to use
 
 
@@ -168,7 +191,7 @@ Container Runtime Interface [CRI]:
 >between the cluster components kubelet and container runtime.
 
 >So , it is like a set of the rules, that all the CRE provider must follow in order to communicates
->with K8S API server via Kubelet. it acts as a abstraction layer to avoild large codebase for the kubelet.
+>with K8S API server via Kubelet. it acts as a abstraction layer to avoid large codebase for the kubelet.
 
 >to implement the CRI, CRE must be complient with the OPEN CONTAINER INITIATIVE [OCI]. 
 >OCI sets up the rules for CRI.
@@ -234,10 +257,10 @@ Docker-Shim:
 
 >ref_ https://kubernetes.io/blog/2022/05/03/dockershim-historical-context/
 
->this is deprecated component of kubernetes.  Dockershim has been removed as of Kubernetes v1.24.
+>this is deprecated component of kubernetes.  Dockershim has been removed as of Kubernetes v1.24 release.
 >with deprecation of docker as runtime for k8s, Docker-shim is also deprecated.
 
->As kubectl interacts and understands only CRI, which in tern communicates with CRI-O. 
+>As kubectl interacts and understands only CRI, which in turn communicates with CRI-O. 
 >CRI was not able to communicates with Docker over gRPC , in order to 
 >bridge the gap between CRI and Docker , kubernetes introduced the componets called as Docker-shim.
 

@@ -45,14 +45,20 @@ spec:
 >backoffLimit : if the job fails, this is the max number of retry for the job.
 >activeDeadlineSeconds : is the time, we gave for to execute,if not executed within this time,pod will be terminated
 
-
->RestartPolicy applies to the Pod, and not to the Job itself.
+RestartPolicy applies to the Pod, and not to the Job itself.
 
 >there is no automatic Job restart once the Job status is "type: Failed". 
 >That is, the Job termination mechanisms activated with .spec.activeDeadlineSeconds 
 >and .spec.backoffLimit result in a permanent Job failure that requires manual intervention to resolve
 
+
+*some_applications_ :
+1.checking and testing the connections
+2.stress testing on the nodes by running parrallel executions
+3.testing the h/w resource limits sets for pod
+
 >------------------------------------------------------------------------------------------------------------
+
 
 >ref_ https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/
 

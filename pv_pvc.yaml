@@ -3,11 +3,11 @@
 >What problems does it solve?
     Containers running inside the pod can not share the files with each other.
     All the files inside the container are temporary which means if you terminate the container,
-    you are going to lose all your files.(EmptyDir)
+    you are going to lose all your files.( and in case of EmptyDir too)
     Secondly if in any case, your container crashes then there is no way to recover files.
     Kuberenetes provides volume plugin as Persistent Volume to address the above problems.
 
-    The lifecycle of these volumes are independent of the lifecycle of pods.
+    The lifecycle of these volumes are independent of the lifecycle of pods. (host path)
     So if PODs are terminated then volumes are unmounted and detached keeping the data intact.
 
 >What is Persistent Volume(PV)?
@@ -37,7 +37,7 @@
 
 >---------------------------------------------------------------------------------------------------------------
 
->flow :-   POD------>PVC------->PV
+>flow :-   POD------>PVC------->PV----->h/w storage
 
 1. create/execute manifest for volume i.e provision the required PV 
 2. bind the volume to PVC i.e. execute manifest for pvc 
@@ -78,7 +78,7 @@ metadata:
 spec:
   volumeName: jhooq-demo-pv           # name of the pv
   storageClassName: local-storage     # must need to same as describe in PV specs, it will decide which PV 
-  volumeMode: Filesystem                         # will get served the claim.
+  volumeMode: Filesystem              # will get served the claim.
   accessModes:
     - ReadWriteOnce
   resources:
@@ -96,11 +96,11 @@ metadata:
 spec:
   capacity:
     storage: 10Gi
-  volumeMode: Filesystem
+  volumeMode: Filesystem       #filesystem or Block
   accessModes:
   - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain     #other, Delete
-  storageClassName: local-storage
+  storageClassName: local-storage           # or Manual, if cluster is not provisned on cloud 
   local:                                    #or-->  hostPath:
     path: /home/vagrant/storage             #          path: "/path"
 
@@ -125,22 +125,33 @@ spec:
 
 
 > accessModes, can be_ (from statefulset video)
-     ReadWriteOnce (RWO) : only single worker node can mount the volume for reading and writing at same time.
+
+     ReadWriteOnce (RWO) : only single worker "NODE" can mount the volume for reading and writing at same time.
                            this mode will still allow multiple pods to access the volume when pods are running
                            on same node on which PV is provisioned on.
+                           (for pvc, is the only mode supported, if storage class is manual)
 
-     ReadOnlyMany (ROX)  : the volume can be mounted as read-only by many nodes at the same time
-     ReadWriteMany (RWX) : the volume can be mounted as read-write by many nodes at the same time
+     ReadOnlyMany (ROX)  : the volume can be mounted as read-only by many nodes at the same time.
+                           (for pvc, do not support if storage class is manual, available only when cluster is 
+                           provisioned on cloud)
+
+     ReadWriteMany (RWX) : the volume can be mounted as read-write by many nodes at the same time. 
+                           (for pvc, do not support if storage class is manual, available only when cluster is 
+                           provisioned on cloud)
 
 
 >persistentVolumeReclaimPolicy, can be_
 
   >reclaim policy tell us , what happens to persistent volume , when the PVC is deleted.
 
-     Delete  : it deletes volume content and makes the voulme available to be claimed again as 
+     Delete  : it deletes volume content and makes the volume available to be claimed again as 
                soon as pvc gets deleted. 
+
      Retain  : pv content will be persisted after pvc is deleted and it can not be reused, until
                administrator reclaim the volume manually.
+
+     Recycle : this policy will remove everything from the perticular device. this policy is valid
+               only for NFS and HostPath type.           
 
 >--------------------------------------------------------------------------------------------------------------- 
 
@@ -184,7 +195,7 @@ spec:
 >such a performance for different problems.
 >it is a cluster wide resource used to store /persist data beyond the lifetime of a pod.
 
->pv's are not backed by any locally attached storage on worker node but by networked storage system 
+>pv's are not generally backed by any locally attached storage on worker node but by networked storage system 
 >such as cloud providers storage or NFS or distributed filesystem like Ceph or GlusterFS. 
 
 >PV provide a file system that can be mounted on to the cluster, without being associated with any 
@@ -201,21 +212,19 @@ spec:
 >Statefulset are the most frequent users of the pv since they need a permanant storage for their pods.
 
 
-
 >There are two ways to provisioned the persistant volume_
 
-1> statically :- a cluster admin creates a numbers of pv's , they carry the details of the real storage,
+1> statically  : a cluster admin creates a numbers of pv's , they carry the details of the real storage,
                  which is available for use by cluster users.
 
-2> Dynamically :- When none of the admin created pv that matches the users pvc, then the cluster 
-                  may try to dynamically provisioned the volume/pv as per users request, specially for the pvc. 
+2> Dynamically : When none of the admin created pv that matches the users pvc, then the cluster 
+                 may try to dynamically provisioned the volume/pv as per users request, specially for the pvc. 
                   
->                 This provisioning is based on StorageClasses, the pv must request a storage class 
+>                 This dynamic provisioning is based on StorageClasses, the pv must request a storage class 
 >                 and the admin must have created and configured that class for dynamic provisioning to occure.
 
 >                 to enable dynamic storage provisioning , we have to enable the DefaultStorageClass admission'
 >                 controller on the k8s API server.
-
 
 
 >-----------------------------------------------------------------------------------------------------------------
@@ -229,7 +238,8 @@ Storage Class_ :
 >the STORAGECLASS automatically creates a PV for this PVC.
 
 >most cloud provider (managed cluster services), provides the default storage class when you set up the
->k8s cluster. To check the default/available storage class within the cluster, we can get this using 
+>k8s cluster. 
+>To check the default/available storage class within the cluster, we can get this using 
 kubectl get storageclass
 
 >different storage class represents various qualities, such as Disk speed like SSD/HDD, and Throughput,
@@ -237,5 +247,114 @@ kubectl get storageclass
 >need cloud provider supports.
 
 >Minikube provides default storage class as HostPath type.
+
+>-----------------------------------------------------------------------------------------------------------------
+
+*from_cloud_deeptech_
+>Dynamic volume provisioning using storage class.
+
+>Storage Class :-
+
+storage class is used to manage persistance volume. 
+storage class will do Dynamic provisioning of storage using cloud provider like aws, gcp etc.
+
+if our cluster is not associated with any cloud provider, we will not be able to storage class. that our claim
+will fail.
+
+storage class / pv are not namespaced object. pvc is namespaced.
+
+>ref_ https://kubernetes.io/docs/concepts/storage/storage-classes/
+
+
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: k8s-storage-sc
+
+provisioner: kubernetes.io/aws-ebs     # determines what volume plugin is used for provisioning
+parameters:
+  type: gp2
+  iopsPerGB: "10"
+  fsType: ext4                         # gp2, aws specific
+
+reclaimPolicy: Retain                  # retain or delete
+allowVolumeExpansion: true             # allow dymanic resizing
+mountOptions:
+  - debug
+volumeBindingMode: Immediate           # Immediate or waitForFistConsumer
+
+
+
+*volumeBindingMode_
+
+>Immediate,  mode indicates that volume binding and dynamic provisioning occurs once the 
+>PersistentVolumeClaim is created
+
+>WaitForFirstConsumer, mode which will delay the binding and provisioning of a PersistentVolume until a
+>Pod using the PersistentVolumeClaim is created.
+
+
+>pv :-
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name:  k8s-storage-pv 
+
+spec:
+  capacity:
+    storage: 10Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain    #Recycle or delete
+  storageClassName: k8s-storage-sc
+
+
+
+>pvc :-
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: k8s-storage-pvc
+
+spec:       
+  storageClassName: k8s-storage-sc
+  volumeMode: Filesystem                       
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+
+
+>POD_
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: k8s-storage-pod
+
+spec:
+  containers:
+  - name: k8s-storage-containers
+    image: nginx
+
+    volumeMounts:
+      - name: k8s-storage-volume
+        mountPath: /home/data
+
+  volumes:
+    - name: k8s-storage-volume
+      persistentVolumeClaim:
+        claimName: k8s-storage-pvc
+
+
+*flow_
+
+>aws ebs ---> StorageClass ---> PV ---> PVC ---> Pod/Deployments ---> Application
+
 
 >-----------------------------------------------------------------------------------------------------------------

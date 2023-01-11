@@ -11,6 +11,7 @@
 >detects any drift in current state of the cluster, they instruct the KUBELET components in the WORKER
 >to spin up the additional pods depends on the desired state. 
 >this way k8s ensured that all the containers running across the cluster are always in the desired state.
+
 >we need a controller for our application , for the purpose of Relibility, LoadBalancing, Scalling.
 
 >read: https://kubernetes.io/docs/concepts/workloads/controllers/replicationcontroller/
@@ -24,6 +25,7 @@
 >Another reason we need replication controller to create multiple pod and share the load across them.
 
 >Replication Controller uses Equality Based Selector(older), while Replica-Set uses Set Based Selector(latest).
+>it is like hard selection and not expressive as set based selectors are.
 
 >Replication Controller is now deprecated and is replaced by Replica Set.
 
@@ -96,5 +98,6 @@ spec:
 # pod label is must. If selector attribute  is not provided
 # then pods label is taken as default selector for rc.
 
+>if there are multiple selectors ALL SELECTORS MUST NEEDED TO BR MATCHED.
 
 >--------------------------------------------------------------------------------------------------------------

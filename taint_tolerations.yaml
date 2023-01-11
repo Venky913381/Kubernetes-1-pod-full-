@@ -4,7 +4,8 @@
 >Taints and Tolerations
 
 Node affinity is a property of Pods that attracts them to a set of nodes,
-(either as a preference or a hard requirement). Taints are the opposite,  they allow a node to Repel a set of pods.
+(either as a preference or a hard requirement). 
+Taints are the opposite, they allow a nodes to Repel a set of pods from getting schedule on them.
 
 Tolerations are applied to pods. Tolerations allow the scheduler to schedule pods with matching taints. 
 Tolerations allow scheduling but don't guarantee scheduling, the scheduler also evaluates other parameters 
@@ -14,21 +15,6 @@ Taints and tolerations work together to ensure that pods are not scheduled onto 
 One or more taints are applied to a node; this marks that the node should not accept any pods that do
 not tolerate the taints.
 
->The default value for operator is Equal.
-
-A toleration "matches" a taint if the keys are the same and the effects are the same, and:
->1.the operator is Exists (in which case no 'value' should be specified), or
->2.the operator is Equal and the values are Equal.
-
-There are two special cases:
->1.An empty key with operator Exists matches all keys, values and effects which means this will tolerate everything.
->2.An empty effect matches all effects with key key
-
->There can be multiple taints on the node with same or different keys, so in order for pod to get schedule on that 
->node, we need to add all the tolarations with all the keys, as per taints on the node.
-
->if there are multiple taints on node, pod need to tolerate all the taints , else it will not able to tolerate the
->taints on the node. 
 
 >--------------------------------------------------------------------------------------------------------------
 
@@ -36,9 +22,13 @@ There are two special cases:
 
 Taint is putting the conditions on node for k8s resources to get scheduled on it.
 if we taint the node , then only those pod, which can tolerate the taint of node will get schedule on
-that node, else they will get schedule on another node .i.e NOSCHEDULE on tainted node.
+that node, else they will get schedule on another node .i.e NOSCHEDULE on tainted node, if they do not tolerate
+the taint.
 
 > eg,  kubectl taint node nodename mysize=large:NoSchedule        / PreferNoSchedule / NoExecute
+
+
+*NoSchedule
 
 we can assign taint to node using above commands. 
 above, we have tainted the node ,that these node is of large size,
@@ -73,14 +63,16 @@ spec:
 #PreferNoSchedule
 
 you can use effect of PreferNoSchedule. This is a "preference" or "soft" version of NoSchedule.
-the system will try to avoid placing a pod that does not tolerate the taint on the node.
+the scheduler will try to avoid placing a pod that does not tolerate the taint on the node but will
+not gaurentee , that pod will not be placed.
+i.e. prefferNoSchedule, if pod do not tolerate the taint on the node, but is does not gaurentees the non Sheduling.
 
 > kubectl taint node <noddename> mysize=large:PreferNoSchedule
 
 if we taint the node using above option , then the pod which will tolerate the taint of node will preferably
 schedule on that node.
 Howevewer other pods can also get schedule on it, even though it is not preferred node choice.
-i.e. it does not gaurtees that other pods will not get schedule on it.
+i.e. it does not gauretees that other pods will not get schedule on it.
 
 
 >-----------------------------------------------------------------------------------------------------------
@@ -103,6 +95,7 @@ then that pod will also get deleted.
 >kubectl taint node worker01 mysize-
 
 >---------------------------------------------------------------------------
+>The default value for operator is Equal.
 
 > Different effects of the tolerations...............
 
@@ -147,3 +140,21 @@ tolarations:
       tolerationSeconds: 60             > only iff no execute is effect.
 
 >------------------------------------------------------------------------------------------------------------
+
+
+A toleration "matches" a taint if the "keys" are the same and the "effects" are the same, and:
+>1.the operator is Exists (in which case no 'value' should be specified), or
+>2.the operator is Equal and the values are Equal.
+
+There are two special cases:
+>1.An empty key with operator Exists matches all keys, values and effects which means this will tolerate everything.
+>2.An empty effect matches all effects with key key
+
+>There can be multiple taints on the node with same or different keys, so in order for pod to get schedule on that 
+>node, we need to add all the tolarations with all the keys to the pod, as per taints on the node.
+
+>if there are multiple taints on node, pod need to tolerate all the taints , else it will not able to tolerate the
+>taints on the node.
+
+
+******************************************************************************************************************

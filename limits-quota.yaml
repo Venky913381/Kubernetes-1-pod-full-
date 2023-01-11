@@ -7,7 +7,7 @@
 >Using namespace we can put limit on resource usage at namespace level, which ensure that each application 
 >have enough resources, not all resources is consumed by one application only.
 
->using limit, Put Hardware Resource restriction on Resources in Namespace
+>using limit, we put Hardware Resource restriction on Resources in Namespace
 
 >to check resource restriction on namespace : - >kubectl describe ns test-space
 
@@ -60,6 +60,7 @@ jobs
 cronjobs
 
 >------------------------------------------------------------------------------------------------
+
 Compute Based Quota
 >B) putting maximum compute resource limit for the entire namespace. (Compute Based Quota)
 
@@ -72,14 +73,14 @@ metadata:
 
 spec:
   hard: 
-    pods: 2                   # this will be the total request/limit for ALL the pods Combine in a ns.
+    pods: 2                   # this will be the total request/limit for ALL the resources Combined in a ns.
     requests.cpu: 0.5
     requests.memory: 500Mi
     limits.cpu: 1
     limits.memory: 600Mi
 
 >it is important to note that, above is not the request/limit for the individual pod or container, but
->the combine limit/request for the namespace. i.e. all the objects creatred within that namespace
+>the combine limit/request for the entire namespace. i.e. all the objects created within that namespace
 >will have only described compute resources to their disposal.    
 
 >even if we put the resource limit on namespace, we need to put individual limits on pod in pod specs.
@@ -173,7 +174,7 @@ metadata:
 spec: 
   limits:                      
   - default: 
-      cpu: 150m          # this is default limit         
+      cpu: 150m            # this is default limit         
       memory: 500Mi             
 
     defaultRequest:
@@ -181,7 +182,7 @@ spec:
       memory: 200Mi  
 
     min: 
-      cpu: 80m       # must be smaller than  default request
+      cpu: 80m        # must be smaller than  default request
       memory: 150Mi
     max: 
       cpu: 200m       # must be larger than default Limit

@@ -1,5 +1,5 @@
 >
-> Three types of volumes are :-> 
+> Three types of storages in kuberntes, these are :-> 
 1> EmptyDir
 2> HostPath
 3> PersistantDisk
@@ -41,7 +41,7 @@ spec:
 
 >--------------------------------------------------------------------------------------------------------
 
-# 2.HostPath ( Creating volume outside of pod, i.e. on Node machine. (HOstPath) )
+# 2.HostPath ( Creating volume outside of pod, i.e. on Node machine. (HostPath) )
 
 >if we delete the POD, data will be preserved in directory in sync on Host Machine, 
 >and when new POD is recreated by controller, all the data will be present in new POD inside the container.
@@ -62,7 +62,7 @@ spec:
           mountPath: /data
 
   volumes:                 # volume on host machine
-    - name: test-vol2                         #/data on container & /tmp/data on host, will be in sync.
+    - name: test-vol2                         #/data,  on container & /tmp/data, on host, will be in sync.
       hostPath:
           path: /tmp/data    
 
@@ -76,13 +76,15 @@ spec:
 
 >when node become unstable, the pod might fails to access the hostpath directory and eventually gets terminated.
 
+>life cycle of the Host Path is independant of the Pod. i.e. even if pod dies, the data/host path will remains.
 
 >-------------------------------------------------------------------------------------------------------------
 
 # EKS ON AWS  ( Persistance data , with cluster on the cloud)                             
 
->In above two cases , if pod is get schedule on any machine , other than its original machine in cluster data will 
->no longer be available to the pod.
+>In above two cases, in case of recreation, if pod is get schedule on any machine , other than its original 
+>machine in cluster data will no longer be available to the pod.
+
 >In this all we need a volume which is available to the all the machines in the cluster, 
 >Here AWS EKS (cluster in cloud) comes to rescue_
 

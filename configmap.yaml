@@ -1,13 +1,11 @@
-
-
-
 >
+
 >we use config map to decouple the application specific properties from application image. and we pass
->this application specific properties as environmental variable during pod creation. 
+>this application specific properties as environmental variable during pods creation. 
 >However, this is not secure way to pass the data.
 
 >kubectl get cm  <cm-name>
->kubectl describe cm  <cm-name
+>kubectl describe cm  <cm-name>
 
 >kubectl create configmap <cm-name> --from-literal=<literal>="<value>"  ---> from literal , directaly from cmd.
 >kubectl create configmap <cm-name> --from-literal=param1="value1"  --from-literal=param2="value2" --fro....
@@ -57,7 +55,7 @@ metadata:
   name: configmap1
 
 data:
-  my-key1: my-value1
+  my-key1: my-value1       # data in plain text format
   my-key2: my-value2
   my-key3: my-value3
   my-key4: my-value4
@@ -80,7 +78,7 @@ data:
     username="swapnil"
     password="12345"
 
->kubectl apply -f <config_map_filr.yml>    
+>kubectl apply -f <config_map_file.yml>    
   
 >----------------------------------------INJECTING CONFIG MAP--------------------------------------
 

@@ -1,6 +1,6 @@
 >
 
-multistage docker file :
+multistage docker file : 
 
 >1 >
 
@@ -52,13 +52,13 @@ CMD ["java","-jar","/usr/src/mymaven/target/ROOT.war"]
 
 >2.containerization is one of the core stages in devops process where security must be looked on a serious note.
 
->3.container image can have many bugs and security vulnerabilitiues, which gives a good opportunity for the
-> hackers to bet access to the application and data present in the containers.
+>3.container image can have many bugs and security vulnerabilities, which gives a good opportunity for the
+>  hackers/exploiters to get access to the application and data present in the containers.
 
 >4.hence it is crucial to scan and audit the images and containers regularly.
 
 >5.DevSecOps plays an important role in adding security to the devops processes, including scanning images
-> and containers for bugs and vulnerabilities.
+>  and containers for bugs and vulnerabilities.
 
 >6.while building docker images , mainly we are concerned for two things_
   a)Size of the image
@@ -102,9 +102,9 @@ CMD ["java","-jar","/usr/src/mymaven/target/ROOT.war"]
     6)use multistage build 
     7)perform health checks
     8)avoid exposing unnecessary ports
-    9)hardcoding the credentials
-   10)dockerhub host up to 7 miilion repositories, base base must be selected wisely, not all images are secure.
-   11)use tool like ancore image scanner to scan the images for vulnereabilities.
+    9)avoid hardcoding the credentials
+    10)dockerhub host up to 7 miilion repositories, base base must be selected wisely, not all images are secure.
+    11)use tool like anchore , trivy, sync etc.. image scanner to scan the images for vulnereabilities.
 
 
 >11.What if multistage images , do not reduces the size of image, then_
@@ -112,11 +112,11 @@ CMD ["java","-jar","/usr/src/mymaven/target/ROOT.war"]
     1)remove unwanted binaries like apt, yum, npm, bash, sh leaving only required dependancies
     2)pack only bare minimum dependancies needed to run container.
     3)use alpine images as a base image becouse  it is much easier to use standard debugging tools
-      ans install dependancies 
+      and install dependancies 
     4)use distroless images, is a project from google (java user can use jib)  
 
 >12.Alpin Linux_
-    Alpin Linux is a linux distribution build around musl libc and busybox. it is only 5MB in size.
+    Alpin Linux is a linux distribution build around musl-libc and busybox. it is only 5MB in size.
     which makes great base image for utilities and even production applications.
     by using alpin linux as base image, and adding only required dependancies/artifacts on top of it, 
     result in smaller and cleaner docker images. 
@@ -128,13 +128,13 @@ CMD ["java","-jar","/usr/src/mymaven/target/ROOT.war"]
     or any such programm which we usually expect in a standard linux distribution.
 
     this approch creates a smaller attack surface, reduces complience scop and result in a smaller , lean and
-    clean image and thius increases security.
+    clean image and thus increases security.
 
     it is pioneered by GOOGLE. google have published the set of distroless images for different languages.
     distroless images do not have shell for dubugging. 
 
   >there are also a bare minimum stripped "scratch" images. These are very small images. 
-  (may not support all image build, google it and read)
+   (may not support all image build, google it and read)
 
 
 >14.Merge Layers of Image_  
@@ -142,7 +142,7 @@ CMD ["java","-jar","/usr/src/mymaven/target/ROOT.war"]
     The squash flag is an experimental feature. It allows you to merge the new layers into one layer 
     during the build time. To use it just add the flag to the build command: 
     
-    >docker build --squash -t <image>.
+    >docker build --squash -t <dockerfile>.
 
     You can use it by activating the experimental features in the Docker settings.
       
@@ -165,17 +165,17 @@ USING Anchore image Analyzer CLI :
     1)adding container image to analyse_ 
 >        anchore-cli image add <image_name>
 
-    2)waiting for image to complate the analysis_ (to check if analysis is complete or not)
+    2)waiting for image to complete the analysis_ (to check if analysis is complete or not)
 >        anchore-cli image wait <image>
 
     3)list images analysed by anchore_ 
 >        anchore-cli image list 
 
-    4)veiw the scan result and list out all of the known vulnerabilities_
+    4)view the scan result and list out all of the known vulnerabilities_
 >        anchore-cli image <image>  
 
     5)to run policy check 
-        anchore-cli evaluate check <image> --detail
+>        anchore-cli evaluate check <image> --detail
 
 
 >-----------------------------------------------------------------------------------------------------------------
@@ -203,23 +203,25 @@ Using Trivy Image Analyser CLI :
 >every command in dockerfile, runs a root user/commands, it never requires a sudo permission.
 
 
->Best Practice for bilding images 
+Best Practice for bilding docker images :
 
->1.never use the latest image  and if possible pass the image version as argument 
+>1.Only use the Trusted images from authorised sources and never use the latest image 
+>  and if possible pass the image version as argument 
 
 ARG TAG=18.04
 FROM ubuntu:$TAG 
 
 
->2.while copying the files , use full paths, Regular expression and user 'Dockerignore' file to 
+>2.while copying the files , use full paths, Regular expression and use the '.Dockerignore' file to 
 >  avoid copying uncessary files.
->  Also chnage the working directory before copying the files.
+>  Also change the working directory before copying the files.
 
 WORKDIR /appl 
 COPY *.java . 
 
 
->3.merge the multipleRUN commands in to single command, it will reduce the number of layers.
+>3.merge the multiple RUN commands in to single command, it will reduce the number of layers as each 
+>  instruction in Dockerfile causes a new image layer.
 
 RUN apt get update && apt install curl -y  && curl -k http://ip 
 
@@ -231,18 +233,18 @@ RUN apt update -y && \
 
 
 
->4.never pass the secrete data in environmental variable , pass it as environmental variable ,
->while buiding image only.
+>4.never pass the secrete data as environmental variable. pass it as environmental variable
+>  while buiding image only.
 
 ENV DATABASE postgres
 
->docker run --name dummydatabase -e PASSWORD=1234 test:1.0   --->passing env var using -e flag.
+*docker run --name dummydatabase -e PASSWORD=1234 test:1.0   --->passing env var using -e flag
 
 
->5.CMD AND ENTRYPOINT instruction , we need to use executable format. we can also remove sh/bash for security purpose
->  before execution on CMD/ ENTRYPOINT , and we can call binary directaly.
+>5.CMD and ENTRYPOINT instruction , we need to use executable format. we can also remove sh/bash for security purpose
+>  before execution on CMD/ ENTRYPOINT , and we can call required executable binary directaly.
 
-  > suppose we are pinging some ip on image ixecution, then_
+  > suppose we are pinging some ip on image execution, then_
 
    RUN rm -rf /bin/bash   ---> this will remove only bash.
    CMD 8.8.8.8
@@ -261,7 +263,7 @@ ENV DATABASE postgres
 
 
 
->6.one of the best practice is use non root user for entrypoint and cmd instruction, this can be done by 
+>6.one of the best practice is to use non root user for entrypoint and cmd instruction, this can be done by 
 >  switching to non root user using USER instruction.
 >  Now this will create a problem, while running a RUN instruction that needs a root permission. this can be
 >  metigated by running a all instructions as root user and switching to normal user , just before the 
@@ -281,7 +283,7 @@ ENV DATABASE postgres
 
 
 >7.using distroless images_
->  these images do not any debugging utilities like sh, ping, ls, curl etc.
+>  these images do not contain any debugging utilities like sh, ping, ls, curl etc.
 >  however, google also provides distroless images with nonroot user, images with debugging utilities, 
 >  and debugging utilities with nonroot user. 
 
@@ -314,7 +316,7 @@ FROM gcr.io/distroless/static-debian11:debug
 
 
 
->9.while building images, remove unnecessary dependancies also after building remove package manager cache.
+>9.while building images, remove unnecessary dependancies/caches also after building remove package manager cache.
 
   ARG TAG=18.04
   FROM ubuntu:$TAG 
@@ -334,12 +336,12 @@ FROM gcr.io/distroless/static-debian11:debug
 DOCKER CONTAINER SECURITY :
 
 >As docker containerization engine uses host operating kernel, it is important to use Secure and 
->No severe vulnerabilities operating system as a host operating system.
+>operating system with "No known severe vulnerabilities" as a host operating system.
 
 >Also is importamt to use latest version of the docker engine and to make sure that nothing is vulnerable
->on the sytstem which we are using as host operating system.
+>on the system which we are using as host operating system.
 
->Use of minimal operating systems like Clear Linux is one of thebest practices , we can implement for 
+>Use of minimal operating systems like Clear Linux is one of the best practices , we can implement for 
 >security of the system.
 
 Apart from using secure host system, we need to implement following measures for securing docker images _ :
@@ -347,7 +349,7 @@ Apart from using secure host system, we need to implement following measures for
 
 >1. Always launch/run Container with Unpreviledge User _
 
-to achieve this this need a docker images with unpriviledge user, for this purpose we need to build
+to achieve this we need a docker images with unpriviledge user, for this purpose we need to build
 our own images with unpriviledge user.
 
 >add non root/ non sudo user
@@ -377,11 +379,10 @@ RUN chsh -s /usr/sbin/nologin root                # here we are blocking the ter
 
 
 
->3. Stop the Logined user for escalating priviledges _
+>3. Stop the Logged in user for escalating priviledges _
 
 We can also stop the user from escalating the priviledges, this can be done while spinning up new  docker 
 container, as follow using  --security-opt=no-new-priveledges   flag
-
 
 >docker run -it --rm -u swapnil --security-opt=no-new-priveledges <image id>
 
@@ -401,7 +402,7 @@ here, we have first dropped all the capabilities for kernal and then add specifi
 
 >5. Lauching the container with read-only permission_
 
-with read only mode we can ensure that user will not made any changes to the file system of the container.
+with read only mode we can ensure that user will not made any changes to the existing file system of the container.
 this will not even allow ROOT user to make any changes to the file system.
 
 >docker run --read-only -u swapnil -it ---rm <image id>
@@ -411,14 +412,6 @@ using following , we can allow user to make changes to temporary filesystem
 >docker run --read-only --tmpfs /<dir_path>  -u swapnil -it ---rm <image id>
 
 now, user can make changes in specified  /<dir_path> only.
-
-
-
->6.
-
-
-
-
 
 
 >----------------------------------------------------------------------------------------------------------------

@@ -1,11 +1,11 @@
 >
 
->Namespaces are like seperate virtual space within kubernetes.
+>Namespaces are like seperate virtual-spaces/workspaces within kubernetes cluster.
 >kubernetes cluster may have multiple application deployed within same cluster. In this we can use seperate 
->namespaces for each application deployement, which introduced layer of isolation between them.
+>namespaces for each application deployement, which introduce the layer of isolation between them.
 
->Using namespace we can put limit on resource usage, which ensure that each application have enough resources, 
->not all resources is consumed by one application only.
+>Using namespace we can enforce quota and limits on resource usage, which ensure that each application 
+>have enough resources, not all resources is consumed by one application only.
 
 to get the k8s resourses which supports namespaces
 >kubectl api-resources
@@ -17,29 +17,34 @@ to create a resource in a namespace other than default ns
 >kubectl apply -f <k8s_res.yml> -n <name-space>
 
 >kubectl <option> <resource> *<name>  -n <ns-name>    ---> -n / --namespace, options:- get, delete, apply, ...
+eg> jubectl get rc <rc_name> -n testspace
 
-to set custom Namespace as defualt
+to set custom Namespace as default
 > kubectl config set-context --current --namespace=<ns-name>
 
 To access service in another namespace 
-> <*servicename>.<*namespacename>.svc.cluster.local  -->curl it
+> <servicename>.<namespacename>.svc.cluster.local  --> full fqdn of service, curl it
+
+To access pod without service in another namespace 
+> <ip_of_pod>.<namespacename>.pod.cluster.local    --> full fqdn of pod, curl it
 
 
 >we can control resources in custom namespace in two different ways_(check limit-quota for more)
 
 1> ResourceQuota
->this will set the limits on the number of k8s objects that can be created in given namespace.
+>this will reserve the hardware resource for the perticular object in the namespace. or we can put
+>quota on the number of the objects that can be created within the namespace.
 
-2> LimitRange
->This will set the combine limit on the quantity of the compute resource like RAM and CPU
->that can be used by thr k8s object in the given namespace.
-
-> there are two types of quota/limits, 
+there are two types of quota/limits : 
 1) OBJECT BASED QUOTA, where we limit the number of Object that can be created inside the namespace.
 2) COMPUTE BASED QUOTA, where we limit the node resources to be used by k8s resource.
 
+2> LimitRange
+>This will set the combine limit on the quantity of the compute resource like RAM and CPU
+>that can be used by the k8s objects in the given namespace.
 
 #----------------------------------------------------------------------------------------------------------------
+
 >to set namespace in yml_
 
 apiVersion: v1
@@ -61,8 +66,8 @@ spec:
 
 >Namespace are the k8s obects that partitioned the single k8s cluster into multiple virtual cluster.
 
->k8s can manage large large number of workloads concurrently and organizations often
->choose to deploy projects created by seperate teams to shared clusters.
+>k8s can manage large number of workloads concurrently and organizations often
+>choose to deploy projects created by seperate teams on shared clusters.
 
 >k8s namespaces allow different teams , projects or customers share a same k8s cluster.
 
@@ -118,7 +123,7 @@ reserved for cluster usage, in case that some resources should be visible and
 readable publicly throughout the whole user
 
 >kube-node-lease_
-this ns hold lease objects associated with each node . node lease allows the kubelet to send 
+this ns nold lease objects associated with each node . node lease allows the kubelet to send 
 heartbeats so that control plane can detect node failures.
 
 >kubectl get namespace/ns

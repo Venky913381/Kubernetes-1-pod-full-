@@ -1,7 +1,7 @@
 >
-#--------------------POD LIVENESS ,READINESS PROBE and STARTUP PROBE-----------------------------
+--------------------POD LIVENESS ,READINESS PROBE and STARTUP PROBE-----------------------------
 
-> refer, https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+>refer, https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
 
 >kubernetes provide three types of probes that we can carried out on pods/containers in order to know
 >if they are healthy ,ready to accept service requests or if they need a restart etc.. these are_
@@ -11,14 +11,31 @@
 3> StartUp Probe
 
 
->-----------------------------------------------Liveness Probe----------------------------------------------------
+*flow_ (if all three configured)
+>Startup probe  -----> Readiness probe ------> Liveness probe
 
->Many applications running for long periods of time eventually transition to broken states, 
+
+*-----------------------------------------------Liveness_Probe----------------------------------------------------
+
+>Many applications running for long periods of time eventually transition to broken/unresponsive states, 
 >and cannot recover except by being Restarted. 
 >Kubernetes provides liveness probes to detect and remedy such situations.
 
->The kubelet uses liveness probes to know when to RESTART a container.
+>The kubelet uses liveness probes to know when to RESTART a container. 
 
+*Note: Liveness probes runs on the container during its whole lifecycle.
+>If Liveness probe failed, k8s will restart the container. this probe is designed to test the status of 
+>the container, it check if container is live or not.  
+
+>container may went to state of unresponsiveness for various reasons, like Bug in system, waiting for another
+>resource indefinitly, a deadlock situation or becomes too overloaded , app went in to Hung situation etc...
+>In such situations, sometimes the best thing to do is to automatically restart the process/container to
+>resolve the issue, this is where liveness probe comes handy.
+
+*Caution: Liveness probes do not wait for Readiness probes to succeed. 
+>If you want to wait before executing a liveness probe you should use initialDelaySeconds or a startupProbe.
+>"failureThreshhold" in Liveness Probe, must be set in such way that, its value must always be less 
+>that "failureThreshhold" of Readiness probe.  (liveness_probe Overriddens the Readiness_probe)
 
 apiVersion: v1
 kind: Pod                                                 
@@ -45,11 +62,12 @@ spec:
         initialDelaySeconds: 5
         timeoutSeconds: 3
         successThreshold: 2
-        failureThreshold: 3
+        failureThreshold: 6   #after this many retries, container will be restarted.
+
 
 >If the command succeeds, it returns 0, and the kubelet considers the container to be alive and healthy. 
 >If the command returns a non-zero value, the kubelet kills the container and restarts it.    
->Once, liveness probes have failed, and the failed containers will be killed and recreated.    
+>Once, liveness probes have failed, the failed containers will be killed and recreated.    
 
 > apart from "command" in liveness probe, we can also use "http" request and "TCP" socket for the probe.        
 > read on, Startup probe..........
@@ -57,27 +75,35 @@ spec:
 >If the liveness probe fails, the kubelet kills the container, and the container is subjected to its restart policy.
 >If a container does not provide a liveness probe, the default state is Success. 
 
-
 >The kubelet uses readiness probes to know when a container is ready to start accepting traffic.
->A Pod is considered ready when all of its containers are ready, i.e. when it passes the liveness probe.
+>while liveness probe is used like a health check for the container.
 
->-----------------------------------------------Readiness Probe--------------------------------------------------
+>A Pod is considered healthy and alive when all of its containers are responsive, 
+>i.e. when it passes the liveness probe.
+
+
+*-----------------------------------------------Readiness_Probe--------------------------------------------------
 
 
 Sometimes, applications are temporarily unable to serve traffic. For example, an application might need to 
 load large data or configuration files during startup, or depend on external services after startup. 
 In such cases, you don't want to kill the application, but you don't want wait to send it requests later. 
 Kubernetes provides readiness probes to detect and mitigate these situations. 
-A pod with containers reporting that they are not ready does not receive traffic through Kubernetes Services.
+A pod with containers reporting that they are not ready, will not receive traffic through Kubernetes Services.
 
 
->even through pod is created and live, it do not means that it is ready to serve the requests. App may take 
+>even through pod is created and alive, it do not means that it is ready to serve the requests. App may take 
 >time to be ready to serve the traffic. we do readiness probe to check the same.
 
->Note: Readiness probes runs on the container during its whole lifecycle.
+*Note: Readiness probes runs on the container during its whole lifecycle.
+>if readiness probe fails, k8s will stop traffic to the container until the probe passes. I.E. it is 
+>used throughout the lifetime of the container, at regular interval. It keeps checking if container is 
+>ready/available to accept the traffic or not.
 
->Caution: Liveness probes do not wait for readiness probes to succeed. 
+*Caution: Liveness probes do not wait for Readiness probes to succeed. 
 >If you want to wait before executing a liveness probe you should use initialDelaySeconds or a startupProbe.
+>"failureThreshhold" in Liveness Probe, must be set in such way that, its value must always be less 
+>that "failureThreshhold" of Readiness probe.
 
 apiVersion: v1
 kind: Pod                                                 
@@ -100,27 +126,47 @@ spec:
             - tmp/test
         initialDelaySeconds: 10    # will check for liveness after 10 sec of pod creation, every 3 seconds.
         timeoutSeconds: 3
+        periodSeconds: 10 
+        successThreshold: 2
+        failureThreshold: 6         #after this many retries, container will be restarted.
 
       readinessProbe:
         exec:
           command:
             - cat 
             - /tmp/test
-        initialDelaySeconds: 20 # will check for readiness after 20 sec of pod creation every 5 seconds.
-        timeoutSeconds: 5 
-        successThreshold: 2
-        failureThreshold: 3
+        initialDelaySeconds: 20 #will check for readiness after 20 sec of pod creation every 5 seconds.
+        periodSeconds: 10       #probe will run every 10 second  
+        timeoutSeconds: 5       #this is the time probe will wait for pod to respond to probe
+        successThreshold: 2     #it is number of iteration after, pod will considerd sucessful, after failed.
+        failureThreshold: 3     #it is the number, controller will retry probe ,if probe failed
 
 >If the readiness probe fails, the endpoints controller removes the Pod's IP 
->address from the endpoints of all Services that match the Pod.
+>address from the endpoints of all Services that match the Pod. 
+
+>unlike liveness probe, it do not restarts the container.
 
 >The default state of readiness before the initial delay is Failure . 
 >If a container does not provide a readiness probe, the default state is Success 
       
 
->-----------------------------------STARTUP-PROBE---------------------------------------------------------        
+*-----------------------------------STARTUP_PROBE---------------------------------------------------------        
 
+>start up probe is used to get know, if container is started or not. k8s will direct the traffic to containers
+>only if configured startup probe is succeeded.
 
+>it is one time probe, executed at startup only. 
+>It is first probe that k8s do. (if all three probes are configured)
+
+>startup probe is a signal to know, wheather an app container is successfully started. 
+
+>if Startup Probe is configured k8s will ignore other probes (liveness and readiness), until the startup
+>probe succeeds.
+
+>when we autoscale, we need a sure way to know wheather a worker's container has started or not before
+>starting to send the traffic to it. 
+
+There are apps and services which requires time before they are available.
 Protect slow starting containers with startup probes
 Sometimes, you have to deal with legacy applications that might require an additional startup time on 
 their first initialization. 
@@ -130,6 +176,8 @@ fast response to deadlocks that motivated such a probe.
 
 The trick is to set up a startup probe with the some Command, HTTP or TCP check, 
 with a failureThreshold * periodSeconds long enough to cover the worse case startup time.
+
+>if startup probe failed, pod went to unhealthy state and controller restarts the container.
 
 apiVersion: v1
 kind: Pod
@@ -162,11 +210,11 @@ spec:
 
 
 Thanks to the startup probe, the application will have a maximum of 5 minutes (30 * 10 = 300s) to finish its
-startup. Once the startup probe has succeeded once, the liveness probe takes over to provide a
-fast response to container deadlocks. If the startup probe never succeeds,
-the container is killed after 300s and subject to the pod's restartPolicy
-
-
+startup. 
+>Once the startup probe has succeeded once, the liveness probe takes over to provide a
+>fast response to container deadlocks. If the startup probe never succeeds,
+>the container is killed after 300s and subject to the pod's restartPolicy
+ 
 
 >successThreshold  :- 
 Minimum consecutive successes for the probe to be considered successful after having failed. 
@@ -191,5 +239,7 @@ Minimum value is 1.
 Number of seconds after which the probe times out. 
 Defaults to 1 second. Minimum value is 1.
 
+>periodSeconds
+this is the time, before each iteration of the probe.
 
->----------------------------------------------------------------------------------------------------------
+>---------------------------------------------------------------------------------------------------------
