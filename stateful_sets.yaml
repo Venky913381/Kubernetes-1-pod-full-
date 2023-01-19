@@ -174,7 +174,7 @@ can we use Headless service name ?
 
 >to target the pod, we can use the following syntax, so the all the desired request will go to only targeted pod
 <statefulset_name>-<ordinal>.<headless_svc_name>
-> eg_ http://mysql-0.db-headless  ----> a unique fqdn
+*example_ http://mysql-0.db-headless  ----> a unique fqdn
 >
     In stateful apps, the instance must have unique and persistance identity (stable hostname, IP's)
     that does not changes with restart or recreation or reschedule. 

@@ -292,11 +292,11 @@ Service Mesh :
 >  implemets the features reliably and agnostic to technology or programming language.
 
 
->Without Service mesh_
+*Without_Service_mesh_
  microservices A  <---------------->  microservices B
 
 
->with Service mesh_
+*with_Service_mesh_
 >                                                                               -------|
 #       microservice--1         (Data Plane _mTLS)        microservice--2              |
   |CoreLogic|<-------->PROXY1  <------------------>  PROXY2<--------->|CoreLogic|      |---> DATA PLANE
@@ -351,7 +351,7 @@ ROUTING CONTROL (traffic shifting and monitoring)
 >8.Ingress service for istio is exposed as a load balancer service type. that is why we need a load balancer 
 >  service enables in a cluster.
 
-HOW DOES ISTION WORKS IN K8S :
+HOW DOES ISTIO WORKS IN K8S :
 
 At high leval, istio works by deploying a proxy container alongside the main application container
 in the pod for each microservices in our application.
@@ -594,7 +594,7 @@ EXTERNAL
 MINIMAL
 OPENSHIFT
 PREVIEW
-REMOTEj
+REMOTE
 
 default: enables components according to the default settings of the IstioOperator API. 
 This profile is recommended for production deployments and for primary clusters in a multicluster mesh. 
@@ -694,9 +694,9 @@ Istio Traffic Management :
 
 The pod needs to meet some pre-requisites to be the part of istios service mesh, these are _
 
->1.the name space , where pods are created need to be labeled with istio enabled label
+>1.the namespace , where pods are created need to be labeled with istio enabled label
 
->2.all the pods needs to be always run behind one or nore service
+>2.all the pods needs to be always run behind one or more service
 
 >3.pod should not run with security context with user id 1337.
 
@@ -713,8 +713,8 @@ egress gateways
 service entries
 sidecars
 
->ref_ https://istio.io/latest/docs/concepts/traffic-management/        --->(v1.14)
->ref_ https://istio.io/v1.5/pt-br/docs/reference/config/networking/    --->(v1.5 )
+*ref_https://istio.io/latest/docs/concepts/traffic-management/        --->(v1.14)
+*ref_https://istio.io/v1.5/pt-br/docs/reference/config/networking/    --->(v1.5 )
 
 >                                                                               ------------|
 >                                 app.prod.sv.cluster.local  (dns)                          |
@@ -898,12 +898,12 @@ spec:
     - destination:
         host: app-svc.prod.svc.cluster.local
         subset: app-service-subset           # look at destination rules
-      weight: 80                             #80% trafffic will goes to this service
+      weight: 80                             #80% traffic will goes to this service
 
     - destination:
         host: app2-svc.prod.svc.cluster.local
         subset: app2-service-subset          # look at destination rules
-      weight: 20                             #20% trafffic will goes to this service
+      weight: 20                             #20% traffic will goes to this service
 
 
 
@@ -966,9 +966,9 @@ spec:
 
 
 >                                                                               
->                              retail-svc.prod.svc.cluster.local (retail)                         
+>                        retail-svc.prod.svc.cluster.local (retail)                         
 >                                            |                                              
->       (/electronics)  --------------------------------------------   (/books)                
+>         (/electronics)--------------------------------------------(/books)                
 >                       |                                          |                       
 >   electronics-svc.prod.svc.cluster.local                books-svc.prod.svc.cluster.local        
 >                    |                                                 |        

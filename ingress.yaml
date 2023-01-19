@@ -1,4 +1,6 @@
 >
+>Instead of exposing each service independently , we use ingress controller to expose the multiple services 
+>using same ip address. 
 
 >Ingress controller allows us to manage all the functionalities like SSL, scallings, Auth, Cert within the k8s 
 >cluster itself with a defination file, that lives along the rest of your application deployments file.
@@ -138,7 +140,6 @@ spec:
     > There are two types of Ingress Rules
       1. Path Based Routing
       2. Host Based Routing
-
 
 
 > Ingress Controller :--> 
@@ -343,7 +344,7 @@ Ingress Controller:
 
 # Path Based Routing _
 
->in path based routing , NO host is specified, so the rule applies to all inbounbed HTTP traffic through
+>in path based routing , NO host is specified, so the rule applies to all inbound HTTP traffic through
 >ingress controller. 
 >it will respond to any of the Host, all it cares about is the path, Not the Host. so host can be anything
 >like nginx.com or xxxx.com but the path i.e /<path> , is all it cares about.

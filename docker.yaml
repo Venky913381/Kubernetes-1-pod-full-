@@ -2,9 +2,9 @@
 
 multistage docker file : 
 
->1 >
+>1 > eg_1
 
-FROM golang:alpine AS Builder
+FROM golang:alpine AS Builder                 # AS Builder
 WORKDIR /helloworld
 COPY helloworld.go .
 RUN GOOS=linux go build -a -installsuffix cgo -o helloworld .
@@ -12,11 +12,11 @@ RUN GOOS=linux go build -a -installsuffix cgo -o helloworld .
 
 FROM alpine:latest
 WORKDIR /root
-COPY --from=Builder /helloworld/helloworld .
+COPY --from=Builder /helloworld/helloworld .         # --from=builder
 ENTRYPOINT ["./helloworld"]
 
 
->alpine is the smallest, stripped of all version for any image.
+>alpine is the smallest, stripped of all utilities, execept for bash or sh for any image.
 >alpine:latest, will not have any runtime , or libraries, it is simple bash shell.
 
 >once executable is available from previous build, we did not need the code or runtime, so 
@@ -29,7 +29,7 @@ ENTRYPOINT ["./helloworld"]
 
 #--------------------------------------------------------------------------------------------------------------
 
->2 >
+>2 >eg_2
 
 FROM maven AS Builder1
 RUN mkdir /usr/src/mymaven
@@ -64,8 +64,9 @@ CMD ["java","-jar","/usr/src/mymaven/target/ROOT.war"]
   a)Size of the image
   b)security of the image 
 
->7.the container images are comprised of several layers. so scanning each and every layer is very crucial in 
-   devsecops, the smaller the image is, lesser is the possibility of it to get exposed to potential vulnerabilities
+>7.the container images are composed of several layers. and each layer can be a source of vulnerability,
+>  so scanning each and every layer is very crucial in devsecops.
+>  the smaller the image is, lesser is the possibility of it to get exposed to potential vulnerabilities
 
 >8.SMALLER DOCKER IMAGES_ 
 
@@ -97,7 +98,7 @@ CMD ["java","-jar","/usr/src/mymaven/target/ROOT.war"]
 
     2)Do not run the container as ROOT.
     3)avoid copying unnecessary file, use .dockerignore
-    4)merge layers 
+    4)merge layers  (--squash)
     5)use alpine or distroless images as base image
     6)use multistage build 
     7)perform health checks
@@ -105,6 +106,7 @@ CMD ["java","-jar","/usr/src/mymaven/target/ROOT.war"]
     9)avoid hardcoding the credentials
     10)dockerhub host up to 7 miilion repositories, base base must be selected wisely, not all images are secure.
     11)use tool like anchore , trivy, sync etc.. image scanner to scan the images for vulnereabilities.
+    12.not to use the latest untested images as base image.
 
 
 >11.What if multistage images , do not reduces the size of image, then_
@@ -156,7 +158,7 @@ CMD ["java","-jar","/usr/src/mymaven/target/ROOT.war"]
       (comman vulnerabilities and exposures) database.
 
     3)some of the container scanners are _ ANCHORE ENGINE, CLAIR, TWISTLOCK, QUALYS, BLACKDUG, CILIUM,
-      SYSDIG FALCO, AQUASECURITY/ TRIVY  etc....... 
+      SYSDIG FALCO, AQUASECURITY/ TRIVY , SYNC etc....... 
 
 >----------------------------------------------------------------------------------------------------------------
 
@@ -196,11 +198,11 @@ Using Trivy Image Analyser CLI :
 
 
 
-#--------------------------------------------BEST-PRACTICES_2-----------------------------------------------------            
+*--------------------------------------------BEST-PRACTICES_2-----------------------------------------------------            
 
 
 
->every command in dockerfile, runs a root user/commands, it never requires a sudo permission.
+>every command in dockerfile, runs as a root user/commands, it never requires a sudo permission.
 
 
 Best Practice for bilding docker images :
@@ -217,15 +219,24 @@ FROM ubuntu:$TAG
 >  Also change the working directory before copying the files.
 
 WORKDIR /appl 
-COPY *.java . 
+COPY /var/lib/*.java . 
 
 
 >3.merge the multiple RUN commands in to single command, it will reduce the number of layers as each 
 >  instruction in Dockerfile causes a new image layer.
 
-RUN apt get update && apt install curl -y  && curl -k http://ip 
+>Do not create multiple RUN commands_
 
-or
+RUN apt update -y
+RUN apt install curl -Y
+RUN curl -k http://ip:port
+
+
+>Instead, merge multiple RUN instructions in to single instruction_
+
+RUN apt get update && apt install curl -y  && curl -k http://ip:port
+
+*or_multiline _
 
 RUN apt update -y && \
     apt install curl -y && \
@@ -233,10 +244,12 @@ RUN apt update -y && \
 
 
 
->4.never pass the secrete data as environmental variable. pass it as environmental variable
->  while buiding image only.
+
+>4.never pass/hardcode the secrete data as environmental variable (i.e Not to Hardcode). 
+>  pass it as environmental variable, while buiding image only.
 
 ENV DATABASE postgres
+#ENV PASSWORD 1234        ------> never hardcode the credentials
 
 *docker run --name dummydatabase -e PASSWORD=1234 test:1.0   --->passing env var using -e flag
 
@@ -250,16 +263,18 @@ ENV DATABASE postgres
    CMD 8.8.8.8
    ENTRYPOINT ping
  
- in above case , overall command will be ping 8.8.8.8, however ping wont be starting process as both the 
- instructions are in shell format. so, it will be like, /bin/bash -c "ping 8.8.8.8".
+ in above case , overall command will be ping 8.8.8.8,
+ however ping wont be starting process as both the instructions are in shell format. so, it will be like_
+ > /bin/bash -c "ping 8.8.8.8".
 
- now, execute by calling the binary directaly_ 
+ now, execute by calling the binary (ping binary) directaly_ 
 
   RUN rm -rf /bin/bash   ---> this will remove only bash.
   CMD ["8.8.8.8"]
   ENTRYPOINT ["/bin/ping"]
 
-   so, it will be like, "/bin/ping", "8.8.8.8"
+  so, the overall instruction will be like_
+ > "/bin/ping", "8.8.8.8"
 
 
 
@@ -284,8 +299,8 @@ ENV DATABASE postgres
 
 >7.using distroless images_
 >  these images do not contain any debugging utilities like sh, ping, ls, curl etc.
->  however, google also provides distroless images with nonroot user, images with debugging utilities, 
->  and debugging utilities with nonroot user. 
+>  however, google also provides distroless images with non-root user, images with debugging utilities, 
+>  and debugging utilities with non-root user. 
 
  >https://github.com/GoogleContainerTools/distroless
 
@@ -323,29 +338,30 @@ FROM gcr.io/distroless/static-debian11:debug
   RUN apt-get update -y && \
       apt-get install --no-install-recommends \
       openjdk-8-jdk && \
-      rm -rf /var/lib/apt/lists/*       (--->remove the cache) 
+      rm -rf /var/lib/apt/lists/*       (---> remove the cache) 
   COPY target/app.jar  /app
-  CMD ["java","jar","/app/app.jar"]    
+  CMD ["/app/app.jar"] 
+  ENTRYPOINT ["java","jar"]   
 
 
 
->----------------------------------------------------------------------------------------------------------------
+*----------------------------------------------------------------------------------------------------------------
 *****************************************************************************************************************
 
 
 DOCKER CONTAINER SECURITY :
 
->As docker containerization engine uses host operating kernel, it is important to use Secure and 
+>As docker containerization engine uses host operating system's kernel, it is important to use Secure and 
 >operating system with "No known severe vulnerabilities" as a host operating system.
 
->Also is importamt to use latest version of the docker engine and to make sure that nothing is vulnerable
+>Also it is importamt to use latest version of the docker engine and to make sure that nothing is vulnerable
 >on the system which we are using as host operating system.
 
 >Use of minimal operating systems like Clear Linux is one of the best practices , we can implement for 
 >security of the system.
 
-Apart from using secure host system, we need to implement following measures for securing docker images _ :
 
+Apart from using secure host system, we need to implement following measures for securing docker images _ :
 
 >1. Always launch/run Container with Unpreviledge User _
 
@@ -353,11 +369,10 @@ to achieve this we need a docker images with unpriviledge user, for this purpose
 our own images with unpriviledge user.
 
 >add non root/ non sudo user
-FROM ubnuntu:18.04
+FROM ubuntu:18.04
 RUN groupadd -r swapnil && useradd -r -g swapnil swapnil   # useradd -r -g sudo swapnil swapnil, to give sudo
 
-
->docker run -u swapnil -it --rm <imageid> /bin/bash   ; login with user swapnil (-u)
+>docker run -u swapnil -it --rm <imageid> /bin/bash   ----> login with user swapnil (-u)
 
 However , in this aproch we can still escalate the priviledges to the sudo/root user.
 
@@ -375,14 +390,14 @@ FROM ubnuntu:18.04
 RUN groupadd -r swapnil && useradd -r -g swapnil swapnil
 
 RUN chsh -s /usr/sbin/nologin root                # here we are blocking the terminal for root, 
-                                                  # using chsh changeShell command.
+                                                  # using chsh /changeShell command.
 
 
 
->3. Stop the Logged in user for escalating priviledges _
+>3. Stop the Logged in user from escalating priviledges _
 
 We can also stop the user from escalating the priviledges, this can be done while spinning up new  docker 
-container, as follow using  --security-opt=no-new-priveledges   flag
+container, as follow using  --security-opt=no-new-priveledges ,  flag.
 
 >docker run -it --rm -u swapnil --security-opt=no-new-priveledges <image id>
 
@@ -390,7 +405,7 @@ container, as follow using  --security-opt=no-new-priveledges   flag
 
 >4. we can add Capabilities as per need to the image _
 
->ref_ https://man7.org/linux/man-pages/man7/capabilities.7.html
+*ref_https://man7.org/linux/man-pages/man7/capabilities.7.html
 
 So, using capabilities, we can decide, which capabiliies does we wants our container to run with.
 
@@ -406,6 +421,7 @@ with read only mode we can ensure that user will not made any changes to the exi
 this will not even allow ROOT user to make any changes to the file system.
 
 >docker run --read-only -u swapnil -it ---rm <image id>
+
 
 using following , we can allow user to make changes to temporary filesystem
 

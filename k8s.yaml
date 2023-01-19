@@ -1,50 +1,50 @@
 >
->--------------------------------------BASIC-K8S-CLI-INSTRUCTIONS-----------------------------------------------
+*--------------------------------------BASIC-K8S-CLI-INSTRUCTIONS-----------------------------------------------
 
 >kubectl get <type>  
 >kubectl get <type> <name>
 >kubectl get <type> <name> -o wide/yaml/json > foo.yaml/yoo.json
->kubectl get <type> <name> --show-labels / -o wide   --->to get types as per the label assigned
->kubectl get all -n <name_space>                     --->to get all the resources in given namespace
->kubectl get all/<resource> --all-namespaces         --->to get all the resources in all namespaces
+>kubectl get <type> <name> --show-labels / -o wide    ---> to get types as per the label assigned
+>kubectl get all -n <name_space>                      ---> to get all the resources in given namespace
+>kubectl get all/<resource> --all-namespaces          ---> to get all the resources in all namespaces
 
 >kubectl logs <pod_name>                              ---> to get logs of the k8s pod
 >kubectl logs -f <pod_name>                           ---> to get logs of the k8s pod in follow mode
 >kubectl logs -f <pod_name> -c <container_name>       ---> to get logs of the container inside k8s pod
->kubectl logs -f <pod_name> --all-containers          ---> -f for follow/continuos logs
+>kubectl logs -f <pod_name> --all-containers          ---> for continuos logs of all containers
 
->kubectl exec <podname> -c <container_name> -it -- <command>   ---> to execute into running pod/container
+>kubectl exec <podname> -c <container_name> -it -- <command>   ---> to execute into running pod/container (/bin/bash)
 
->kubectl run <podname> --image=<image:version>     ---> Imperative command
->kubectl create -f <manifest.yaml>                 ---> Imperative object configuration
->kubectl edit <type> <name>                        ---> imperative object configuration
+>kubectl run <podname> --image=<image:version>        ---> Imperative command
+>kubectl create -f <manifest.yaml>                    ---> Imperative object configuration
+>kubectl edit <type> <name>                           ---> imperative object configuration
 
 >kubectl apply -f <manifest.yaml>                     ---> declarative object configuration
 >kubectl apply -f ./my1.yaml -f ./my2.yaml            ---> to apply multiple yaml files
->kubectl apply -f ./ or < relative path>              ---> to apply all yaml manifests in folder
+>kubectl apply -f ./ or </relative/path>              ---> to apply all yaml manifests in folder
 >kubectl apply -f <manifest.yaml> --dry-run=client    ---> to test/dryrun the current configurations
 
->kubectl explain <k8s resource>              ---> to get basic manifest component details
->kubectl explain --recursive <type> | less   ---> to get all resource attributes for writting manifest
->kubectl explain <type>.<section_in_yaml>    ---> to get all resource attributes for writting manifest
+>kubectl explain <k8s resource>                       ---> to get basic manifest component details
+>kubectl explain --recursive <type> | less            ---> to get all resource attributes for writting manifest
+>kubectl explain <type>.<section_in_yaml>             ---> to get all resource attributes for writting manifest
 
->kubectl describe <type> <name>              ---> to get more details on the k8s object
+>kubectl describe <type> <name>                       ---> to get more details on the k8s object
 
->kubectl label <type> <name> label1=value1              ---> to label the existing pod
->kubectl label --override <type> <name> label1=value2   ---> to override the existing pod label
->kubectl label <type> --all label1=value1               ---> to label all <type> resources in one go
->kubectl label <type> <name> label1-                    ---> (-) to delete the lable
+>kubectl label <type> <name> label1=value1            ---> to label the existing pod
+>kubectl label --override <type> <name> label1=value2 ---> to override the existing pod label
+>kubectl label <type> --all label1=value1             ---> to label all <type> resources in one go
+>kubectl label <type> <name> label1-                  ---> (-) to delete the lable
 
 >kubectl delete <type> <name>
 >kubectl delete -f <manifest.yaml>    ---> will delete all the resources declared in manifest file.
 >kubectl delete -f ./path             ---> will delete all the resources declared in manifest folder.
 >kubectl delete all --all             ---> will delete all k8s resources running
 
->kubectl get nodes -o wide    ---> to get details on the node participating in cluster
->kubectl cluster-info         ---> gives the cluster details
->kubectl api-resources        ---> gives the lost of resources, short names, namespace support,version, kind etc.
->kubectl config view          ---> to view the configuration file. (--minify, to minify o/p)
->kubectl config get-clusters  ---> (--help, for more options)
+>kubectl get nodes -o wide            ---> to get details on the node participating in cluster
+>kubectl cluster-info                 ---> gives the cluster details
+>kubectl api-resources                ---> gives the lost of resources, short names ,version, kind etc.
+>kubectl config view                  ---> to view the configuration file. (--minify, to minify o/p)
+>kubectl config get-clusters          ---> (--help, for more options)
 
 >kubectl api-resources --namespaced=true/false  ---> to filter the objects supporting namespace.
 >kubectl top nodes/pods                         ---> to get resource usage matrices (need matrics server installed)
@@ -52,6 +52,8 @@
 >kubectl get componentstatuses/cs               ---> to get the status of components of cluster
 >kubectl run <type> --help                      ---> to get Imperial commmand structure for k8s resource
 >kubectl -n kube-system top nodes
+
+*******************************************************************************************************************
 
 >minikube --help           ---> for minikube commands.
 >minikube start --force    ---> to start minikube on booted/restarted machine
@@ -69,7 +71,7 @@
 >minikube start --container-runtime='runtime_name'/--drive='driver'    ---> if other than default docker
 >minikube service  <service name> --url
 
-#---------------------------------------------------------------------------------------------------------------
+*---------------------------------------------------------------------------------------------------------------
 
 
 >Why We Need Container Orchastration_
@@ -83,7 +85,7 @@ can be managed in bulk using orchastration engine like Docker-Swarm or Kubernete
 
 k8s is open source container management tool, it provides a container runtime, container orchastration,
 container centric infrastructure orchastration, self healing mechanism, service discovery, load balancing,
-and container scalling. it is wriitten in go languange.
+and container scalling. it is written in go languange.
 
 >Container orchastration is used to automate the following tasks_
 
@@ -140,7 +142,7 @@ and container scalling. it is wriitten in go languange.
 >by the KubeProxy component.
 
 
-#----------------------------------------------------POD---------------------------------------------------------
+*----------------------------------------------------POD---------------------------------------------------------
 
 >read : https://kubernetes.io/docs/concepts/workloads/pods/
 
@@ -167,6 +169,7 @@ metadata:
      env: prod
      name: swapnil
   namespace: test-space   
+
 spec: 
   containers:
     - name: firstcontainer
@@ -200,7 +203,8 @@ spec:
 >kubectl get pod / -o wide / --show-labels / -w
 >kubectl exec <podname> -c <containerName> -it -- <command>   ---> executing command inside the container.
 
-#------------------------------------------service---------------------------------------------------
+
+*------------------------------------------service---------------------------------------------------
 
 read more on services: https://kubernetes.io/docs/concepts/services-networking/service/
 
@@ -308,7 +312,7 @@ you can use kubectl port-forward to forward traffic to any service/pod running i
 >You should be able to access your app at IP:<host-port> as long as the port-forwarding is set up.
 
 
-#-----------------------------------------ReplicationController-----------------------------------------------
+*-----------------------------------------ReplicationController-----------------------------------------------
 
 >read: https://kubernetes.io/docs/concepts/workloads/controllers/replicationcontroller/
 

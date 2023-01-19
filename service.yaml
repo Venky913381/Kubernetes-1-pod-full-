@@ -28,7 +28,8 @@ Service in k8s_ :
 
 read more on services: https://kubernetes.io/docs/concepts/services-networking/service/
 
->--------------------------------------------------NodePort----------------------------------------------------
+
+*--------------------------------------------------NodePort----------------------------------------------------
    
 apiVersion: v1
 kind: Service 
@@ -62,9 +63,7 @@ spec:
         containerPort: 80
 
 
-
-
->--------------------------------------------------ClusterIP---------------------------------------------------
+*--------------------------------------------------ClusterIP---------------------------------------------------
 
 apiVersion: v1
 kind: Service 
@@ -175,6 +174,7 @@ ports:
 
   8. Ingress/Ingress_Resources/Ingress_Rule
   9. Ingress Controller 
+  10.Ingress Class
   
   
 >---------------------------------------------------------------------------------------------------------------
@@ -182,7 +182,7 @@ ports:
 
 >There are two types of applications, 1.Stateless application  and  2.Statefull application.
 
-Stateless : it will do Not store anything (data), previous session data, nor it retrieve anything, eg. Nginx,apache
+Stateless : it will do Not store anything (data), previous session data, nor it retrieve anything.
 
 Statefull : this type of application stores state, session data, so whenever application crashes or if any 
             issue arises or app lost connection, whenever, it comes back it starts from the same state as data 

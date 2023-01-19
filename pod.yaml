@@ -6,7 +6,8 @@
 >k8s doesn't run the container directaly, instead it wraps one or more containers 
 >into higher leval structure called as pod.
 
->pods are often Ephemeral, as on killing of one pod,controller will automatically creates a replacment for it.
+>pods are often Ephemeral (temporary), as on killing of one pod,controller will automatically 
+>creates a replacment for it.
 
 >pods are smallest deployable unite that can be created, scheduled and managed on k8s cluster.
 >each pod will have a unique IP address within the cluster.
@@ -18,9 +19,11 @@
 >application. it is just a sandbox to run the containers in.
 
 >any container in the same pod will share the same storage volume and network resource 
->and communicates using localhost.
+>and communicates using localhost. containers also shares the port-space with each other, that means containers
+>in pod will have same ip, but they will never have same port number.
 
->lifecycle of Pod_
+
+lifecycle of Pod_:
 
 1. pending    :- pod is accepted, but container is yet to be created.
 2. running    :- pod is scheduled on node, and all containers are created and at least one is in running state.
@@ -29,41 +32,15 @@
 5. CrashLoopBackoff :-the container failed to start and tried again and again
 6. unknown          :- state of pod, could not be obtained
 
->Restart policy in k8s
-restart policy applies to all the containers in the pod.
-possible values are, Always, OnFailure, and Never.
+
+Restart policy in k8s_ :
+
+>restart policy applies to all the containers in the pod. possible values are, Always, OnFailure, and Never.
 
 >when container in a pod exited, the kubelet restart them with an exponential back-off delay (10s, 20s, 40s...)
 >that is capped at 5 minutes.
 >once a container has executed for 10 minutes without any problem, the kubelet resets the restart backoff
 >timer for that container.
-
->CrashLoopBackOff is not an error on itself, but indicates that there’s an error 
->happening that prevents a Pod from starting properly.
-
-Some of the errors linked to the actual application are:
-
->1.Misconfigurations             : Like a typo error in a configuration/manifest file.
->2.A resource is not available   : Like a PersistentVolume that is not mounted.
->3.Wrong command line arguments  : Either missing, or the incorrect ones.
->4.Bugs & Exceptions             : That can be anything, very specific to your application.
->5.Image name is incorrect       : image , we tried to spun the container from not exist or have improper tagging.
-
-
-errors from the network and permissions are:
-
->1.You tried to bind an existing port.
->2.The memory limits are too low, so the container is Out Of Memory killed.
->3.Errors in the liveness probes are not reporting the Pod as ready.
->4.Read-only filesystems, or lack of permissions in general.
-
->A similar back-off period is ImagePullBackOff, which is a waiting status when a container image couldn’t be pulled.
-
-tools you can use to debug it, and in which order to use it, This could be our best course of action:
-Check the pod description. (kubectl describe)
-Check the pod logs. (kubectl logs)
-Check the events.
-Check the deployment.
 
 >default restart policies for k8s objects_
 1. Jobs       --> on failure or Never
@@ -174,9 +151,9 @@ spec:
       - sleep 20
 
 
->while having init containers in a manifest/pod, care needed to be taken that init containers must exit , after
->complating their task, failing to do so, will keep the init container running , which will prevent the main 
->containers from being running.
+>while having init containers in a manifest/pod, care needed to be taken that all init containers must executed
+>to its completion, i.e it must exit sucessfully, after complating their task. failing to do so, will keep the init 
+>container running , which will prevent the main application containers from running.
 
 
 >-------------------------------------------------- 4
@@ -218,8 +195,8 @@ we can telnet between the containers_
   4. init container              (initilazation for main container) --> Do initialization works for main container
   5. Ephemeral containers        (debugging container for main container build with distroless images)
   6. Main App Container          (container for main app or microservice)
-  7. Pause container
-  8. static Pod
+  7. Pause container             (provides ip to the pod)
+  8. static Pod                  (container managed by kubelet on worker)
  
 
 >having only one container in one pod is desirable, however , there may arise a condition where we need to
@@ -247,10 +224,10 @@ we can telnet between the containers_
 >are easy to distribute and deploy.
 
 >larger images can have more software vulnerabilities in the form of vulnerable dependencies 
->including potential security holes.
+>including potential security holes and multiple layers.
 
 >better to use alpine images like, FROM golang:alpine or FROM node:alpine
->alpine images are smaller and light weighted as they are have many files and programm removed, leaving only
+>alpine images are smaller and light weighted as they have many files and programm removed, leaving only
 >the dependancies just enough to run your app.
 
 >So, in a nutshell, Even though it is always prefferable to use latest updated images, but it is not always 
@@ -265,7 +242,7 @@ we can telnet between the containers_
  5.Using MultiStage Builds
  6.Health Checks
  7.Avoid exposing unecessary ports
- 8.Hardcoding the credentials.
+ 8.Avoid Hardcoding the credentials.
  9.vulnerabilities checking image using tols like Anchore, Sync , trivy etc...
 
 >{watch euphemeral container video again......vimp}
@@ -329,6 +306,7 @@ spec:
     - name: mount
       emptyDir: {}          
 
+>
 
 >use cases : 2. to delay the application start/ or to know if application database is ready or not.
 apiVersion: v1
@@ -411,7 +389,7 @@ spec:
 
 >3. Ambassador/Envoy Container_
 
->The Ambassador pattern employs a proxy for the main application container to talk to external world.
+>The Ambassador pattern employs a proxy for the main application container to communicate to external world.
 >i.e. it act as a proxy for main application container.
 
 >they handle request/response,  to/from the server or external services, so it acts like a proxy or
@@ -482,7 +460,7 @@ spec:
 >however, if we deletes a business application container, controller will recreates the application container only.
 
 >pause container holds together the all other containers inside the pod.
->pause container is an infra container, whole sole job is to hold all namespaces together. all other user
+>pause container is an infra container, whose sole job is to hold all namespaces together. all other user
 >defined containers of the pod, then uses the namespace of the pod infrastructure container.
 
 >pause container is also reffered as Pod's Infrastructure Container.
@@ -512,7 +490,7 @@ Note: The spec of a static Pod cannot refer to other API objects (e.g., ServiceA
 >--------------------------------------------------------------------------------------------------------
 
 
-*_DEBUGGING_THE_Crash_Loop_BackOFF_State_of_pod_
+*_DEBUGGING_THE_Crash_Loop_BackOFF_State_of_pod__
 
 >CrashLoopBackOff state arises when container is failed to start and controller tries to restart it
 >again and again.
@@ -530,13 +508,13 @@ Note: The spec of a static Pod cannot refer to other API objects (e.g., ServiceA
 Some of the errors linked to the actual application are:
 
 >1.Misconfigurations             : Like a typo error in a configuration/manifest file.
->2.A resource is not available   : Like a PersistentVolume that is not mounted.
+>2.A resource is not available   : Like a PersistentVolume for pvc's that is not mounted.
 >3.Wrong command line arguments  : Either missing, or the incorrect ones.
 >4.Bugs & Exceptions             : That can be anything, very specific to your application.
 >5.Image tag/name is incorrect   : image , we tried to spun the container from do not exist or have improper tagging.
 
 
-errors from the network and permissions are:
+errors from the network , h/w and permissions are:
 
 >1.You tried to bind an existing port.
 >2.The memory limits are too low, so the container is Out Of Memory killed.
@@ -547,9 +525,13 @@ errors from the network and permissions are:
 >A similar back-off period is ImagePullBackOff, which is a waiting status when a container image couldn’t be pulled.
 
 tools you can use to debug it, and in which order to use it, This could be our best course of action:
-Check the pod description. (kubectl describe)
-Check the pod logs. (kubectl logs)
-Check the events.
-Check the deployment manifest for errors.
 
-********************************************************************************************************************
+>1.Check the manifest, and make sure that all configurations are correct.
+>2.Check the pod description. (kubectl describe)
+>3.Check the pod logs. (kubectl logs)
+>4.Check the events.
+>5.Check the manifest for ports bindings, PV & PVC's , Image name and Tags, alloted H/W resources etc...
+>6.Make sure that ports are available and PV's are created
+
+******************************************************************************************************************** 
+
