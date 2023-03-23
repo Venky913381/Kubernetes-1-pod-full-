@@ -1,4 +1,6 @@
 >
+>Deployment object is an evolution of the replica set, infact, Deployment uses RS as its backend.
+
 
 apiVersion: apps/v1
 kind: Deployment 
@@ -23,12 +25,12 @@ spec:
           image: coolgourav147/nginx-custom            # image: coolgourav147/nginx-custom:v2
 
 
-> if we update the above deployment with another image,(or if, there may change in replicas) and monitor the changes
+> if we update the above deployment with modified configuration and monitor the changes
 > with below command, then , it is observed that as older deployment will gradually get replaced by newer deployments.
   kubectl rollout status deployment <deploy-name> 
 
 > the process will completed, only after all the older deployments gradually get replaced with newer deployments.
-> this strategy is called as Rolling Update strategy and there is zero downtime, it is default startegy.
+> this strategy is called as Rolling Update strategy and there is zero downtime, it is default strategy.
 
 
 apiVersion: apps/v1
@@ -132,10 +134,10 @@ after adding annotation, there is no need to use --record flag
 
 ROLLBACK_TO_SPECIFIC_REVISION_IN_HISTORY__:
 
-> kubectl rollout undo --to-revision=<specific-rev-number>  deployement  <deploy-name> 
+> kubectl rollout undo --to-revision=<specific-rev-number>  deployment  <deploy-name> 
 
 > if specific revision number is not specified, by default it will choose most recent last revision. 
-> .i.e. -->    kubectl rollout undo  deployement  <deploy-name>
+> .i.e. -->    kubectl rollout undo  deployment  <deploy-name>
 
 #------------------------------------------------------------------------------------------
 
@@ -144,7 +146,7 @@ ROLLBACK_TO_SPECIFIC_REVISION_IN_HISTORY__:
 
 
 
->--------------------------------------RECREATE STARTEGY--------------------------------------------
+*--------------------------------------RECREATE_STARTEGY--------------------------------------------
 
 > in this startegy, all the pods from old deployemnt will simulateneously get replaced by pods from
 > new deployment. this will cause the downtime, as for a brief period no pod will be available to 

@@ -1,10 +1,52 @@
 >
+*Dockerfile_
 
-multistage docker file : 
+*ref_https://docs.docker.com/engine/reference/builder/
+*ref_https://kapeli.com/cheat_sheets/Dockerfile.docset/Contents/Resources/Documents/index
+*ref_https://www.australtech.net/dockerfile-instructions/
+*ref_https://buildvirtual.net/working-with-dockerfiles/
+
+*Dockerfile_Instruction_Set_
+
+FROM
+LABEL
+ENV
+RUN
+USER
+WORKDIR
+COPY
+ADD
+EXPOSE
+VOLUME 
+CMD
+ENTRYPOINT
+SHELL
+ARG
+ONBUILD
+HEALTHCHECK
+MAINTAINER
+
+>each instruction in dockerfile will execute Independantly one by one in an order defined in Dockerfile.
+>each instruction in dockerfile will add a new layer on the top of the existing layer.
+
+>each instruction in dockerfile will start it's execution from root directory , 
+>unless we set working directory using WORKDIR instruction
+
+>every command in dockerfile, runs as a root user/commands, it never requires a sudo permission.
+
+>it is best practice to name the docker file as Dockerfile, this we need not to used name of dockerfile with
+>build command.
+>however it is also possible to use another name for docker, in this case we need to explicitly declaire 
+>name of sockerfile using -f flag.
+
+ docker build -t <name_of_image> -f <name_of_dockefile>       
+
+
+*Multistage_docker_file_: 
 
 >1 > eg_1
 
-FROM golang:alpine AS Builder                 # AS Builder
+FROM golang:alpine AS Builder                        # AS Builder
 WORKDIR /helloworld
 COPY helloworld.go .
 RUN GOOS=linux go build -a -installsuffix cgo -o helloworld .
@@ -48,7 +90,7 @@ CMD ["java","-jar","/usr/src/mymaven/target/ROOT.war"]
 
 
 >1.containers are increasingly became popular, but it do present some security risk to the 
-> application as well as data
+> application as well as data.
 
 >2.containerization is one of the core stages in devops process where security must be looked on a serious note.
 
@@ -67,6 +109,7 @@ CMD ["java","-jar","/usr/src/mymaven/target/ROOT.war"]
 >7.the container images are composed of several layers. and each layer can be a source of vulnerability,
 >  so scanning each and every layer is very crucial in devsecops.
 >  the smaller the image is, lesser is the possibility of it to get exposed to potential vulnerabilities
+
 
 >8.SMALLER DOCKER IMAGES_ 
 
@@ -92,18 +135,18 @@ CMD ["java","-jar","/usr/src/mymaven/target/ROOT.war"]
 
 >10.HOW TO BUILD SMALLER IMAGES_
 
-    1)follow the dockerfile best practices , while building the images. the overhead of scanning the docker images 
-      for detecting vulnerabilities, investigating the security issues,and reporting and fixing them after the 
-      deployment, can prevented by folloing best practices to build docker images_ 
+    01)Follow the dockerfile best practices , while building the images. the overhead of scanning the docker images 
+       for detecting vulnerabilities, investigating the security issues,and reporting and fixing them after the 
+       deployment, can prevented by following best practices to build docker images_ 
 
-    2)Do not run the container as ROOT.
-    3)avoid copying unnecessary file, use .dockerignore
-    4)merge layers  (--squash)
-    5)use alpine or distroless images as base image
-    6)use multistage build 
-    7)perform health checks
-    8)avoid exposing unnecessary ports
-    9)avoid hardcoding the credentials
+    02)Do not run the container as ROOT user.
+    03)avoid copying unnecessary file, proactivaly use .dockerignore
+    04)merge layers  (--squash)    [ docker build -f <dockerfile_name> -t <image_name> --squash ]
+    05)use alpine or distroless images as base image
+    06)use multistage build 
+    07)perform health checks
+    08)avoid exposing unnecessary ports
+    09)avoid hardcoding the any credentials
     10)dockerhub host up to 7 miilion repositories, base base must be selected wisely, not all images are secure.
     11)use tool like anchore , trivy, sync etc.. image scanner to scan the images for vulnereabilities.
     12.not to use the latest untested images as base image.
@@ -111,11 +154,11 @@ CMD ["java","-jar","/usr/src/mymaven/target/ROOT.war"]
 
 >11.What if multistage images , do not reduces the size of image, then_
 
-    1)remove unwanted binaries like apt, yum, npm, bash, sh leaving only required dependancies
+    1)remove unwanted binaries like apt, yum, npm, bash, curl, wget, sh leaving only required dependancies
     2)pack only bare minimum dependancies needed to run container.
     3)use alpine images as a base image becouse  it is much easier to use standard debugging tools
       and install dependancies 
-    4)use distroless images, is a project from google (java user can use jib)  
+    4)use language specific distroless images, is a project from google (java user can use jib)  
 
 >12.Alpin Linux_
     Alpin Linux is a linux distribution build around musl-libc and busybox. it is only 5MB in size.
@@ -144,7 +187,7 @@ CMD ["java","-jar","/usr/src/mymaven/target/ROOT.war"]
     The squash flag is an experimental feature. It allows you to merge the new layers into one layer 
     during the build time. To use it just add the flag to the build command: 
     
-    >docker build --squash -t <dockerfile>.
+    >docker build --squash -t <dockerfile> -f <dockerfile_name>
 
     You can use it by activating the experimental features in the Docker settings.
       
@@ -200,12 +243,10 @@ Using Trivy Image Analyser CLI :
 
 *--------------------------------------------BEST-PRACTICES_2-----------------------------------------------------            
 
+>Every command in dockerfile, runs as a root user/commands, it never requires a sudo permission.
 
 
->every command in dockerfile, runs as a root user/commands, it never requires a sudo permission.
-
-
-Best Practice for bilding docker images :
+Best Practice for building docker images :
 
 >1.Only use the Trusted images from authorised sources and never use the latest image 
 >  and if possible pass the image version as argument 
@@ -246,7 +287,7 @@ RUN apt update -y && \
 
 
 >4.never pass/hardcode the secrete data as environmental variable (i.e Not to Hardcode). 
->  pass it as environmental variable, while buiding image only.
+>  pass it as environmental variable, while building image only.
 
 ENV DATABASE postgres
 #ENV PASSWORD 1234        ------> never hardcode the credentials
@@ -302,7 +343,7 @@ ENV DATABASE postgres
 >  however, google also provides distroless images with non-root user, images with debugging utilities, 
 >  and debugging utilities with non-root user. 
 
- >https://github.com/GoogleContainerTools/distroless
+ *https://github.com/GoogleContainerTools/distroless
 
 
 gcr.io/distroless/static-debian11:debug , will have all the debug utilities.
@@ -312,8 +353,8 @@ FROM gcr.io/distroless/static-debian11:debug
 
 
 
->8. one other best practice is to if possible ,not execute changing instruction at start of the docker file. 
->   instruction like COPY, in which data keep on chnaging , it is advisable to use this at end , this is becouse
+>8. one other best practice is to, if possible ,not execute changing instruction at start of the docker file. 
+>   instruction like COPY, in which data keep on changing , it is advisable to use this at end , this is becouse
 >   docker build the images using cache of already build images and all the instruction after changed instruction
 >   will run again , increasing the execution time and engedging the storage. 
  
@@ -336,7 +377,7 @@ FROM gcr.io/distroless/static-debian11:debug
   ARG TAG=18.04
   FROM ubuntu:$TAG 
   RUN apt-get update -y && \
-      apt-get install --no-install-recommends \
+      apt-get install --no-install-recommends && \
       openjdk-8-jdk && \
       rm -rf /var/lib/apt/lists/*       (---> remove the cache) 
   COPY target/app.jar  /app
@@ -351,10 +392,10 @@ FROM gcr.io/distroless/static-debian11:debug
 
 DOCKER CONTAINER SECURITY :
 
->As docker containerization engine uses host operating system's kernel, it is important to use Secure and 
->operating system with "No known severe vulnerabilities" as a host operating system.
+>As docker containerization engine uses host operating system's kernel, it is important to use Secure
+>base operating system with "No known severe vulnerabilities" as a host operating system.
 
->Also it is importamt to use latest version of the docker engine and to make sure that nothing is vulnerable
+>Also it is important to use latest version of the docker engine and to make sure that nothing is vulnerable
 >on the system which we are using as host operating system.
 
 >Use of minimal operating systems like Clear Linux is one of the best practices , we can implement for 
@@ -403,7 +444,7 @@ container, as follow using  --security-opt=no-new-priveledges ,  flag.
 
 
 
->4. we can add Capabilities as per need to the image _
+>4. we can add/remove Capabilities as per need to the image _
 
 *ref_https://man7.org/linux/man-pages/man7/capabilities.7.html
 

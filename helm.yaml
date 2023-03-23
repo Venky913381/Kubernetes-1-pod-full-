@@ -1,40 +1,39 @@
 >
->HELM CHARTS_
+*HELM_CHARTS_
 
 >Below is the default project directory structure of the helm chart project.
-sample_project
+
+sample_project/
 |
-├── Chart.yaml
-├── charts
-├── index.yaml
-├── templates
+├── Charts/
+├── chart.yaml
+├── values.yaml
+├── templates/
 │   ├── NOTES.txt
 │   ├── _helpers.tpl
 │   ├── deployment.yaml
-│   ├── hpa.yaml            #horizontal pod autoscaller
+│   ├── hpa.yaml 
 │   ├── ingress.yaml
 │   ├── service.yaml
 │   ├── serviceaccount.yaml
-│   └── tests
+│   └── tests/
 │           └── test-connection.yaml
-└── values.yaml
+|
 └── requirements.yaml (helm 2.0 version, deprecated in 3.0 version)
-└── readme.md
-└── LICENCE
+└── readme.md         (optional, not available in v3.0, needed to be created)
+└── LICENCE           (optional, not available in v3.0, needed to be created)
+├── index.yaml        (optional, not available in v3.0, needed to be created)
 
 
->charts
+>charts/
 manually managed chart dependancies can be placed in this directory.
 
->templates
+>templates/
 this directory contains templates file like deployments, service and many more as shown above.
 
 >charts.yaml
 A yaml file with metadata about the chart, such as chart name and version, maintainer information,
 a relevant website and search keyword.
-
->requirements.yaml
-in this yml filr we define charts dependancies, so that it can be download dynamically.
 
 >values.yaml
 a yaml file of default configuration values for the chart.
@@ -44,44 +43,82 @@ this is where we will declare our functions
 
 >Test
 before doing actual deployment,  we we want to do some testing, we will do it here.
-
+ 
+>requirements.yaml (deprecatred)
+in this yml file we define charts dependancies, so that it can be download dynamically.
 
 
 
 >-------------------------------------------------------------------------------------------------------------
 
 >helm create <chartname>
->helm install <release_name> <chart_name> / --debug --dry-run
+>helm install <release_name> <chart_name>       / --debug --dry-run
 >helm uninstall <release_name> <chart_name>
 >helm list -a
 
->helm add repo <repo_url>
+>helm upgrade <release_name> <chart_name>    # after making changes to the chart
+>helm lint <chart_name>
+>helm template <chart_name>                  # will create a templates of the deployment yml's with all values
+
+>helm repo add <repo_name> <repo_url>
 >helm repo list
 >helm repo update
 >helm search repo <repo_name>
->helm remove <repo_name>
+>helm repo index <chart_name>      # will create index.yml file for chart
+>helm repo remove <repo_name>
 
->helm index <chart_name>
 
->helm plugin install/uninstall <plugin_url>
+>helm search repo <chart_name> --versions      # will list out all the chart versions
+>helm show readme <repo>/<chart> --versions <specific_version>   # will give the readme file for that version
+
+>helm install <release_name> <repo_name>/<chart_name>     / --debug --dry-run
+>helm install <release_name> <repo>/<chart> --values=<chart-values.yaml> --namespace <app_ns> --version <version>
+   # to provide external values file, such as password, username etc.
+
+*WordPress_App_via_Helm
+>ref_https://jhooq.com/helm-chart-wordpress-installation/
+
+
+
+>helm plugin install <plugin_url>
 >helm plugin list
+>helm plugin uninstall <plugin_name>
 
->helm upgrade <release_name> <chart_name>
->helm lint <chart_name>
->helm template <chart_name>
+*Diff_Plugin_
+helm plugin install https://github.com/databus23/helm-diff
+>helm diff revision <chart_name> <version1> <version2>     #revision is just comparison paramenter,there are others too
+>helm plugin list
+>helm plugin uninstall diff
+
+
 
 >helm install --set <param=value> <release_name> <chart_name>
 >helm upgrade <release_name> <chart_name> --set <param=value>  -->to override the existing parameters in values file
+>helm install --set replicaCount=<n> <release_name> <chart_name>    # using helm cli commands.
+
 >helm install -f <custom_value_file> <release_name> <chart_name>
 >helm show values <global_name i.e. chart/repo>  ---> shows the values file in chart
+
+*ref_https://jhooq.com/helm-pass-environment-variables/
+*ref_https://jhooq.com/helm-multiple-values-files/
+*custom_value_file_
+
+myvalue.yml
+replicaCount: 2
+image: nginx:2.3.1
+imagePullPolicy: Never
+
+>helm install -f myvalue.yml <release_name> <chart_name>
+
+
 
 >helm upgrade <release_name> <chart_name> 
 >helm rollback <release_name> <revision_version>
 >helm delete <release_name>
  
 
->
 
+>
 
 
 
@@ -120,7 +157,7 @@ Helm release name consists of special character (ex - helm install demoCh@rt hel
 
 HelmFile:
 
->ref:https://jhooq.com/helmfile-manage-helmchart/    , for all details and mode.
+*ref:https://jhooq.com/helmfile-manage-helmchart/    , for all details and mode.
 
 >1.You can bundle several Helm Charts into a Single Helmfile to manage your kubernetes eco-system
 >2.Helmfile helps you to keep isolation between the different environments(developemnt, staging, production)
@@ -154,7 +191,7 @@ releases:
 
 
 
-> Use GitHub repository for installing helm chart using Helmfile 
+>Use GitHub repository for installing helm chart using Helmfile 
 
 >first, install helm git plugin, it is needed to work with git and git url syntax
 

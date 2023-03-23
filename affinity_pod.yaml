@@ -1,5 +1,5 @@
 >
->there are various ways to schedule a pod on node or select a Node to schedule/execute the pod,
+>There are various ways to schedule a pod on node or select a Node to schedule/execute the pod,
 >these are_
       1.Node Name and Node Selector
       2.Node Affinity and Node-Anti-Affinity
@@ -9,20 +9,22 @@
 >kubernetes User normally do not need to choose a node to execute their pod, Instead , selection of appropriate
 >Node is automatically handled by kubernetes scheduler.
 
->k8s scheduler watches for the newly created pod that have no Node assigned and for every such pod, scheduler
+>k8s scheduler watches for the newly created pods that have no Node assigned and for every such pod, scheduler
 >becomes responsible for finding the best node for that pod to run on.
 
 >Automatic node scheduling prevents user from scheduling pod on unhealthy node.
 >However, k8s provide the flexibility , to allow user to select the node, so that certain condition like RAM, SSD
 >co-location is fullfilled for execution of certain pod that need such specifications.
 
+>Pod affinity and AntiAffinity is more flexible way of scheduling the pod , in this method, we define the 
+>set of rules based on which scheduler schedules or DoNot Schedule the pod on the node or set of nodes.
 
 >-----------------------------------------------------------------------------------------------------------------
 
-# Pod Affinity and Pod antiAffinity_
+# Pod Affinity and Pod antiAffinity_ 
 
->In pod Affinity and Pod antiAffinity ,scheduler will decide , How the perticular Pod will be placed Relative 
->to other pods (which already exist on the node) based on the rules defined under rule of Pod affinity and 
+>In pod Affinity and Pod antiAffinity ,scheduler will decides, How the perticular Pod will be placed Relative 
+>to other pods (which already exist on the node) based upon the rules defined under rule of Pod affinity and 
 >AntiAffinity in pod spec manifest file. i.e. Scheduler will select the Node , based on the type of Pod which is 
 >already running on that node.
 
@@ -33,7 +35,7 @@
 >if the label selector on the new pod matches the label on current pod running on the node.
 >i.e. it will check the label of existing pod, so that new pod will get schedule on the 
 >same node as existing pod is. so that both pods will be on same node. 
-i.e IT WILL CO-LOCATE THE BOTH PODS ON THE SAME NODE.
+i.e. IT WILL CO-LOCATE THE BOTH PODS ON THE SAME NODE.
 
 >Pod Anti Affinity, can Prevent the scheduler from co-locating/i.e. NotTO Co-locate a new pod on the same node 
 >as pod with the same label, if the label selector on the new pod matches the label on the current pod.
@@ -45,14 +47,16 @@ i.e. IT WILL PREVENT THE PODS FROM CO-LOCATING ON THE SAME NODE.
 
 >-----------------------------------------------------------------------------------------------------------------
 
->Pod Affinity_
+*Pod_Affinity_
+
+1 : scheduling the pod on any node with GPU label using Node Affinity :
 
 apiVersion: v1
 kind: Pod                                  # this is old/already existing pod
 metadata:
   name: nginx-with-node-affinity
   labels:
-    app: nginx
+    app: nginx                             # labels for the pod, pod affinity will look for this
 spec:
   containers:
   - name: nginx
@@ -67,9 +71,11 @@ spec:
               operator: Exists 
             #  value: amd  
 
->above node affinity, will schedule the pod on the node having label as 'gpu' , no matter whats its value
+>above Node affinity, will schedule the pod on the node having label as 'gpu' , no matter whats its value
 >may be. so out of multiple node having label 'gpu' , it will schedule the pod on any of those nodes.
 
+
+2 : Scheduling the pod on a node, where previous pod is located using pod affinity :
 
 apiVersion: v1
 kind: Pod                           # this is new pod, and it will co-locate with existing pod.
@@ -104,7 +110,7 @@ spec:
 
 >-----------------------------------------------------------------------------------------------------------------
 
->Pod AntiAffinity_
+*Pod_AntiAffinity_
 
 apiVersion: v1
 kind: Pod
@@ -129,7 +135,7 @@ spec:
     image: nginx
 
   affinity: 
-    podAntiAffinity:             #podAntiAffinity
+    podAntiAffinity:                                    #podAntiAffinity
       prefferedDuringSchedulingIgnoredDuringExecution:   #soft scheduling
       - weight: 100
         podAffinityTerm: 
@@ -146,12 +152,12 @@ spec:
 
 
 >Above Anti Affinity, rule states that , if the existing pod is already deployed on the node with labels specified
->in anti affinity rules, then the pod with Anti Affinity rules must not get schedule on that node.
+>in anti affinity rules, then the pod with Anti Affinity rules defined must not get schedule on that node.
 i.e.
 >if the pod with label app:nginx, is already deployed on the node, then the new pod with with anti affinity
 >rule, must not get scahedule on the node having label app:nginx, 
 
->But it must also avoid placing the on the node having topology key as topologyKey: any-common-lable.
+>But it must also Avoid placing the pod on the node having topology key as topologyKey: any-common-lable.
 (above, ref_ https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity)
 
 
@@ -178,14 +184,16 @@ i.e.
 >           K8S will schedule the pod on a node with Highest total weight score. 
 >           i.e weight 80 is more desirable than weight 60.
 
-#only for preffered clause...
+#only applicable for preffered clause...
 
 >-----------------------------------------------------------------------------------------------------------------
 
+using affinity and AntiAffinity rule to co-locate and Repel the pods :
+
 >In below example, we are trying to schedule a pod on node in a such way that, No two Redis pod will get
->schedule on same node, also, No two flask pod will get schedule on same node. At the same time , 
->we are also trying to schedule the pod in a such a way that , one redis pod and one flask pod will
->get schedule on same node i.e. one redis and one flask pod must be co-located.
+>schedule on same node, also, No two flask pod will get schedule on same node. 
+>At the same time , we are also trying to schedule the pod in a such a way that , one redis pod and one flask pod 
+>will get schedule on same node i.e. one redis and one flask pod must be co-located.
 
 
 apiVersion: apps/v1
@@ -275,3 +283,8 @@ spec:
 
 >check, if we can apply the same rule in case multiple "LabelSelector" or multiple "matchExpressions"
 >in pod affinit/antiaffinty rule, like node affinity rule.
+
+---> checked, no proper doucmentation is available on internet, but is ok to assume that same 
+>    logical OR / AND rule will be application to affinity as well. needed to test it practically.
+
+>----------------------------------------------------------------------------------------------------------------

@@ -1,12 +1,12 @@
 >
->-------------------------------------------POD-----------------------------------------
+*----------------------------------------POD_IN_KUBERNETES--------------------------------------------------
 
->pods are the most basic scheduling unit in k8s.
+>pods are the most basic scheduling unit in k8s. (container is based on docker Linux Containers [LXC])
 
 >k8s doesn't run the container directaly, instead it wraps one or more containers 
 >into higher leval structure called as pod.
 
->pods are often Ephemeral (temporary), as on killing of one pod,controller will automatically 
+>pods are often Ephemeral (temporary), as on killing of one pod, controller will automatically 
 >creates a replacment for it.
 
 >pods are smallest deployable unite that can be created, scheduled and managed on k8s cluster.
@@ -21,6 +21,10 @@
 >any container in the same pod will share the same storage volume and network resource 
 >and communicates using localhost. containers also shares the port-space with each other, that means containers
 >in pod will have same ip, but they will never have same port number.
+
+>each container in pod will have its own Process space , Network Space, it can run applications and services as root.
+>it uses host os kernal for virtualization, Control Groups and Namespaces, and it does NOT need SYSTEMD as PID1
+
 
 
 lifecycle of Pod_:
@@ -59,6 +63,10 @@ Restart policy in k8s_ :
 > --port=<> : specifies the port to be open on container
 > --expose  : this will create the service for the pod
 > --replicas: to create multiple pod replicas
+> --env
+> --dry-run
+> --command
+> --override
 
 >kubectl run pod --help
 >kubectl explain pod.spec / pod.metadata
@@ -83,7 +91,7 @@ spec:
 apiVersion: v1
 kind: Pod
 metadata:
-  name: podtree
+  name: testpod
   labels: 
     name: pod
     appname: app2
@@ -108,7 +116,7 @@ spec:
       args: ["sleep", "50"] 
 
 
- > kubectl exec podtree -c containerone -it -- /bin/bash
+ > kubectl exec testpod -c containerone -it -- /bin/bash
 
 >-------------------------------------------------- 2
 
@@ -152,8 +160,9 @@ spec:
 
 
 >while having init containers in a manifest/pod, care needed to be taken that all init containers must executed
->to its completion, i.e it must exit sucessfully, after complating their task. failing to do so, will keep the init 
->container running , which will prevent the main application containers from running.
+>to its completion, i.e it must exit sucessfully, after completing their task. 
+>failing to do so, will keep the init container running , which will prevent the main application 
+>containers from running.
 
 
 >-------------------------------------------------- 4
@@ -177,8 +186,11 @@ spec:
 
 >--------------------------------------------------- 5
 
->in multicontainer pod, if we are opening any port on perticular container, then same port can Not be open on 
+>in multicontainer pod, if we are opening any port on perticular container, then same port can NOT be open on 
 >another container in pod. i.e. containers in a pod uses shared network and can be accessible on localhost.
+>which makes all pods accessible with single pod ip. 
+>But containers in pod do not share PORT Space, that makes it impossible to access the two different 
+>container using same port.
 
 we can telnet between the containers_  
 >telnet localhost <port>
@@ -189,14 +201,14 @@ we can telnet between the containers_
 
 > read more on_ Types of Containers in K8S_
 
-  1. sidecar container           (log exporter)        --> send the logs created by main container to buckets
-  2. ambassador/envoy container  (proxy pattern)       --> proxies-database connection/service mesh
-  3. adapter container           (log format changer)  --> simplifies monitoring output for service 
-  4. init container              (initilazation for main container) --> Do initialization works for main container
+  1. Sidecar container           (log exporter)        --> send the logs created by main container to buckets
+  2. Ambassador/envoy container  (proxy pattern)       --> proxies-database connection/service mesh
+  3. Adapter container           (log format changer)  --> simplifies monitoring output for service 
+  4. Init container              (initilazation for main container) --> Do initialization works for main container
   5. Ephemeral containers        (debugging container for main container build with distroless images)
   6. Main App Container          (container for main app or microservice)
   7. Pause container             (provides ip to the pod)
-  8. static Pod                  (container managed by kubelet on worker)
+  8. Static Pod                  (container managed by kubelet on worker node)
  
 
 >having only one container in one pod is desirable, however , there may arise a condition where we need to
@@ -249,7 +261,7 @@ we can telnet between the containers_
 
 >-------------------------------------------------------------------------------------------------------- 
 
->1. Init Container_
+1. Init Container :
 
 >init container will execute to perform activities that are needed in order for
 >successful execution of main app container. it executes to its completion and once
@@ -331,7 +343,7 @@ spec:
 
 >--------------------------------------------------------------------------------------------------------
 
->2. SideCar Container_
+2. SideCar Container :
 
 >in realtime deployments, it is not advised to burden main application container with additional responsiblities,
 >and we try to keep application image as small as possible, which reduces the surface attack on application.
@@ -387,7 +399,7 @@ spec:
     
 >--------------------------------------------------------------------------------------------------------
 
->3. Ambassador/Envoy Container_
+3. Ambassador/Envoy Container :
 
 >The Ambassador pattern employs a proxy for the main application container to communicate to external world.
 >i.e. it act as a proxy for main application container.
@@ -404,10 +416,9 @@ spec:
 
 >{watch video again......vimp}
 
-
 >--------------------------------------------------------------------------------------------------------
 
->4. Adapter Container_
+4. Adapter Container :
 
 >Some application can not be integrated with standard system due to compatibility issues.
 >the adapter pattern standerdizes the hetrogeneous applications by modifying the output to match the target system.
@@ -421,10 +432,10 @@ spec:
 
 >--------------------------------------------------------------------------------------------------------
 
->5. Ephemeral Container
+5. Ephemeral Container :
 
 >when we build multistage images using Distroless images, it does not provide us with utilities like ping,
->bash, sh , curl etc. so it is impossible to exec/debug in to that container for the purpose of debugging it.
+>bash, sh , curl, wget etc. so it is impossible to exec/debug in to that container for the purpose of debugging it.
 
 >so, in such case, Ephemeral containers come in to picture, Ephemeral containers are those 
 >container which run in same pod as main app container and contains the Debugging utilities 
@@ -445,7 +456,7 @@ spec:
 
 >--------------------------------------------------------------------------------------------------------
 
->6. Pause Container
+6. Pause Container :
 
 >Pause container is a additional container that gets created every time, when we created any new pod. 
 >Pause container is usually the first container that gets created when any pod gets created.
@@ -470,7 +481,7 @@ spec:
 
 >--------------------------------------------------------------------------------------------------------
 
->7. Static Pods
+7. Static Pods :
 
 >Static Pods are managed directly by the kubelet daemon on a specific node, without the API server on master node
 >observing them. Whereas most Pods are managed by the k8s control plane (for example, a Deployment, RS), 
@@ -486,17 +497,25 @@ spec:
 
 Note: The spec of a static Pod cannot refer to other API objects (e.g., ServiceAccount, ConfigMap, Secret, etc).
 
+>every kubelet in each node will have a defualt location eg_ /etc/kubernetes/manifest/.., if we put the 
+>manifest to create a resource such as pod there, it will automatically spin up the pod , which will be 
+>static in nature.
+
+>to delete the static pod, we need to deletre the manifest yml itself from this location.
+
+>this pod can not be control from master server as it is not aware about it.
 
 >--------------------------------------------------------------------------------------------------------
 
 
 *_DEBUGGING_THE_Crash_Loop_BackOFF_State_of_pod__
 
->CrashLoopBackOff state arises when container is failed to start and controller tries to restart it
+>CrashLoopBackOff state arises when container is failed to start and controller tries to restart the container
 >again and again.
 
->when container in a pod exited, the kubelet restart them with an exponential back-off delay (10s, 20s, 40s...)
->that is capped at 5 minutes.
+>when container in a pod exited with non-zero/error code, kubelet will not start it immediatly,
+>instead, it will wait for some time after that the kubelet restart them with an exponential back-off delay 
+>(10s, 20s, 40s...) that is capped at 5 minutes.
 
 >once a container has executed for 10 minutes without any problem, the kubelet resets the restart backoff
 >timer for that container.
@@ -532,6 +551,10 @@ tools you can use to debug it, and in which order to use it, This could be our b
 >4.Check the events.
 >5.Check the manifest for ports bindings, PV & PVC's , Image name and Tags, alloted H/W resources etc...
 >6.Make sure that ports are available and PV's are created
+>7.Check if Init Containers are properly configured or not, Unsuccessful execution of initContainer will 
+>  prevent the execution of application containers.
+
+
+
 
 ******************************************************************************************************************** 
-

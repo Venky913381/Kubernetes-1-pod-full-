@@ -1,10 +1,40 @@
 >
-> Three types of storages in kuberntes, these are :-> 
+
+>pods are Ephemeral in nature, each container in pod will have its own isolated file system , which
+>comes from containers image.
+>each time container gets restarted , the file system gets reset. So any chnages done to file system 
+>earlier will not be persisted, THAT IS WHY WE NEED TO USE VOLUMES_
+
+>In k8s, there are some volume which gets created when  the pod is started and are destroyted when
+>the pod is deleted. they have lifecycle similar to that of pod. these are EPHEMERAL volumes.
+
+>some volumes will have lifecycle beyond the loifecycle of the pod or even k8s node itself, these 
+>volumes are known as persistance volumes.
+
+>volumes is essentially a directory accessible to all the containers inside the pod.
+>by default containers data is stored inside its own file system, which is ephemeral in nature.  
+>in order to have persistance storage, k8s provides the volumes. 
+
+>Persistance storage provides the data beyond the lifecycle of the pod, i.e. persistance volumes/ hostPaths
+>is a storage object that lives at the cluster level and has lifecycle beyond the pod.
+
+
+Kubernetes offers three type of different storage options to the user, these are :
 1> EmptyDir
 2> HostPath
 3> PersistantDisk
 
-# 1.EMPTYDIR ( Creating volume inside pod, i.e. alongside container (EmptyDir) )
+
+*EMPTYDIR ( Creating volume inside pod, i.e. alongside container (EmptyDir) )
+
+> we specify the volumes to provide for the pod in .spec.voules and declare where to mount them into containers
+> in .spec.containers[*].volumeMounts
+
+> each container defined in pod must , we must independantly specify where to mount the volume in the container.
+
+> a process in a container sees a filesystems view composed from the initial content of the container image, 
+> plus any mounted volumes into it. i.e. each container can mount the same volume atr different independent 
+> paths of their own.
 
 apiVersion: v1 
 kind: Pod
@@ -22,7 +52,8 @@ spec:
 
   volumes:
     - name: test-vol
-      emptyDir: {}        
+      emptyDir: {}        # emptyDir.medium,  feild to memory
+
 
 >data will remain inside the pod and will be available only to the containers inside that pod.
 >this data will not be available to other containers on other pods on same machine or other pods on other machines.
@@ -30,8 +61,8 @@ spec:
 >emptyDir is a temporary storage and it have a lifecycle similar to the pod. i.e. once pod is deleted
 >volume and data will also be lost.
 
->it is initially empty, emptydir volumes are stored on whatever medium is backing the node, that is
->it might be disk or n/w storage or RAM (emptyDir.medium feild to Memory)
+>it is initially empty, as it was created inside the pod. emptydir volumes are stored on whatever medium is 
+>backing the node, that is it might be disk or n/w storage or RAM (emptyDir.medium feild to Memory)
 
 >all containers in the pod can read and write to this volume by mounting the volume at some path in their
 >file system.
@@ -41,12 +72,23 @@ spec:
 
 >--------------------------------------------------------------------------------------------------------
 
-# 2.HostPath ( Creating volume outside of pod, i.e. on Node machine. (HostPath) )
+*HostPath ( Creating volume outside of pod, i.e. on Node machine. (HostPath) )
 
->if we delete the POD, data will be preserved in directory in sync on Host Machine, 
+> we specify the volumes to provide for the pod in .spec.voules and declare where to mount them into containers
+> in .spec.containers[*].volumeMounts
+
+> each container defined in pod must , we must independantly specify where to mount the volume in the container.
+
+> a process in a container sees a filesystems view composed from the initial content of the container image, 
+> plus any mounted volumes into it. i.e. each container can mount the same volume atr different independent 
+> paths of their own.
+
+>if we delete the POD, data will be preserved in directory which is in sync on Host Machine, 
 >and when new POD is recreated by controller, all the data will be present in new POD inside the container.
 .i.e.
 >data volumes is created On the Host Machine storage, and will be available to all the PODs on that machine.
+
+>it have lifecycle of the node and it can share the data between the pods
 
 apiVersion: v1 
 kind: Pod
@@ -58,13 +100,14 @@ spec:
     - name: vol1 
       image: nginx
       volumeMounts:
-        - name: test-vol2           # on container
+        - name: test-vol2            # on container
           mountPath: /data
 
-  volumes:                 # volume on host machine
-    - name: test-vol2                         #/data,  on container & /tmp/data, on host, will be in sync.
+  volumes:                           # volume on host machine
+    - name: test-vol2                #/data,  on container & /tmp/data, on host, will be in sync.
       hostPath:
-          path: /tmp/data    
+          path: /tmp/data   
+          type: Directory or Create  #optional 
 
 
 >this type of volume mounts a File or Directory created on node where pod is running.
@@ -80,13 +123,15 @@ spec:
 
 >-------------------------------------------------------------------------------------------------------------
 
-# EKS ON AWS  ( Persistance data , with cluster on the cloud)                             
+*Volume_Mounted_on_AWS_EBS_
+EKS ON AWS  ( Persistance data , with cluster on the cloud)                             
 
 >In above two cases, in case of recreation, if pod is get schedule on any machine , other than its original 
 >machine in cluster data will no longer be available to the pod.
 
 >In this all we need a volume which is available to the all the machines in the cluster, 
->Here AWS EKS (cluster in cloud) comes to rescue_
+>Here AWS EKS (cluster in cloud) comes to rescue_ here lifecycle of the volume ius not tied to the lifecycle 
+>of the pod or Node. volume persist beyond the pod or node itself.
 
 >In this approch , we create a managed k8s cluster on aws eks, and create a ebs volume, which will remain
 >available to the all nodes participating in the managed cloud cluster.  
@@ -130,5 +175,26 @@ spec:
 >once our cluster get set up, it will also download the kube-config in to local machine. and we will 
 >able to directaly use the kubectl commands on eks, No manual configuration is needed.
 
- 
+>in this aproach developer needs to know the details of underline storage such as aws ebs, also if we 
+>migrate our cluster to some other cloud provider, in that we need to make changes to the storage and
+>again developer will needs a details of it.
+>to overcome this k8s provides the PV and PVC's, whcih hides the details of underlying storage, all the 
+>developer needs is to use it, without knowing the underlying details.
+
+
+Kubernetes supports several different types of Volumes :
+1.emptyDir
+2.hostPath
+3.awsElesticBlockStorage through CSI (container storage interface)
+4.gcePersistanceDisk
+5.NFS
+6.Cephs
+7.PVC
+8.azureDisk
+9.ConfigMaps and Secrets
+and many more...........
+
+*READ_NEXT:- 
+>PV&PVC
+
 >-------------------------------------------------------------------------------------------------------------

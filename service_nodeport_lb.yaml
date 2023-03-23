@@ -1,5 +1,5 @@
 >
->Service in k8s
+*Service_in_k8s_
 
 >we need a services for enabling the pod-to-pod communication, also to enable external traffic to access 
 >microservice/app deployed in k8s pod.
@@ -11,7 +11,7 @@
 >        on port 3000, we can access the service through its <service_name>:3000
 
 >Target Port :- target port represents the actual Container Port of the pod. it should match the container port
->               in the podmanifest file.
+>               in the pod manifest file.
 
 >Node Port :- Node port represents the port of the Node , from which external traffic access the service. 
 >             It is used with Ip address of the node/ec2 , and serice will be accessible.
@@ -19,13 +19,13 @@
 
 >type : type represent the type of the service.
 
->flow :  <ip_address>:NodePort ------>  Port ------> TargetPort   {for nodePort service}
+*flow :  <ip_address>:NodePort ------>  Port ------> TargetPort   {for nodePort service}
 
 >kubectl get service -l label=value  ---> to get service details filtered by labels.
 
 >--------------------------------------------------------------------------------------------------------------
 
->NodePort_
+NodePort_ :
 
 >A NodePort service is the most primitive way to get external traffic directly to your service. 
 >NodePort, as the name implies, opens a specific port on all the Nodes (the VMs), 
@@ -75,7 +75,7 @@ you can use kubectl port-forward to forward traffic to any service/pod running i
 
 >--------------------------------------------------------------------------------------------------------------
 
->LOAD BALANCER
+LOAD BALANCER_ :
 
 >we need a cloud environment like eks, gke, aks, civo, platform9 ,digitalOcean etc to use load-balancer type service
 
@@ -101,7 +101,7 @@ metadata:
 
 spec:
   type: LoadBalancer
-  selecor:
+  selector:
     app: myapp
 
   ports:
@@ -137,4 +137,3 @@ All traffic on the port you specify will be forwarded to the service.
 
 
 >--------------------------------------------------------------------------------------------------------------
-

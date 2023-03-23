@@ -1,4 +1,10 @@
 >
+>Ingress _
+
+*Ingress_Resource
+*Ingress_Controller
+*Ingress_Class
+
 >Instead of exposing each service independently , we use ingress controller to expose the multiple services 
 >using same ip address. 
 
@@ -8,7 +14,7 @@
 >ingress controller can perform load balancing , Auth, SSL and (Host)URL/Path based routing configuration by being 
 >inside the cluster, living as a deployment or a DAEMON SET.
 
->Ingress helps user access the multiple application using single externally accessible URL, 
+>Ingress helps user access the multiple application using single externally accessible IP/URL, 
 >that you can configure to route to different services within the cluster based on url, 
 >at the same time terminates the SSL/TLS.
 
@@ -55,7 +61,7 @@ spec:
     - image: coolgourav147/nginx-custom
       name: nginxapp2 
       ports: 
-      - containerPort: 8080                   
+      - containerPort: 8000                   
 
 
 apiVersion: v1
@@ -69,7 +75,7 @@ spec:
     ports:
     - name: http
       port:  80
-      targetPort:  8080 
+      targetPort:  8000 
       protocol: tcp 
 
 >---------------------------------------
@@ -115,18 +121,18 @@ spec:
 >but it add extra layer of routing and control behind the load balancer.
 
 >we only pay for one Load balancer or single ip provided by cloud provider and Ingress controller is 
->verstile enough to route various requests using simple Host or URL based routing.
+>verstile enough to route various requests from different DNS using simple Host or URL based routing.
 
 >Ingress controller allows us to map multiple DNS names to single IP and using routing rules, we can route
 >the traffic to the proper service based on its DNS names.
 
 >DNS name only resolve to the IP, it can Not resolve to the "ip:port" combination, But in k8s we need to resolve
->to port number too, as node port service open our microservice on specific port.
+>to port number too, as node port service open our microservice on specific port. 
 
 
 > Ingress/Ingress_Resources/Ingress_Rule :--> 
     is an API object that manages external access (typically HTTP) to the services in the cluster.
-    it provides Load balancing, SSL termination, and name based /host based virtual hosting. 
+    it provides Load balancing, SSL termination, and Name-based /Host-based virtual hosting. 
 
     It exposes HTTP and HTTPS routes from outside the cluster to services within the cluster.
 
@@ -135,28 +141,28 @@ spec:
 
 > so, ingress resource is nothing but the set of routing rules that we provides to Ingress Controller, and based  
 > upon provided rules defined in ingress resource, Ingress Controller routes the external traffic to various 
-> services within the cluster.
+> services within the cluster. 
 
-    > There are two types of Ingress Rules
+    > There are two types of Ingress Rules/Routings_
       1. Path Based Routing
-      2. Host Based Routing
-
+      2. Host Based Routing                       
 
 > Ingress Controller :--> 
     is the one that is responsible for implementing all the ingress rules, usually with 
-    load balancer to help handle traffic.
+    load balancer / Node Port to help handle traffic. 
+    (IC is exposed using either LB or NP, we can see these details in Manifests for IC provided by their vendors)
 
-  >  Ingress controller route the traffic only through DNS names, not through IP address, as all the routing
+  >  Ingress controller route the traffic only through DNS names, Not through IP address, as all the routing
 > >  rules are defined in Ingress Controller. i.e. Application are only accessible by DNS names and not through IP. 
 
-    eg_ nginx, haproxy, voyger, istio, traefik...
+    eg_ nginx, haproxy, voyger, istio, traefik , are few of the implementations of the IC.
 
 >Ingress controller needs ingress resources/rule to function. Ingress resource is a native resource provided by k8s.
->similarly , we can use Nginx, HAProxy, Istio , traefik etc.. as a third party ingress Controller.
+>similarly , we can use Nginx, HAProxy, Istio , traefik etc.. as a third party ingress Controller in k8s.
 
     
 > Ingress Class :-->
-    Ingresses can be implemented by different controller , such as Nginx, Traefik etc. often with 
+    Ingresses can be implemented by different controller , such as Nginx, Traefik, Istio etc. often with 
     different configuration.
 
     Each ingress should specify a class, a reference to an 'IngressClass' resource that contains additional 
@@ -164,21 +170,21 @@ spec:
 
 
 >So, Ingress Resource is nothing but the set of rules, which Ingress Controller must implements in order to route 
->the traffic. And we must select the Ingress class, in order to define, which Ingress Controller we are using
+>the traffic. And we must select the Ingress class, in order to specify, which Ingress Controller we are using
 >to implemets the ingress rules. 
 
 *----------------------------------------------------------------------------------------------------------------- 
 
->Ingress exposes HTTP and HTTPS routes from outside the cluster to the Service within the cluster.
+>Ingress exposes HTTP and HTTPS routes from outside the cluster to the Services within the cluster.
 >Traffic routing is controlled by rules defined in ingress resource. 
 
 >Ingress resource can not do anything on their own, we need to have an Ingress controller in order for ingress 
->resource to work. Thus, Ingress Controller implements the rules defined by Ingress Resource. we need to 
+>resource/rule to implement. Thus, Ingress Controller implements the rules defined by Ingress Resource. we need to 
 >declare ingress Class, in order to specify the ingress Controller, which implements the routing rules
 >defined in ingress resource.
 
 
->Path based routing
+*Path_based_routing_
 
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -192,7 +198,7 @@ spec:
   rules:
   - host: 
     http:                         # will respond to any host i.e. it may google.com or xxxx.com or 8.8.8.8
-      paths:                      # all it cares about is path .i.e. google.com/nginx or xxxx.com/nginx
+      paths:                      # all it cares about is path .i.e. google.com/nginx or xxxx.com/flask
        
       - path: /nginx              #host is configure using LB/R53 OR HAPROXY outside
         pathType: Prefix
@@ -214,7 +220,7 @@ spec:
 
 >-----------------------------------------------------------------------------------------------------------------
 
->Host based routing
+*Host_based_routing_
 
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -250,8 +256,9 @@ spec:
 
 Ingress is probably the most powerful way to expose your services, but can also be the most complicated. 
 There are many types of Ingress controllers, from the Google Cloud Load Balancer, 
-Nginx, Contour, Istio, and more. There are also plugins for Ingress controllers, like the cert-manager, 
-that can automatically provision SSL certificates for your services.
+Nginx, Contour, Istio, and more. 
+>There are also plugins for Ingress controllers, like the cert-manager, 
+>that can automatically provision SSL certificates for your services.
 
 Ingress is the most useful if you want to expose multiple services under the same IP address, 
 and these services all use the same L7 protocol (typically HTTP). You only pay for one load balancer ip
@@ -259,7 +266,7 @@ if you are using the native cloud integration, and because Ingress is â€œsmartâ€
 features out of the box (like SSL, Auth, Routing, etc)
 
 
->------------------------------------------------------------------------------------------(below by vikram)....
+*------------------------------------------------------------------------------------------(below_by_vikram)....
 
 >ref_ https://kubernetes.io/docs/concepts/services-networking/ingress/
 
@@ -276,7 +283,7 @@ features out of the box (like SSL, Auth, Routing, etc)
 >defination file i.e. ingress resource, that lives along the rest of your application deployments file.
 
 >ingress controller can perform load balancing , Auth, SSL and URL/Path based routing configuration by being 
->inside the cluster, living as a deployment or a DAEMON SET.
+>inside the cluster, living as a Deployment or a DAEMON SET.
 
 >Ingress helps user access the application using single externally accessible URL, that you can configure 
 >to route to different services within the cluster based on url, at the same time terminates the SSL/TLS.
@@ -292,7 +299,7 @@ features out of the box (like SSL, Auth, Routing, etc)
 >simply adds an additional layer of routing and control behind the load balancer.
 
 >we only need to pay for one cloud load balancer ip address, if we are using any cloud native load balancer, 
->ingress is smart enough to route various requests using simple Host or URL based routing.
+>ingress is versetile enough to route various requests using simple Host or URL based routing.
 
 >this way we can avoid exposing each service independently and having ip's assign for each service.
 
@@ -300,7 +307,7 @@ features out of the box (like SSL, Auth, Routing, etc)
 >thay can generally implemeted by a third party proxy, that can read the ingress rules and adjust its 
 >configuration accordingly.
 
->there are many ingress controller, like AWS ALB, Traefik, Nginx, Istio, Contour, HAProxy, voyger etc.
+>there are many ingress controller implementations, like AWS ALB, Traefik, Nginx, Istio, Contour, HAProxy, voyger etc.
 
 >there are also many plugins for ingress controller like cert-manager, that can automatically provision 
 >SSL certificates for the services.
@@ -311,6 +318,8 @@ features out of the box (like SSL, Auth, Routing, etc)
 >if we are running cluster on-prem, Ingress controller are to be exposed via NODEPORT and use Proxy
 >like HAProxy between DNS server and Ingress Controller, unless we have other solution like MetalLB/CloudLB.
 (see, rahul wagh video)
+>If we have a cloud based cluster such as EKS, GKE, AKS, Civo etc. we can expose Ingress controller via 
+>LOAD-BALANCER Service.
 
 >-----------------------------------------------------------------------------------------------------------------
 
@@ -324,8 +333,8 @@ Ingress/Ingress Resources/Ingress Rules:
 >Ingress exposes HTTP and HTTPS routes from outside the cluster to services within the cluster. 
 >Traffic routing is controlled by rules defined on the Ingress resource.
 
->load balancing , Auth, SSL and URL/Path based routing configuration by being 
->inside the cluster, living as a deployment or a DAEMON SET
+>An Ingress provides load balancing , Auth, SSL and URL/Path based routing configuration and by being 
+>inside the cluster, live as a Deployment or a DAEMON SET in the cluster.
 
 >An Ingress does not expose arbitrary ports or protocols. Exposing services other than HTTP and HTTPS to the 
 >internet typically uses a service of type Service.Type=NodePort or Service.Type=LoadBalancer.
@@ -417,7 +426,7 @@ eg_ www.google.com / www.flipkart.com / www.amazon.co.in
 # Ingress Class
 
 >we can have multiple ingress Controllers running inside the cluster, like Nginx, Traefik etc. In order
->to decide which ingress Controller, should the Ingress Resource/Rule implement, we must declare ingress class.
+>to decide which ingress Controller, should the Ingress Resource/Rule implements, we must declare ingress class.
 
 >Ingress Rule , responds to only one IngressController , that is why it is necessary to declare the Class. This
 >specifies that ,the rules specified in perticular ingress Rule , must be implemented by given ingress Controller.
@@ -435,6 +444,8 @@ eg_ www.google.com / www.flipkart.com / www.amazon.co.in
 >for every ingress controller , there is a ingress class, that we need to used in our ingress resource to tell
 >that ingress resouce should use that ingress controller.
 
+>we can get the class name for specific Ingress Controller from its deployments Manifests file or from
+>the documentation provided by IC provider.
 
 *flow: Ingress_Resource ----> Ingress_Class ----> Ingress_Controller (Implements the rule) ----> Routing....
 
@@ -467,7 +478,7 @@ Remote Address: 142.251.42.67:443
 
 *                               **********************************************
 
->All cloud service provider (GCP,AWS, Openshift, Digital Ocean) comes with their own load balancer which can 
+>All cloud service provider (GCP, AWS, Openshift, Digital Ocean) comes with their own load balancer which can 
 >help us exposing internal service deployed inside kubernetes cluster to the external world.
 
 >now, suppose, we are not using Cloud LoadBalancer to expose the Ingress Controller and instead we are using 

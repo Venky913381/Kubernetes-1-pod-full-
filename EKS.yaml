@@ -1,0 +1,192 @@
+>
+
+>AWS_EKS_
+
+
+*Elastic_Kubernetes_Service_
+
+>In managed kuberntes services, we do not have control over the master node, that is we do not control
+>the control plane of the cluster.
+
+>In managed K8s services, we can use Load Blancer type service , which us an external Public IP address.
+
+>In managed k8s cluster, a third party providers like AWS, AZURE, GCP , CIVO , OPEN SHIFT takes over the 
+>responsibility for some or all of the necessary work for the set up and operate k8s cluster like
+>backups, maintanance, and upgrades etc.
+
+>Managed k8s cluster, will have deep intergration with services like VPC, IAM, LoadBalancers, Storage etc.
+
+>EKS is a managed service, that lets you run k8s on aws without need to install, operate and maintain our
+>own k8s control plane or worker nodes.
+
+>EKS is highly available with automated upgrades and patching.
+>it automatically manages the availability and scalability of k8s control plane nodes.
+
+>Worker nodes can be EC2 instances or AWS Fargate Containers. And it is highly integrated with other 
+>AWS services like ALB, IAM for RBAC, VPC for networking, also other services like EBC, Lambda, SNS,
+>CloudFront, R53, S3, CloudWatch.
+
+
+*EKS_Control_Plane_
+
+>The control plane consist of at Least "TWO API servers instances" and "THREE ETCD Instances" that runs across
+>"THREE Availability Zones" within an AWS region to ensure high availibility.
+
+>AWS automatically detects  and replaces unhealthy control plane nodes.
+>Kubernetes API is exposed via the AWS EKS endpoint.
+
+>Data stored by ETCD nodes and associated AMAZON EBS volume is encrypted using AWS KMS.
+
+
+*EKS_WORKER_NODES_
+
+>EKS cluster can schedule pod on any combination of self-managed nodes (EC2), Amazon EKS managed Node Groups
+>and AWS Fargate.
+
+>Nodes must be in the same VPC as the subnet we selected when we created the cluster. However the nodes
+>dont have to be in the same subnets. ?
+
+>In production environments, Master nodes and Workser Nodes must be in different VPC.
+
+
+*EKS-AWS_Integrations_
+
+>API calls can be audited in a Cloudtrail.
+
+>Authentication through IAM while Authorization through native k8s RBAC.
+
+>CloudFormation to manage EKS Clusters.
+
+>LoadBalancers , EBS Volumes, EFS to manage LoadBalancing and Persistnce storage.
+
+>Container registries on ECR.
+
+>Networking is Handled with a per-pod IP address with Attached ENI.
+
+
+*IAM_USER_FOR_EKS_CLUSTER_
+
+>The priciple of the least priviledge states that the subject should be given only those 
+>priviledges needed for it to complete its tasks.
+
+>Granting permission to a user beyond the scope of the necessary rights of an action can 
+>allow that user to obtain or change the information in unwanted ways. This could potentially 
+>damage the system.
+
+>every programm or every user of the system should operate using the least set of the priviledges necessary
+>to complete the job.
+
+>IAM is allow the what an USER, a PROCESS or a Bot can do on your account. IAM control who (authentication) 
+>can do what (Authorization) on aws account.
+
+>Authentication with IAM is done with Users/Groups and Roles. Authorization is done with IAM Policies.
+
+>We need to install aws cli on the working machine so that we can control aws via commands, Also we need a IAM 
+>user with a Programatic Access with access key and Secret Key.
+
+>Also, we need to keep in mind that, The current logged in account (throught we created the eks cluster) 
+>will becomes a root account for the cluster.
+
+
+Permission/Policy Set for IAM User for EKS Cluster_ :
+
+>1. We will need a AWS IAM user with priviledges to create EKS Cluster.
+>2. AWS CLI and kubectl is needed to be installed.
+>3. Create a IAM role to attach to the EKS Cluster thats talks to service such as EC2, IAM, VPC, EBS, EFS, KMS etc..
+>4. Create a CF stack/Terraform script/manual to create a VPC with public and private subnets to siute the 
+>   eks requirements.
+>5. Create eks cluster with required k8s version.
+>6. Configure AWS CLI and fetch kubeconfig file.
+
+
+
+*Steps_to_set_up_EKS_Cluster_ (CONTROL Plane)
+
+*ref_https://docs.aws.amazon.com/eks/latest/userguide/getting-started-console.html
+*ref_https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
+*ref_https://docs.aws.amazon.com/eks/latest/userguide/install-kubectl.html
+
+>1.First create the IAM user Account with both Console and Programatic Access, This account will be used as a 
+>  root account for the EKS cluster. (can also be done from Root user account, but Not Recommanded)
+
+>2.Make sure that we have AWS-CLI installed on the local machine, from which we are accessing the cluster.
+>3.Install the KUBECTL command line utility to communicate with the cluster.
+
+>4.Create a role with proper permissions/policies attached like, Policy to control the EKS cluster, 
+>  policy to have access to EC2 or FARGATE service as this will be used as NODES in EKS Cluster,
+>  Policy to have access to the ELB, Storage, R53, KMS, VPC etc AWS services.
+
+>5.We can also fine grained this permissions using IAM policies and Policy Boundaries, But make sure 
+>  that user/Role will have an access to the service which are needed for proper functioning of the Cluster.
+
+>6.Once we have User/Role set up, we can create a associated services like VPC and Subnets for the creation 
+>  of the cluster and Nodes. (infact, AWS-EKS documentation provides the ready-made template for the creation
+>  of the VPC using Cloud-Formation service, However for more customize VPC we can set up our own VPC either
+>  using Terraform/ANSIBLE/ via MANUAL process)
+ref_:
+aws cloudformation create-stack \
+  --region region-code \
+  --stack-name my-eks-vpc-stack \
+  --template-url https://s3.us-west-2.amazonaws.com/amazon-eks/cloudformation/2020-10-29/amazon-eks-vpc-private-subnets.yaml
+
+
+>7.Once we have Network/VPC configuration set up, we can proceed with set of the EKS Cluster, we can do this
+>  either using AWS-CLI utility, Or Using Terrafor/Ansible Script, or by using AWS CONSOLE. 
+
+>8.During cluster set on console we can have veriety of option like Choosing specific K8S Version,
+>  Selecting Encryption using AWS-KMS, Tags, Networking Options like selecting VPC and Subnets,
+>  IP Address range, Security Groups,  Cluster Enpoint Access Type (public, private, Public & Private), 
+>  Networking Addons (VPC CNI etc) and Dignostics and Logging Options for API-Server, Controller Manager,
+>  Scheduler, Audit, Authenticator etc.
+
+>9.After cluster is ready we can download the Kube config file for the cluster, which will gave us the access
+>  to the clustrer. and we can start working of the Cluster.
+ref_: 
+aws eks update-kubeconfig --region <region-code> --name <cluster_name>
+
+
+
+*Adding_Nodes_To_The_Cluster : (DATA Plane)
+
+*ref_https://docs.aws.amazon.com/eks/latest/userguide/getting-started-console.html
+*ref_https://eksctl.io/
+
+>With AWS-EKS we an have two types of node available to use in a cluster, these are
+ 1. EC2-LINUX Machine Node Group
+ 2. AWS-Fargate Profiles
+
+>From cluster page, on Compute section we can create and add Node Groups/ Fargate Profile to our cluster.
+
+
+To create Amazon EC2 Linux managed node group :
+
+>1.Create a Node IAM role and attach the required Amazon EKS IAM managed policy to it. 
+>  Basic Policies to attach_
+1.Amazon EKS CNI Policy
+2.Amazon EKS Worker Node Policy
+3.Amazon EC2 Container Registry Read only Policy     (If we are using ECR)
+
+>2.The Amazon EKS node kubelet daemon makes calls to AWS APIs on your behalf. Nodes receive permissions 
+>  for these API calls through an IAM instance profile and associated policies. 
+
+>3.While creating Node Group Compute Configuration , we need to select various node related parameters
+>  like, AMI TYPE, INSTANCE TYPE (min t3.micro), CAPACITY TYPE (spot, on-demand etc), DISK SIZE, MINIMUM NODE, 
+>  MAXIMUM NODES,, DESIRED NODES, REMOTE ACCESS, SSH KEY (only if we wants ssh access), SUBNETS, SECURITY GROUPS etc..
+
+
+>Using command to set up Cluster with EC2 as a Node _
+
+*ref_https://docs.aws.amazon.com/eks/latest/userguide/getting-started-eksctl.html
+
+1> eksctl create cluster --name <cluster-name> --region <region>
+2> eksctl create cluster --name <cluster-name> --region <region> --node-type <ec2_type>  --node-zones <a-z>
+
+
+
+To create Amazon Fargate Profile for EKS Cluster :
+
+>Using command_
+1> eksctl create cluster --name <cluster-name> --region <region> --fargate
+
+
+*---------------------------------------------------------------------------------------------------------------

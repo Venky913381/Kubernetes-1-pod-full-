@@ -1,7 +1,7 @@
 >
 
 >Desired state is core concept in k8s.
->through declarative or imperative Api, we describe the desire state of the objects 
+>through declarative or imperative Aproch, we describe the desire state of the objects 
 >like pod, rs, deployment in the cluster.
 
 >if due to some failures , a pod stops running/dies , the kubelet recreates the pod based on the lines of desired
@@ -13,16 +13,16 @@
 >this way k8s ensured that all the containers running across the cluster are always in the desired state.
 >we need a controller for our application , for the purpose of Relibility, LoadBalancing, Scalling.
 
->https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+*ref_https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
 
 >Replica set is higher level objects that gives ability to easily run multiple instance for given pod.
 >it works similar to replication controller.
 
->Replica set uses SET BASE SELECTORS to manage pods. it is more expressive than equity based selection.
+>Replica set uses SET BASE SELECTORS to manage pods. it is more expressive than Equity based selection.
 >it makes us able to give multiple label selection choices. and we can also decide which label to select and
 >not to select , while selecting existing pods.
 
->the major difference between RC AND RS is the Rolling-Update command , which works with Replica set  
+>one of the the major difference between RC AND RS is the Rolling-Update command , which works with Replica set  
 >but won't works with Replication Controller . 
 >This is becouse rs are meant to be used as a backend for the Deplyments.
 

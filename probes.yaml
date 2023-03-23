@@ -1,5 +1,6 @@
 >
---------------------POD LIVENESS ,READINESS PROBE and STARTUP PROBE-----------------------------
+*_Probes_In_Kubernetes_
+#--------------------POD LIVENESS PROBE ,READINESS PROBE and STARTUP PROBE-----------------------------
 
 >refer, https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
 
@@ -87,7 +88,8 @@ spec:
 
 Sometimes, applications are temporarily unable to serve traffic. For example, an application might need to 
 load large data or configuration files during startup, or depend on external services after startup. 
-In such cases, you don't want to kill the application, but you don't want wait to send it requests later. 
+
+In such cases, you don't want to kill the application, but you do want to wait to send it requests later. 
 Kubernetes provides readiness probes to detect and mitigate these situations. 
 A pod with containers reporting that they are not ready, will not receive traffic through Kubernetes Services.
 
@@ -163,11 +165,11 @@ spec:
 >if Startup Probe is configured k8s will ignore other probes (liveness and readiness), until the startup
 >probe succeeds.
 
->when we autoscale, we need a sure way to know wheather a worker's container has started or not before
+>when we do autoscale, we need a sure way to know wheather a worker's container has started or not before
 >starting to send the traffic to it. 
 
 There are apps and services which requires time before they are available.
-Protect slow starting containers with startup probes
+We can Protect slow starting containers with startup probes
 Sometimes, you have to deal with legacy applications that might require an additional startup time on 
 their first initialization. 
 

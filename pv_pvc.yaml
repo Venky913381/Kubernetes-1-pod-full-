@@ -1,17 +1,25 @@
 >
+*READ_FIRST:-
+>Volumes [EmptyDir/HostPath]
 
 >What problems does it solve?
-    Containers running inside the pod can not share the files with each other.
+
+    Containers running inside the pod can not share the files with each other, if they have volume mounted 
+    on different hosts and if they are not in sync with each other.
+
     All the files inside the container are temporary which means if you terminate the container,
-    you are going to lose all your files.( and in case of EmptyDir too)
-    Secondly if in any case, your container crashes then there is no way to recover files.
+    you are going to lose all your files.(in case of EmptyDir)
+
+    Secondly, if in any case, your container crashes then there is no way to recover files.
     Kuberenetes provides volume plugin as Persistent Volume to address the above problems.
 
     The lifecycle of these volumes are independent of the lifecycle of pods. (host path)
     So if PODs are terminated then volumes are unmounted and detached keeping the data intact.
 
+
 >What is Persistent Volume(PV)?
-    In simple terms, it's storage/pool of storage volumes available within your Kubernetes cluster. 
+
+    In simple terms, it's storage/pool of storage volumes, available within your Kubernetes cluster. 
     This storage can be provisioned by you or Kubernetes administrator.
 
     It's basically a directory with some data in it and all the containers running inside the pods can access it. 
@@ -21,18 +29,20 @@
 
     So if PODs live or die, persistent volume does not gets affected and it can be reused by some other PODs.
 
+    >  Kubernetes provides many volume plugins based on the cloud service provider you are using ___
 
-  >  Kubernetes provides many volume plugins based on the cloud service provider you are using ___
         awsElasticBlockStore, azureDisk, azureFile, cephfs, cinder, configMap, csi, downwardAPI, 
         emptyDir, fc (fibre channel), flexVolume, flocker, gcePersistentDisk, gitRepo (deprecated), 
         glusterfs, hostPath, iscsi, local, nfs, persistentVolumeClaim, projected, portworxVolume, 
         quobyte, rbd, scaleIO, secret, storageos, vsphereVolume
 
 
->What is Persistent Volume claim?
+>What is Persistent Volume claim(PVC?
+
     Persistent volume claim provides you an abstraction between the consumption of the storage 
     and implementation of the storage.
     In the nutshell you can say, its a request for storage on behalf of an application which is running on cluster.
+    .i.e. when any pod lay a claim on volume, and if that storage is available then it will get attached to that pod.
 
 
 >---------------------------------------------------------------------------------------------------------------
@@ -43,8 +53,60 @@
 2. bind the volume to PVC i.e. execute manifest for pvc 
 3. Create the pod and attach the pvc to it. 
 
+*PV_
 
->POD_
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: jhooq-demo-pv         # name will be referenced by pvc
+  labels:                     # label is optional
+    type: awsEBS
+spec:
+  capacity:
+    storage: 10Gi
+  volumeMode: Filesystem       #filesystem or Block
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain     #other, Delete or Manual, if cluster is not provisned on cloud
+  storageClassName: local-storage             
+  local:                                    #or-->  hostPath:
+    path: /home/vagrant/storage             #          path: "/path"
+
+
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname   # pv will be provisioned on the node with given key as a label attached to it
+          operator: In
+          values:
+          - node1
+
+
+
+*PVC_
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jhooq-pvc          # name will be referenced by storage claiming pod
+spec:
+  volumeName: jhooq-demo-pv           # name of the pv
+  storageClassName: local-storage     # must need to same as describe in PV specs, it will decide which PV 
+  volumeMode: Filesystem              # will get served the claim.
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi         # 1gib out of 10gib provisioned by pv.
+
+  selector:                # selector is optional, needed only in case of selection of perticulat pv
+    matchLabels: 
+      type: "awsEBS"    
+
+
+
+*POD_
 
 apiVersion: v1
 kind: Pod
@@ -64,54 +126,11 @@ spec:
       - name: www-persistent-storage
         mountPath: /home/vagrant/storage
 
-  volumes:
+  volumes:                               #Attaching the claim to the pod
     - name: www-persistent-storage
       persistentVolumeClaim:
-        claimName: jhooq-pvc   # name of the pvc
+        claimName: jhooq-pvc             #Name of the pvc
 
->PVC_
-
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: jhooq-pvc        # name will be referenced by storage claiming pod
-spec:
-  volumeName: jhooq-demo-pv           # name of the pv
-  storageClassName: local-storage     # must need to same as describe in PV specs, it will decide which PV 
-  volumeMode: Filesystem              # will get served the claim.
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi   # 1gib out of 10gib provisioned by pv.
-
-
->PV_
-
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: jhooq-demo-pv         # name will be referenced by pvc
-
-spec:
-  capacity:
-    storage: 10Gi
-  volumeMode: Filesystem       #filesystem or Block
-  accessModes:
-  - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain     #other, Delete
-  storageClassName: local-storage           # or Manual, if cluster is not provisned on cloud 
-  local:                                    #or-->  hostPath:
-    path: /home/vagrant/storage             #          path: "/path"
-
-  nodeAffinity:
-    required:
-      nodeSelectorTerms:
-      - matchExpressions:
-        - key: kubernetes.io/hostname   # pv will be provisioned on the node with given key as a label attached to it
-          operator: In
-          values:
-          - node1
 
 
 >kubectl get pv
@@ -124,34 +143,47 @@ spec:
 >be bind together.
 
 
-> accessModes, can be_ (from statefulset video)
+> AccessModes, can be_ (from pv/pvc@50min mark)
 
      ReadWriteOnce (RWO) : only single worker "NODE" can mount the volume for reading and writing at same time.
-                           this mode will still allow multiple pods to access the volume when pods are running
-                           on same node on which PV is provisioned on.
+                           this mode will still allow multiple PODS to access the volume when pods are running
+                           on SAME NODE on which PV is provisioned on.
                            (for pvc, is the only mode supported, if storage class is manual)
 
-     ReadOnlyMany (ROX)  : the volume can be mounted as read-only by many nodes at the same time.
+     ReadOnlyMany (ROX)  : the volume can be mounted as read-only by MANY NODES at the same time.
                            (for pvc, do not support if storage class is manual, available only when cluster is 
                            provisioned on cloud)
 
-     ReadWriteMany (RWX) : the volume can be mounted as read-write by many nodes at the same time. 
+     ReadWriteMany (RWX) : the volume can be mounted as read-write by MANY NODES at the same time. 
                            (for pvc, do not support if storage class is manual, available only when cluster is 
                            provisioned on cloud)
 
+*note_  not all cloud provider support all above modes, go through provider docx for more details.
+
+
+*ref_https://alexandre-vazquez.com/untangling-reclaim-policies-for-persistent-volume-in-kubernetes/
 
 >persistentVolumeReclaimPolicy, can be_
 
-  >reclaim policy tell us , what happens to persistent volume , when the PVC is deleted.
+  >Reclaim policy tell us , what happens to persistent volume , when the PVC is deleted.
 
-     Delete  : it deletes volume content and makes the volume available to be claimed again as 
+     Delete  : it deletes volume content/data and makes the volume available to be claimed again as 
                soon as pvc gets deleted. 
+               Delete reclaim policy deletes both the PersistentVolume object from your cluster and 
+               the associated storage asset in external infrastructure, such as AWS EBS
 
-     Retain  : pv content will be persisted after pvc is deleted and it can not be reused, until
+     Retain  : pv content/data will be persisted after pvc is deleted and it(data) can NOT be reused, until
                administrator reclaim the volume manually.
 
      Recycle : this policy will remove everything from the perticular device. this policy is valid
                only for NFS and HostPath type.           
+               Recycle reclaim policy recycles the volume back into the pool of unbound persistent volumes 
+               once it is released from its claim. (this policy is Deprecated)
+
+
+changing the reclaim policy using cli :
+>kubectl patch pv <your-pv-name> -p '{"spec":{"persistentVolumeReclaimPolicy":"Retain"}}'
+
 
 >--------------------------------------------------------------------------------------------------------------- 
 
@@ -190,6 +222,15 @@ spec:
 
 
 >---------------------------------------------------------------------------------------------------------------
+
+>kubernetes solves the problems associated with EmptyDir/ HostPath by using PV and PVC's.
+
+>Persistance volume data is persisted regardless of the lifecycle of Application, Pod, Node or
+>even Cluster itself. it represents the storage option that is used to persist application data.
+
+>pv has its own lifecycle, seperate from lifecycle of k8s pod, it essentailly consist of two things_
+1. a backend technology called persiatnce Volume (local, ebs, azureDisk, NFS etc...)
+2. an access mode, which tells k8s how the volumes should be mounted
 
 >Admin creates a pool of persistant volumes/PV's for user to choose from. pv can have varying properties, 
 >such a performance for different problems.
@@ -231,10 +272,12 @@ spec:
 
 Storage Class_ :
 
+*ref_https://containerjournal.com/topics/container-networking/using-ebs-and-efs-as-persistent-volume-in-kubernetes/
+
 >storage class is a k8s object thats let user to specify which type of the storage they need from the 
 >cloud provider. it is useful for dynamic provisioning of the PVs.
 
->Assume , that if the pod requires 10Gi storage capacity and no current PV can match the this PVC requirement,
+>Assume , that if the pod requires 10Gi storage capacity and no current PV can match this PVC requirement,
 >the STORAGECLASS automatically creates a PV for this PVC.
 
 >most cloud provider (managed cluster services), provides the default storage class when you set up the
@@ -251,6 +294,7 @@ kubectl get storageclass
 >-----------------------------------------------------------------------------------------------------------------
 
 *from_cloud_deeptech_
+
 >Dynamic volume provisioning using storage class.
 
 >Storage Class :-
@@ -258,8 +302,8 @@ kubectl get storageclass
 storage class is used to manage persistance volume. 
 storage class will do Dynamic provisioning of storage using cloud provider like aws, gcp etc.
 
-if our cluster is not associated with any cloud provider, we will not be able to storage class. that our claim
-will fail.
+if our cluster is not associated with any cloud provider, we will not be able to have storage class and 
+that our claim will fail.
 
 storage class / pv are not namespaced object. pvc is namespaced.
 
@@ -278,20 +322,37 @@ parameters:
   fsType: ext4                         # gp2, aws specific
 
 reclaimPolicy: Retain                  # retain or delete
-allowVolumeExpansion: true             # allow dymanic resizing
+allowVolumeExpansion: true             # allow dymanic resizing, can be expanded
 mountOptions:
   - debug
 volumeBindingMode: Immediate           # Immediate or waitForFistConsumer
 
 
+>Provisioner : lets say we have our cluster deployed in OnPrem , and we wants to use aws EBS/EFS as storage 
+>              using Storage class, in this case we can set up a NFS system using ebs/efs and then we can 
+>              create a storage class that referes to the NFS storage. 
+(most developers have abondon the practice of creating PV and now, most of the volumes are provisioned Dynamically)
+
+
+>to set the default storage class, we can add the annotation in metadata as_
+annotation: 
+  storageClass.kubernetes.io/is-default-class: "true"
+
 
 *volumeBindingMode_
 
->Immediate,  mode indicates that volume binding and dynamic provisioning occurs once the 
->PersistentVolumeClaim is created
+>Immediate            : -  mode indicates that volume binding and dynamic provisioning occurs once the 
+>                          PersistentVolumeClaim is created
 
->WaitForFirstConsumer, mode which will delay the binding and provisioning of a PersistentVolume until a
->Pod using the PersistentVolumeClaim is created.
+>WaitForFirstConsumer : -  mode which will delay the binding and provisioning of a PersistentVolume until a
+>                          Pod using the PersistentVolumeClaim is created.
+
+
+*important_
+>It is important to understand that, once PV is claimed by PVC, that PV will not be claimed by another PVC.
+>Even if it have more than enough space available as demanded by PVC, it can not be usd by other PVC's unless
+>claim on that PV is removed and proper policy is defined.
+
 
 
 >pv :-
@@ -326,8 +387,10 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 1Gi
+      storage: 20Gi
 
+>even if we do not defined any specific storageclass in pvc manifest, it automatically refers to default 
+>storage class(standard). 
 
 
 >POD_
@@ -353,8 +416,10 @@ spec:
 
 
 *flow_
-
 >aws ebs ---> StorageClass ---> PV ---> PVC ---> Pod/Deployments ---> Application
+*----------------------------------------------------------------------------------------------------------------
 
+*read_next:
+>Persistance volume claim templates
 
 >-----------------------------------------------------------------------------------------------------------------

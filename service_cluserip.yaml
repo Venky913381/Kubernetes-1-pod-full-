@@ -28,7 +28,7 @@
 
 >cluster IP makes the service available within the cluser, So that pod to pod communication becomes possible.
 >ClusterIp service is available within cluster only, to access application out of cluster we need to go for other
->types of services. 
+>types of services like nodeport or loadBalancer service. 
 
 
 >service_for_pod_
@@ -174,7 +174,7 @@ pod-to-pod communication_ (without Service, Using POD's IP_):
 >service as a abstraction/ proxy to expose the pod to the traffic.
 
 >pod to pod communication with pod's IP is possible by using fqdn as below, but again if controller recreates
->the pod, pods ip will change and dynamic fetching of ip is not possible.
+>the pod, pods ip will change and dynamic fetching of ip is not possible. the entire fqdn is dependent on ip address.
 
 >address syntax
   <pod's_ip_address>.<namespace_name>.pod.cluster-<domain.example>   ---->fqdn

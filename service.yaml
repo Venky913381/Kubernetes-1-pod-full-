@@ -16,7 +16,7 @@ Service in k8s_ :
 >Target Port :- target port represents the actual Container Port. it should match the container port
 >               in the pod's manifest file.
 
->Node Port   :- Node port represents the port of the Node , from which external traffic access the service. 
+>Node Port   :- Node port represents the port of the Node/VM , from which external traffic access the service. 
 >               It is used with Ip address of the node/ec2 , and service will be accessible.
 >               NodePort Ranges from port 30000 to port 32767.
 
@@ -62,6 +62,7 @@ spec:
       ports:
         containerPort: 80
 
+>ip:32000 ----> 9000 ----> 80
 
 *--------------------------------------------------ClusterIP---------------------------------------------------
 
@@ -104,7 +105,7 @@ spec:
 >kubectl expose pod <podname> --type=<NodePort/ClusterIP> --port=<port> --target-port=<port> --name <svcName>
 
 >kubectl apply -f <filename.yaml>  / --dry-run=client
->kubectl get service/svc    -o wide / --show-labels
+>kubectl get service/svc -o wide / --show-labels
 
 >kubectl port-forward --address 0.0.0.0 svc/<serviceName> <PortOnHost>:<PortOnPod>
 >kubectl port-forward --address 0.0.0.0 svc/<ServiceName> --namespace <NameSpace Name> Machine/HostPort:PodPort
@@ -150,8 +151,8 @@ spec:
     name: my-service
     protocol: tcp   
 
-> for using "name" container specs must mentioned the Port attributes with containerport and its name in container
-> spec as below_
+> for using "name" container specs must mentioned the Port attributes with container port and its name 
+> in container spec as below_
 
 ports:
 - containerPort: 80        
@@ -182,20 +183,20 @@ ports:
 
 >There are two types of applications, 1.Stateless application  and  2.Statefull application.
 
-Stateless : it will do Not store anything (data), previous session data, nor it retrieve anything.
+Stateless : it will do Not store data on anything such as, previous session data, user data, Nor it retrieve anything.
 
 Statefull : this type of application stores state, session data, so whenever application crashes or if any 
             issue arises or app lost connection, whenever, it comes back it starts from the same state as data 
             is stored. this type of application can not always start from scratch.
 
 
-> Headless Service_
+*Headless_Service_
 
 The default behaviour of the k8s is to assign internal ip address to the service.
 Through this ip address, the service will proxy all the client requests 
 and load balance them to the pods behind it. i.e single service ip address exposes/represent multiple pods.
 
->If we, DNS query the service name via utilities like nslookup, k8s returns the service's ip but 
+>If we, DNS query the service name via utilities like nslookup, k8s returns the service's ip but do
 >not returns the ip's of the pod it manages.
 
 if we are running the single instance of the database or service pod like mangodb , 
@@ -220,13 +221,12 @@ requests to the pods and this type of load balancing is called as "DNS ROUND ROB
 i.e. in case of Cluster ip, Single service IP, represents the collection of the pods. while, incase of
 Headless service , single headless service DNS , represents the collection of backend pods it manages.
 
-
 >As simple DNS call to headless service will result in a multiple DNS results , that is it return IP's 
 >of all the backend pods it manages.That is why it is called as "DNS ROUND ROBIN LOAD BALANCING".
 
 >one of other misconception with headless service is that, it always forward the requests to first pod only, 
->NO, Headless service will Not always forward the request to first pod. this is becouse, headless sevrvice will
->load balance the requests across the pods through the service proxy. The request will get accepted by
+>NO, Headless service will Not always forward the request to first pod. this is becouse, headless service will
+>load balance the requests across the pods through the service proxy. The request will get accepted by the
 >first pod, after load balancing, just like cluster ip service.
 
 curl <headless-service-name>:<Container_Port> , here headless service will NOT resolve to first instance of the 
@@ -287,7 +287,7 @@ spec:
 
 >--------------------------------------------------------------------------------------------------------------
 
-# Named Port_
+*Named_Port_
 
 apiVersion: v1
 kind: Pod
@@ -329,7 +329,7 @@ spec:
 >--------------------------------------------------------------------------------------------------------------
 
 
-# Service Without Selectors_
+*Service_Without_Selectors_
 
 >we can define the service without selectors, however , in this case, we need to define the seperate
 >endpoints resource of the pod using endpoints manifest file.

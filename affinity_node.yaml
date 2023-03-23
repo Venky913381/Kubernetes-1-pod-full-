@@ -17,7 +17,8 @@
 >is fullfilled for execution of certain pod that need such specifications.
 
 >Node affinity is more flexible way of scheduling the pod , in this method, we define the set of rules based on 
->which scheduler schedules or DoNot Schedule the pod on the nod or set of nodes.
+>which scheduler schedules or DoNot Schedule the pod on the node or set of nodes.
+
 >-----------------------------------------------------------------------------------------------------------------
 
 # Node Affinty and Node antiAffinity_
@@ -53,15 +54,17 @@ This functions like nodeSelector, but with a more expressive syntax.
 The scheduler tries to find a node that meets the rule. If a matching node is not available, 
 the scheduler still schedules the Pod.
 
->Note: In the preceding types, IgnoredDuringExecution means that if the node labels changes after 
+*Note:- 
+>In the preceding types, IgnoredDuringExecution means that if the node labels changes after 
 >Kubernetes schedules the Pod, the Pod continues to run.
 >You can specify node affinities using the .spec.affinity.nodeAffinity field in your Pod spec.
 
 
->In "requiredDuringSchedulingIgnoredDuringExecution"  , we gave the "Node Selection Terms" that node MUST 
+>In "requiredDuringSchedulingIgnoredDuringExecution" , we gave the "Node Selection Terms" that node MUST 
 >satisfy for the pod to get schedule on it. 
->While in  "preferredDuringSchedulingIgnoredDuringExecution" , we 
->gave various "Preferences" for nodes to be desirable for scheduling the pod.
+
+>While in  "preferredDuringSchedulingIgnoredDuringExecution" , we gave various "Preferences" for nodes 
+>to be desirable for scheduling the pod.
 
 
 
@@ -194,7 +197,7 @@ The final sum is added to the score of other priority functions for the node.
 Nodes with the highest total score are prioritized when the scheduler makes a scheduling decision for the Pod.
 
 
-note: 
+*note: 
 >If you specify multiple nodeSelectorTerms associated with nodeAffinity types, 
 >then the Pod can be scheduled onto a node if one of the specified nodeSelectorTerms can be satisfied. (LOGICAL OR)
 
@@ -237,7 +240,7 @@ spec:
   - name: with-node-affinity
     image: registry.k8s.io/pause:2.0
 
-If there are two possible nodes that match the preferredDuringSchedulingIgnoredDuringExecution rule, 
+If there are two possible nodes that match the "preferredDuringSchedulingIgnoredDuringExecution" rule, 
 one with the label-1:key-1 label and another with the label-2:key-2 label, the scheduler considers
 the weight of each node and adds the weight to the other scores for that node, 
 and schedules the Pod onto the node with the highest final score.

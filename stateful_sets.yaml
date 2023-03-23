@@ -27,7 +27,7 @@ requests to the pods and this type of load balancing is called as DNS ROUND ROBI
 
 >the combination of stable and unique identity to pod offered by Stateful set AND the ability of headless
 >services to return ip of the backend pods it manages, gives us the ability to repeatedly and consistanly 
->send the requests the only to single target pod, which is very useful in statfull application with databases. 
+>send the requests the only to single target pod, which is very useful in statefull application with databases. 
 
 >--------------------------------------------------------------------------------------------------------------
 
@@ -68,9 +68,9 @@ requests to the pods and this type of load balancing is called as DNS ROUND ROBI
 
 > User---> LB ---> FrontEnd/Stateless Application --->Headless Service ---> Stateful Application <--> DataBase.
 
->--------------------------------------------------------------------------------------------------------------
+*--------------------------------------------------------------------------------------------------------------
 
->ref_ https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/
+*ref_https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/
 
 # Stateful Sets_
 
@@ -102,13 +102,16 @@ Naming of Pods with Replication Controller/Deployments :
 > so that the write/read request or in case of other pod replicate the data from pod 
 > can be redirected to it in consistance manner even in case of pod recretion.
 
-> in case of deployments, the names generated for the pods is in following formate_
+> in case of deployments, the names generated for the pods is in following format_
   <name of the deployment>-<hash value of the replica set>-<hash of the pod>
 >  eg_ mysql-1234567-abcdef
 
+> if we create or  upgrade the existing deployment, the hash of the RS will get changed.
+
 > in case of pod recreation, new pod gets a new name/identity, the first and second part of its name 
-> i.e. <name of the deployment>-<hash value of the replica set> , remains same but the HASH of POD 
-> will get changed, thus effective changing the name/identity also ip of the pod will get changed.
+ i.e. <name of the deployment>-<hash value of the replica set> , 
+> remains same but the HASH of POD will get changed, thus effective changing the name/identity also ip 
+> of the pod will get changed.
 
 
 # WHY WE NEED A STABLE POD NAME ? _
@@ -121,7 +124,7 @@ Naming of Pods with Replication Controller/Deployments :
 >this algorithm decides the order and way in which data is usually replicated from master pod to
 >another slave pods.
 
->Stateful set follows the order creation and deletion, i.e if we are creating several replicas of stateful pods
+>Stateful set follows the order creation and deletion, i.e. if we are creating several replicas of stateful pods
 >then, pods will not get created simultaneously, instead it gets created in order.
 
 >First pod created, ensure that it will replicate all data from the previous pod (i.e its ordinal - 1 pod)
@@ -135,7 +138,7 @@ Naming of Pods with Replication Controller/Deployments :
 >pod will loose the connection with primary instance. 
 
 >One thing to note that, Replication algorithm is not embedded with Stateful Sets, We have use different 
->replication algorithm as per need.
+>replication algorithm as per need (mostaly comes with helm chart of the databases).
 
 >One of most used method for databases, is to use Helm chart of Database, which have Replication algorithm
 >embedded into it. This remove the overhead on devops team to use replication algorithm in stateful set manifest.
@@ -146,7 +149,7 @@ Naming of Pods with Replication Controller/Deployments :
 
 2> Sticky / Indentity Hostname (Naming of Pods with Stateful Sets):
 
-> Each pod created by StatefulSet has a ordinal value (0 through # replicas -1 ) and a stable n/w id, 
+> Each pod created by StatefulSet has a ordinal value (0 through # replica 1 ) and a stable n/w id, 
 > which is '<statefulsetname>-<ordinal>' assigned to it.
   eg_ mysql-0  / mysql-1 ...etc
 
@@ -169,12 +172,13 @@ can we use name of the pod ?
 can we use Headless service name ?
 >NO, becouse, the request may go to any replica as service always load balances the requests (dns round robin).
 
+combination of pod anem and Stateful set name _
 >Stateful sets when combined with headless service, gives a unique identity/fqdn to each pod which is combination 
 >of name of pod and name of headless service.
-
 >to target the pod, we can use the following syntax, so the all the desired request will go to only targeted pod
 <statefulset_name>-<ordinal>.<headless_svc_name>
-*example_ http://mysql-0.db-headless  ----> a unique fqdn
+
+*example_http://mysql-0.db-headless  ----> a unique fqdn
 >
     In stateful apps, the instance must have unique and persistance identity (stable hostname, IP's)
     that does not changes with restart or recreation or reschedule. 
@@ -184,7 +188,7 @@ can we use Headless service name ?
     and other pods as replicas.
 
     The first pod will handle both read and write requests from user and other pod always sync with the first
-    pod for data replication.
+    pod for data replication (using replication algorithm).
     if the pod dies a new pod will get created with same name.
 
 
@@ -193,8 +197,8 @@ can we use Headless service name ?
 
 *ref_ PV AND PVC yaml
 
-> Every stateful set pod will have a persistance storage which is provisioned using PVC and PV 
-> either statically or dynamically using storage classes. 
+>Every stateful set pod will have a persistance storage which is provisioned using PVC and PV 
+>either statically or dynamically using storage classes. 
 
 >every pod in a stateful set deployment will have its own PVC, as the slave/secondary pods replicates
 >data from primary database instance they need a persistance storage to store the data.
@@ -206,8 +210,9 @@ can we use Headless service name ?
 >Stateful sets provides a key named as 'volumeClaimTemplates' to dynamically provision a PVC from storage class.
 >Each pod inside theStatefulSet mounts these PVC's as volume to retain the data.
 
->The PVC is named as _ <volumeClaimTemplates_name>-<pod_name>-<ordinalNumber>
-                  eg _ www-mysql-0
+>Volume Claim Template , will create a PVC's and The PVC is named as _ 
+><volumeClaimTemplates_name>-<pod_name/statful_set_name>-<ordinalNumber>
+  eg _ data-mysql-0
 
 
 4> Ordered Creation, Deletion and Upgrades:
@@ -215,6 +220,8 @@ can we use Headless service name ?
 >Stateful sets assign a sticky identity- an ordinal number starting from zero.
 
 >by default, statefulset pod are deployed in sequential order and are terminated in reverse ordinal.
+i.e. if we increase the replicas of RS from 1 to 3, not all three will get created at the same time, 
+first the Pod with cardinal 2 will get created, once it gets deployed only after that pod 3 will be created.
 
 >a new pod is created by cloning the previous pod's data unless the pod ordinal's zero.
 
@@ -247,11 +254,11 @@ USING BOTH HEADLESS SERVICE AND CLUSTER IP IN AN APPLICATION :
 >cluster ip service , will manage all the pods in our application deployement including primary databse pod for
 >all the read requests, while headless service will serve the write requests.
 
->  the format for write requests be like_ 
+>  the format for write requests to primary database instance be like_ 
    http://<statefulsetname>-<ordinal>.<headless_service_name>
 eg : http://mysql-0.db-headless
 
->  the format for read requests be like_ 
+>  the format for read requests to any database instance be like_ 
    http://<clusterip_service_name>:port
 eg : http://db-clusteripservice:3306
 
@@ -318,7 +325,7 @@ spec:                                   # Deployment specs
         - name: www
           mountPath: /usr/share/nginx/html
 
-  volumeClaimTemplates:
+  volumeClaimTemplates:                 # volumeClaimTemplates, will create a PVC for the STS
   - metadata:
       name: www
     spec:
@@ -328,6 +335,10 @@ spec:                                   # Deployment specs
         requests:
           storage: 1Gi
 
+
+> the name for the PVC will be generated in followimg syntax_
+  <name of the volumeClaimTemplates>-<name_of_the_pod/sts_name>-<ordinal_number>
+  eg_ www-nginx-1
 
 
 >StatefulSet ClusterIP Service_
@@ -346,14 +357,9 @@ spec:
   selector:
     app: nginx
 
-
-
 >--------------------------------------------------------------------------------------------------------------
 
 
 >kubectl get sts
 >kubectl get pv
 >kubectl get pvc    
-         
-
-

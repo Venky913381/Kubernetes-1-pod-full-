@@ -4,8 +4,8 @@
 >kubernetes cluster may have multiple application deployed within same cluster. In this we can use seperate 
 >namespaces for each application deployement, which introduce the layer of isolation between them.
 
->Using namespace we can enforce quota and limits on resource usage, which ensure that each application 
->have enough resources, not all resources is consumed by one application only.
+>Using namespace we can enforce quota and limits on the pod for resource usage, which ensure that each application 
+>have enough resources, and not all resources is consumed by one application only.
 
 to get the k8s resourses which supports namespaces
 >kubectl api-resources
@@ -17,16 +17,16 @@ to create a resource in a namespace other than default ns
 >kubectl apply -f <k8s_res.yml> -n <name-space>
 
 >kubectl <option> <resource> *<name>  -n <ns-name>    ---> -n / --namespace, options:- get, delete, apply, ...
-eg> jubectl get rc <rc_name> -n testspace
+eg> kubectl get rc <rc_name> -n testspace
 
 to set custom Namespace as default
 > kubectl config set-context --current --namespace=<ns-name>
 
 To access service in another namespace 
-> <servicename>.<namespacename>.svc.cluster.local  --> full fqdn of service, curl it
+> <servicename>.<namespacename>.svc.cluster.local  --> fqdn of service, curl it
 
 To access pod without service in another namespace 
-> <ip_of_pod>.<namespacename>.pod.cluster.local    --> full fqdn of pod, curl it
+> <ip_of_pod>.<namespacename>.pod.cluster.local    --> fqdn of pod, curl it
 
 
 >we can control resources in custom namespace in two different ways_(check limit-quota for more)
@@ -64,7 +64,7 @@ spec:
 
 >-----------------------------------------------------------------------------------------------------------------
 
->Namespace are the k8s obects that partitioned the single k8s cluster into multiple virtual cluster.
+>Namespace are the k8s obects that partitioned the single k8s cluster into multiple virtual cluster/workspaces.
 
 >k8s can manage large number of workloads concurrently and organizations often
 >choose to deploy projects created by seperate teams on shared clusters.
@@ -83,12 +83,12 @@ spec:
 >Not all k8s resources are namespaced, like k8s obects like Nodes, PV are not namespaced.
 >they are cluster wide resources to be accessible by all objects in the cluster.
 
->resources in same namespace can communicate with each other by their names.
+>resources in same namespace can communicate with each other by their names/ip's.
 >But, across the cluster with multiple namespaces, they must use FQDN/fully qualified domain name for communication.
 
->fqdn, <service_name>.<namespace_name>.<subdomain/svc>.cluster.local    ---> curl it from any pod/container.
+>fqdn, <service_name>.<namespace_name>.<subdomain/svc/pod>.cluster.local    ---> curl it from any pod/container.
 .cluster.local , is the internal domain of k8s cluster
-.svc , is the subdomain 
+.svc/pod , is the subdomain 
 .svc.cluster.local, is a Base domain name
 
 >within namespace communication between pods happens through service.
@@ -98,9 +98,9 @@ spec:
 >kube-proxy, is a core-dns service , which provide the service for the 
 >pod-to-pod communication in default namespace.
 
->cat /etc/resolve.conf, will give the information that k8s added to pod on creation. 
+>/etc/resolve.conf, will give the information that k8s added to the pod on its creation. 
 
->cat /etc/resolv.conf
+>cat /etc/resolve.conf
 nameserver 10.96.0.10
 search default.svc.cluster.local svc.cluster.local cluster.local ap-south-1.compute.internal
 options ndots:5
@@ -119,11 +119,11 @@ would couse irreperable damages to the cluster itself.
 
 >kube-public_
 created automatically and is readable by all users, including non authenticated users. this is mostaly
-reserved for cluster usage, in case that some resources should be visible and 
-readable publicly throughout the whole user
+reserved for cluster usage, in case that some resources should be visible and readable publicly throughout 
+the whole user
 
 >kube-node-lease_
-this ns nold lease objects associated with each node . node lease allows the kubelet to send 
+this namespace contains node lease objects associated with each node. node lease allows the kubelet to send 
 heartbeats so that control plane can detect node failures.
 
 >kubectl get namespace/ns
@@ -143,4 +143,33 @@ metadata:
 
 >-----------------------------------------------------------------------------------------------------------------
 
+*Types_Of_Namespaces_in_k8s_
+
+1.PID Namespace (Process Namespace)
+2.Network Namespace
+3.Mount Namespace
          
+>PID Namespace
+each container gets its PID_1 process and it is isolated from other containers and processes of host machine.
+
+>Network Namespace
+each container gets its own network space , which makes it possible to have own IP , Route tables , ports etc..
+all containers created will get attached to the virtual network interface for the communication.
+
+>Mount Namespace
+each container will have its own mount space, which makes it possible to have its own file system with hierarchy.
+
+
+
+C-GROUPS :
+
+>C-Groups Allocates and Limits the use of memory, cpu and other resources which are used by containers.
+
+>They restrict containers from too much utilization of the host resources.
+
+>So to put in simple words, Namespace decides WHAT TO USE, and C-Groups decides HOW MUCH TO USE.
+
+
+
+
+>-----------------------------------------------------------------------------------------------------------------

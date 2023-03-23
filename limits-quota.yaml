@@ -192,8 +192,8 @@ spec:
 
 
 
->MIN , must needed to be smaller that default Request.
->MAX , must needed to be larger  than default Limit.
+>MIN , must needed to be SMALLER that default Request.
+>MAX , must needed to be LARGER  than default Limit.
 
 >------------------------------------------------------------------------------    
 

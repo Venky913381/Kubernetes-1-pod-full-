@@ -1,6 +1,10 @@
 >
+>There are two types of jobs in kubernetes_
+1.Run to completion jobs
+2.cron jobs
 
->ref_ https://kubernetes.io/docs/concepts/workloads/controllers/job/
+*ref_https://kubernetes.io/docs/concepts/workloads/controllers/job/
+
 
 1.RUN TO COMPLETION JOB:
 

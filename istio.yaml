@@ -59,7 +59,7 @@ The disadvantages of a monolith include:
 >Deployment – A small change to a monolithic application requires the redeployment of the entire monolith.
 
 
->                                   ************************
+*                                   ************************
 
 >microservices Application :-
 
@@ -165,12 +165,12 @@ Upstream and Downstream requests and responses:
 
 Challenges with Microservices :
 
->1. security between the services
+>1. security between the services : (secure certificates)
 traffic between two microservice is in plain http format , which can be easily compromised, 
 so security is major concern for microservices. 
 
 >2. service discovery : Eureka
-microservices needed to be aware of each other, microservices can be deployed on different hosts, 
+microservices needed to be aware of each other, microservices can be deployed on different hosts spread across AZ's, 
 so discovery of one microservice by another microservice is concern as communication between them is 
 happening over the ip, so it is important for microservices to know ip addresses of each other. 
 we need to have service registry, for keeping the records of the ips of services.
@@ -180,30 +180,31 @@ as microservices are spread across the hosts, it is difficult to trace the reque
 as request might have to propagate multiple microservices to get proper response.
 
 >4. logging : ELK
-as in microservices we have multiple services , logging becomes as issue.
+as in microservices we have multiple services , logging becomes as issue. we need a service to keep the 
+log of each microservice.
 
 >5. testing : cucumber
 testing the connectivity between microservices becomes an issue as number of services increase.
 
 >6. fault tolerance : circuit breakers
-if one microservices in loop goes down all application may stop working, 
+if one microservices in loop goes down all application may stop working, as all microservices are dependent, 
 so there needs a mechanism to terminate the requests if microservices becomes unreponsive.
 
->7. monitoring : grafana
+>7. monitoring : grafana/prometheus
 each application needs a monitoring to better manage the resources.
 
 
 
 
-*ref_ https://istio.io/latest/docs/ops/integrations/
+*ref_https://istio.io/latest/docs/ops/integrations/
 
->Zipkin , is a distributed tracing system. It helps gather timing data needed to troubleshoot latency 
+>Zipkin , is a distributed tracing system. It gathers timing data needed to troubleshoot latency 
 >problems in service architectures. Features include both the collection and lookup of this data.
 
 >Jaeger , is an open source end to end distributed tracing system, allowing users to monitor and troubleshoot 
 >transactions in complex distributed systems.
 
->Kiali , is an observability console for Istio with service mesh configuration and validation capabilities. 
+>Kiali , is an observability console for Istio, it have service mesh configuration and validation capabilities. 
 >It helps you understand the structure and health of your service mesh by monitoring traffic flow to infer 
 >the topology and report errors. Kiali provides detailed metrics and a basic Grafana integration, 
 >which can be used for advanced queries. Distributed tracing is provided by integration with Jaeger.
@@ -261,7 +262,7 @@ all the above discussed responsibilities and function is carried out by service 
 >3.much cleaner and lean docker images.
 >4.rich set of matrices from the application/mesh like success/failed connection, retries, timeouts,
 >  thanks to the proxies intercepting the traffic.
->5.identifying the performance issues using tracing with JAEGER.
+>5.identifying the performance issues using tracing with JAEGER, zipkins.
 >6.dashboard to visualize the whole mesh like KIALI/GRAFANA.
 >7.chaos testing by injecting delayes and failures using tools like CHAOS-MONKEY.
 >8.Weighted traffic and request based routing, canaries, A/B testing with propagating headers.
@@ -293,7 +294,8 @@ Service Mesh :
 
 
 *Without_Service_mesh_
- microservices A  <---------------->  microservices B
+
+>microservices A  <---------------->  microservices B
 
 
 *with_Service_mesh_
@@ -308,15 +310,14 @@ Service Mesh :
 >                     """"""""""""""""""""""""""""""""""""  ------|
                           
 
->Becouse of the Service mesh , many functionality listed below has been moved out of microservices logic 
+>Becouse of the Service mesh , many functionality listed below has been moved out of microservices logic and
 >put them on the proxies.
 SERVICE DISCOVERY
-LOAD BALANCING
-COMMUNICATION RESILIENCY (retries, timeouts, circuit breaking, rate limiting)
-SECURITY (end to end encryption, authorization policies, mtls)
 OBSERVABILITY (layer7 metrices, tracing , alerting)
+SECURITY (end to end encryption, authorization policies, mtls)
+COMMUNICATION RESILIENCY (retries, timeouts, circuit breaking, rate limiting)
 ROUTING CONTROL (traffic shifting and monitoring)
-
+LOAD BALANCING
 
 >only business logic and bussiness matrices stays in microservices.
 >incoming and outgoing requests are transparently routed through the proxies.
@@ -329,7 +330,7 @@ ROUTING CONTROL (traffic shifting and monitoring)
 
 >-------------------------------------------------------------------------------------------------------------
 
->ISTIO_
+*ISTIO_
 
 >1.Istio is tool which provide a service mesh for microservices. It addresses the challanges developers
 >  and operators face with a distributed or microservices architecture.
@@ -395,11 +396,11 @@ TLS TERMINATION
 CIRCUIT BREAKING
 HEALTH CHECKS
 CANARY ROLLOUTS
+Staged rollouts with %-based traffic split
 A/B ROLLOUTS/DARK DEPLOYMENTS
 FAULT INJECTION
 RICH METRICS
 HTTP/2 and gRPC proxies
-Staged rollouts with %-based traffic split 
 
 
 >Secure service-to-service communication in a cluster with mTLS encryption, and
@@ -427,29 +428,33 @@ Staged rollouts with %-based traffic split
 >metrics visualization using tools like prometheus, grafana.
 
 
->                                    *******************************
+*                                    *******************************
 
 
 ISTIO ARCHITECTURE AND CORE FUNCTIONS :
 
 >with version 1.5, control plane components like Pilot, Citadel, Galley, Mixer were combined into single 
->component called istiod. 
+>component called istiod. (istio daemon , is a pod)
 
->Istiod replaces the control plane and handle configuration and certificate distribution 
->sidecar injection and more.
+>Istiod replaces the control plane components and handle configuration and certificate distribution 
+>sidecar injection and more. (istioD unified the control plane components in to single process)
 
 
 DATA PLANE vs CONTROL PLANE :
 
 #DATA_PLANE_ 
 
->the data plane is only composed of Envoy Proxies, deployed as sidecar container in each pod.
+>the data plane is only composed of Main application containers and the Envoy Proxies, which is deployed 
+>as sidecar container in each pod.
+*note_ Istio will not inject the sidecar container in a pod which was exiting before labelling 
+       the namespace with Istio-enabl=true label. only pods which was created after labelling the
+       namespace will have sidecar injected in to them.
 
 >any incoming or outgoing requests/responses from pod will pass through these proxy sidecars.
 
 >these proxies control all the network communications between microservices.
 
-
+b
 #CONTROL_PLANE_
 
 >control plane is the brain of the service mesh.
@@ -460,18 +465,18 @@ DATA PLANE vs CONTROL PLANE :
 
 >PILOT, CITADEL, GALLEY, MIXER, SIDECAR INJECTOR, GATEWAY are the part of the control plane.
 
->istio 1.5 itroduced ISTIOD, a control plane that combines all above components in to single component.
+>istio 1.5 itroduced ISTIOD, a control plane that combines all above components in to single istiod daemon.
 >while, mixer components is removed all together.
 
->ref_ https://istio.io/v1.4/docs/ops/deployment/architecture/
->ref_ https://istio.io/latest/docs/ops/deployment/architecture/
+*ref_https://istio.io/v1.4/docs/ops/deployment/architecture/
+*ref_https://istio.io/latest/docs/ops/deployment/architecture/
 
 
->1.PILOT :- 
+>1.PILOT :- (Service Discovery and All Configurations)
 pilot is not a container running in a istiod pod, it is one of the component of istio application.
 pilot provides a service discovery i.e whenever a new pod gets created within the mesh, the pod will send its 
 own information to the pilot and this information is send by the envoy proxy container.
-Now the pilot , sends the information about this new pod in mesh to the all the other envoy proxy's 
+Now the pilot , sends the information about this new pod in mesh to the all the other envoy proxy's (pods)
 in mesh. so that other pods will discover it. its all done automatically by pilot.
 
 it uses envoys api to communicates and configure them. it parses the high level rules defined in the istio
@@ -481,7 +486,7 @@ retries, timeouts and circuit breaking etc, can be injected in to envoy proxies.
 
 (before version v1.5, it runs as a seperate pod)
 
->2.CITADEL :-
+>2.CITADEL :- (Certifications, mTls , Authentication and Authorizations)
 it acts as local Certification Authorization authority, it provides secure communication among service by 
 managing user authentication, issuing and rotating certificates to envoy and credentials managements.
 
@@ -490,7 +495,7 @@ hundreds of certificates ourself like rotation and issuing. Citadel componet man
 
 (before version v1.5, it runs as a seperate pod)
 
->3.GALLEY :- 
+>3.GALLEY :-  (Config Validations, Format Coversion)
 Galley is Istio's configuration validation, ingestion, processing and distribution component. 
 It is responsible for insulating the rest of the Istio components from the details of obtaining user 
 configuration from the underlying platform (e.g. Kubernetes).
@@ -507,7 +512,7 @@ and collects telemetry data from the Envoy proxy and other services. The proxy e
 and sends them to Mixer for evaluation.
 
 >5.SideCar Injectors :-
-it injects envoy sidecar container in to pods for enabled namepsaces.
+it injects envoy sidecar container in to pods for istio enabled namepsaces.
 we have to enable Istio injection for namespaces in order to inject sidecar container proxies.
 this is done by labeling the namespace for Sidecar proxy injection as below
 
@@ -533,19 +538,19 @@ and encrypts all internal communication. Pods and services talk to each other an
 Istio's policies.
 
 >4. Monitoring
-the proxies in thedata plane can measure basic information about the network traffic such as latency
+the proxies in the data plane can measure basic information about the network traffic such as latency
 or throughput, and other matrices that can be used for implementing alarms and further anakysis.
 
 >5. Tracing
 a request to a microservice might result in other request, Tracing helps to understand these dependancies, thus 
-facilitating root cause analysis. this is done using unique id in headers of HTTP requests. as a part of 
+facilitating root cause analysis. this is done using "unique_id" in headers of HTTP requests. as a part of 
 HTTP headers and that information is then transffered to each outgoing request.
 the code of the microservices has to capture these headers and transfer them in their outgoing request. The tracing
 data can also be used to create dependancy graphs.
 
 >6. Communication Resilience
 resilience ensures that each individual microservice still works even if other microservice fails.
-if microservice calls another microservice , and if that microservice fails/ n ot reachable , this will
+if microservice calls another microservice , and if that microservice fails/ not reachable , this will
 impact the upstream microservice.
 due to cascading error, the whole system will become quite unstable, To avoid cascading errors or to have 
 proper resilience , Istio provides features such as _ TIMEOUTS, RETRIES, AND CIRCUIT BREAKERS.
@@ -553,27 +558,28 @@ proper resilience , Istio provides features such as _ TIMEOUTS, RETRIES, AND CIR
 >7. Routing
 istio offers advance routing capabilities ( like routing certain percentage of traffic to v1 of service A
 and rest of traffic to v2 of service A ) in the form of object like VirtualService, DestinationRules, 
-IngressGateways for canaries, A/B, Dark releasesetc.
+IngressGateways for canaries, A/B, Dark releases etc.
 
 >8. mTLS
-istion uses mutula TLS authentication to encrypt microservice to microservice traffic .
+istion uses mutual TLS authentication to encrypt microservice to microservice traffic .
 istio provides developers with certificates Authority (citadel) to generate , distributes and revoke 
 certificates for proxy.
 
->                                    *******************************
+*                                    *******************************
 
 
 ISTIO INSTALLATION :
 
->ref_ https://istio.io/latest/docs/setup/getting-started/
+*ref_https://istio.io/latest/docs/setup/getting-started/
 
 WE can install istio in three different ways_
 
 >1. using, istioctl install/ Istio Operator
->2. using, istioctl manifest generator
+>2. using, istioctl manifest generator (recommended)
 >3. install using helms chart
 
->first we need download the istio binary and add it to the system path. so that the istio command will works
+>first we need download the istio binary and add it to the system path(windows). 
+>so that the istio command will works_
 
 >On minikube
 1.start minikube cluster
@@ -625,6 +631,19 @@ features coming to Istio. Stability, security, and performance are not guarantee
   istiod	                     ✔	      ✔	       ✔			                         ✔
 >---------------------------------------------------------------------------------------
 
+****************************************************************************************
+
+>  Addons                    default	  demo   	minimal	   external	   empty   	preview
+>---------------------------------------------------------------------------------------			
+  Grafana   	                  			  ✔
+*---------------------------------------------------------------------------------------  
+  Prometheus          	       ✔	     ✔				                                  ✔
+*---------------------------------------------------------------------------------------  
+  Kiali 	                      	      ✔	        			                         
+*---------------------------------------------------------------------------------------  
+  Istio-Tracing         	      	      ✔				                                  
+>--------------------------------------------------------------------------------------- 
+
 
 installation :
 first download the istio binary and add it to the system path.
@@ -637,7 +656,7 @@ istioctl install --set profile=demo -y    _ this will install demo profile    (n
 istioctl manifest generate --set profile=demo > istio-installation.yaml (usig demo profile , any name for yaml)
 kubectl apply -f istio-installation.yaml
 istioctl verify-install -f istio-installation.yaml      _verify installation
-kubectl get all -n istio-syatem                         _check deployed objects in istio ns
+kubectl get all -n istio-system                         _check deployed objects in istio ns
 istioctl version
    
 >uninstallation
@@ -688,7 +707,7 @@ istion service Entry
 istio deployments startegies
 canary deployments
 
->-------------------------------------------------------------------------------------------------------------
+*--------------------------------------------------------------------------------------------------------(Deep_Tech)
 
 Istio Traffic Management :
 
@@ -699,9 +718,10 @@ The pod needs to meet some pre-requisites to be the part of istios service mesh,
 >2.all the pods needs to be always run behind one or more service
 
 >3.pod should not run with security context with user id 1337.
+   i.e. if we are running the pod with user other than root user , then user id of that user must not be 1337.
 
 >4.pod should run with NET_ADMIN and NET_RAW capabilities
-
+   
 >5.pods/deployments should have labels "app" and "version" (it is best practice rather than requirement)
 
 
@@ -725,18 +745,18 @@ sidecars
 >                    |                                                 |        ------------|
 >       --------------------------                       --------------------------     -------|
 >       |           |            |                       |            |           |            | --->Destination
->     [pod1]     [pod2]       [pod3]                  [pod1]        [pod2]      [pod3]         |      rules
->                                                                                       -------|       yaml
+>     [pod1]     [pod2]       [pod3]                  [pod1]        [pod2]      [pod3]         |       rules
+>                                                                                       -------|        yml
 >                {80%}                                              {20%}
 
 
 
-#VirtualService :
+#VirtualService : (analogous to k8s Ingress object/resource+ more)
 
 >A virtual service lets you configure how requests will be routed to the service within an Istio service mesh.
 
-Each virtual service consists of a set of routing rules that are evaluated in order, letting Istio match each
-given request to  the virtual service to a specific real destination within the mesh. 
+Each virtual service consists of a set of routing rules that are evaluated in order, letting Istio match 
+each given request to  the virtual service to a specific real destination within the mesh. 
 
 building on the basic connectivity and discovery is provided by Istio and your platform. 
 
@@ -747,7 +767,7 @@ Your mesh can require multiple virtual services or none depending on your use ca
 (address can be a k8s service itself or it can be DNS name also)
 
 
->                                  *********************************
+*                                  *********************************
 
 #DestinationRules :
 

@@ -4,12 +4,15 @@ Studying the Kubernetes :
 
 >Kubernetes Componets_
   k8s API Server 
-  ETCD
+  ETCD database
   k8s Controller Manager
   k8s Scheduler
-  Kubectl
+  
   kubeProxy
   kubelet
+
+  Kubectl
+  kube-config file
 
 >Kubernetes Architecture_
   CRE 
@@ -47,6 +50,7 @@ Studying the Kubernetes :
   Headless service 
   External Name 
   External Ip 
+
   EndPoint Objects 
   NamedPort
 
@@ -135,6 +139,7 @@ Studying the Kubernetes :
 >kubeapps
 >kaniko
 >kube-shell
+>krew
 
 
 
@@ -161,10 +166,13 @@ Studying the Kubernetes :
 
 *prepare_the_most_
 
-Ingress and Ingress Controlleer
+Ingress and Ingress Controller
+Stateful Sets
 Scheduling
 PV and PVC 
-Stateful Sets
 Istio 
+helm
 EKS 
-pod & services
+pod 
+services
+k8s architecture

@@ -1,5 +1,5 @@
 >
->There are various ways to schedule a pod on node or to select a Node to schedule/execute the pod,
+>There are various ways to schedule a pod on the Node or to select a Node to schedule/execute the pod,
 >these are_
       1.Node Name and Node Selector
       2.Node Affinity and Node-Anti-Affinity
@@ -10,19 +10,19 @@
 >kubernetes user normally do not need to choose a node to execute their pod, Instead , selection of appropriate
 >pod is automatically handled by kubernetes scheduler itself.
 
->k8s scheduler watches for the newly created pod that have no Node assigned and for every such pod scheduler
+>k8s scheduler watches for the newly created pod that have NO Node assigned and for every such pod scheduler
 >becomes responsible for finding the best node for that pod to run on.
 
 >Automatic node scheduling prevents user from scheduling pod on unhealthy node.
 >However, k8s provide the flexibility , to allow user to select the node, so that certain h/w condition 
->like RAM, SSD , Processor etc.. can be fullfilled for execution of certain pod that need such specifications.
+>like RAM, SSD , graphics, Processor etc. can be fullfilled for execution of certain pod that need such specifications.
 
 >both NodeName and NodeSelector are considered as a Hard scheduling, and both are manual scheduling as we are
 >explicitly defining in the pod spec ,the node where we want to schedule the pod.
 
 >-----------------------------------------------------------------------------------------------------------------
 
->Node Name_
+*Node_Name_
 
 works based on the name of the Node. not based on the labels of the node.
 
@@ -44,7 +44,7 @@ spec:
 >Node name may be the hostname of the node, in cloud environment, hostname will not remain stable and may get 
 >changed.
 
->nodeName is a feild in pod spec, which defines the node name on which we wants pod to get schedule.
+>nodeName is a field in pod spec, which defines the node name on which we wants pod to get schedule.
 >it is simplest way to schedule the pod on perticular node using node selection constraints, but due
 >to its limitations it is typically not used.
 
@@ -65,7 +65,7 @@ to get names of the nodes in our k8s cluster.
 
 >-----------------------------------------------------------------------------------------------------------------
 
->Node Selector_
+*Node_Selector_
 
 works based on the Labels of the Node. not based on the Name of the node.
 

@@ -23,6 +23,8 @@ metadata:
   namespace: prod
 spec:
   type: ExternalName
+  ports:
+      port: 80
   externalName: my.database.example.com   
 
 >so above service can be mapped to external DNS "my.database.example.com ".

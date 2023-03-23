@@ -5,7 +5,7 @@
 >like pod, rs, deployment in the cluster.
 
 >if there are any failures , a pod stops running , the kubelet recreates the pod based on the 
->record of desired state in etcd.
+>record of desired state stored in etcd.
 
 >kubeController managers in the MASTER responsible for the regulating the state of the system. if they
 >detects any drift in current state of the cluster, they instruct the KUBELET components in the WORKER
@@ -14,7 +14,7 @@
 
 >we need a controller for our application , for the purpose of Relibility, LoadBalancing, Scalling.
 
->read: https://kubernetes.io/docs/concepts/workloads/controllers/replicationcontroller/
+*read:_https://kubernetes.io/docs/concepts/workloads/controllers/replicationcontroller/
 
 >replication controller was the original form of the replication in k8s.
 >replication controller, was tasked with ensuring high availibilty by replacing unhealthy/dead pods with 
@@ -98,6 +98,6 @@ spec:
 # pod label is must. If selector attribute  is not provided
 # then pods label is taken as default selector for rc.
 
->if there are multiple selectors ALL SELECTORS MUST NEEDED TO BR MATCHED.
+>if there are multiple selectors ALL SELECTORS MUST NEEDED TO BE MATCHED.
 
 >--------------------------------------------------------------------------------------------------------------

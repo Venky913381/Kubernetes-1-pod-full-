@@ -1678,9 +1678,9 @@ spec:
 
 #--------------------POD LIVENESS ,READINESS PROBE and STARTUP PROBE-----------------------------
 
-> refer, https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+*refer_https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
 
->--------------------------------Liveness Probe---------------------------------
+*--------------------------------Liveness_Probe---------------------------------
 
 >The kubelet uses liveness probes to know when to restart a container.
 >The kubelet uses readiness probes to know when a container is ready to start accepting traffic.
@@ -1724,7 +1724,7 @@ spec:
 >If a container does not provide a liveness probe, the default state is Success. 
 
 
->--------------------------------Readiness Probe-------------------------------
+*--------------------------------Readiness_Probe-------------------------------
 
 >even through pod is created and live, it do not means that it is ready to serve the requests. App may take 
 >time to be ready to serve the traffic. we do readiness probe to check the same.
@@ -1772,7 +1772,7 @@ spec:
 >If a container does not provide a readiness probe, the default state is Success 
 
 
->-----------------------------------STARTUP-PROBE---------------------------------------------------------        
+*-----------------------------------STARTUP-PROBE---------------------------------------------------------        
 
 
 Protect slow starting containers with startup probes
@@ -1845,7 +1845,7 @@ Minimum value is 1.
 Number of seconds after which the probe times out. 
 Defaults to 1 second. Minimum value is 1.
 
->------------------------------------------------KUBECTL COPY----------------------------------------------------
+*------------------------------------------------KUBECTL_COPY----------------------------------------------
 
 > Copy files/dir to and From the Pod/Containers
 
@@ -1878,7 +1878,7 @@ Use "kubectl options" for a list of global command-line options (applies to all 
 
 
 
->------------------------------------------------DaemonSet-----------------------------------------------------
+*------------------------------------------------DaemonSet-----------------------------------------------------
 
 # DaemonSet_
 
@@ -1941,12 +1941,14 @@ spec:
 4. Init Containers 
 5. Ephemeral Containers 
 6. Static Containers
+7. Pause Containers
 
 >b)Volumes_
 1. Persistant Volume 
 2. Persistant Volume Claim
 3. EmptyDir
 4. Host Path 
+5. Remote pesistance volume
 
 
 >c)Services_
@@ -1977,17 +1979,16 @@ spec:
 >n) Kubernetes Jobs
 >o) custom resource and custom resource defination (CR&CRD)
 >p> Docker Image Security using Anchore/Sync (DevSecOps)
->q>
 
 
->----------------------------------------------K8S Accessories-------------------------------------------------
+*----------------------------------------------K8S_Accessories-------------------------------------------------
 
 
 #Kubernetes Package Managers and Plugins Managers
 
 Kubernetes Krew plugin manager for kubectl :
 
->ref, https://krew.sigs.k8s.io/docs/
+*ref_https://krew.sigs.k8s.io/docs/
 
 In devops environment, we may have to manage multiple k8s resources, across multiple
 clusters.
@@ -2185,8 +2186,5 @@ datree test <k8s_manifest.yaml>
 >Enable/disable built-in rules
 After signing up, you'll be automatically redirected to your Centralized policy where you can configure 
 it according to your needs.
-
-
-
 
 >----------------------------------------------------------------------------------------------------------
