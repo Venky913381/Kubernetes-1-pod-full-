@@ -1,0 +1,270 @@
+>
+*Kube_Scheduler_in_Details_:
+
+*ref_https://devopspro.in/blog/custom-scheduler-in-kubernetes/
+*ref_https://github.com/kubernetes/enhancements/blob/master/keps/sig-scheduling/624-scheduling-framework/README.md
+*ref_https://thenewstack.io/a-deep-dive-into-kubernetes-scheduling/
+
+
+>Kubernetes comes with a default scheduler called Kube-Scheduler, it runs as a Static Pod on the Master Node.
+>The kube scheduler plays a key role to choose the right node for each pod by taking care of all the
+>scheduling conditions such as Resource Requirement, Taints and Tolerations, Affinity Rules and Node Selectors
+>in pods Configuration.
+
+>when we send the request to create a pod either through Imperative approch or through Declarative approch,
+>the request is accepted by API-server from kubectl, which then gets forwarded to the ETCD, and the request 
+>parameter is first gets written in to the ETCD database as a State. 
+
+>It is the Job of controller Manager to create the Pod as per data/state written inside the ETCD, But pod
+>it created first goes in to Pending State , as NO Node have been assigned to create the pod. It is the job 
+>of the Scheduler to assign the node, once Scheduler assigns the Node as per the Constraints, pod created by 
+>Controller Manager goes from Pending state to the Running Mode.
+
+
+Scheduling Strategy :
+
+Let's understand this concept by imagining a scenario. We have a user named Jack and he wants a pod 
+with x number of CPU and x number of memory to run the application smoothly. He runs the kubectl command to 
+create the pod. This request will first go to the kube-apiserver, and the kube-apiserver will first check 
+the pod's resource and all other requirements and then will CREATE A POD for him. The pod will be in the 
+pending state due to no node assigned to it yet.
+
+Now, Kube-scheduler comes into the picture and looks for the newly created pods that are unscheduled yet. 
+As soon as it gets a pod, first of all, it starts selecting the right node for it considering its resource 
+requirements and other requirements in 2 steps.
+
+
+>Step 1:- Filtering the nodes
+
+In this step, Kube-scheduler first filters out all the nodes that are suitable according to the pod's 
+requirements and makes a list. If the list is empty it means that no node is capable of scheduling that 
+pod and in such condition, the pod remains in a pending and unscheduled state. But if the list is not empty 
+it means there are some nodes available that are capable enough to schedule the pods.
+
+The various "FILTERS" in scheduler are :
+01.PodFitsHostPorts
+02.PodFitsHost
+03.PodFitsResource
+04.PodMatchNodeSelector
+05.NoVolumeZoneConflict
+06.NoDiskConflict
+07.MaxCSIVolumeCount
+08.CheckNodeMemPressure
+09.CheckNodePIDPressure
+10.CheckNodeDiskPressure
+11.CheckNodeCondition
+12.PodToleratesNodeTaints
+13.CheckVolumeBindings
+
+
+>Step 2:- Scoring the nodes
+
+In this step, Kube-scheduler assigns a score to each node present in the list to choose the most suitable 
+node for the pod and the pod gets scheduled in the node with the highest score. If there is more than one 
+node with equal scores, Kube-scheduler selects one of these at random.
+
+The various "SCORE" in scheduler are :
+01.SelectorSpreadPriority
+02.InterPodAffinityPriority
+03.LeastRequestedPriority
+04.MostRequestedPriority
+05.RequestedtoCapacityRatioPriority
+06.BalanceResourceAllocation
+07.NodePreferAvoidPodsPriority
+08.NodeAffinityPriority
+09.TaintTolerationPriority
+10.ImageLocalityPriority
+11.ServiceSpreadingPriority
+12.EqualPriority
+13.EvenPodSpreadPriority
+
+*--------------------------------------------------------------------------------------------------------------
+
+Custom Scheduler :
+
+We know that Kubernetes comes with kube-scheduler as a default scheduler. But if the default scheduler does 
+not suit our needs we can implement our own scheduler and can even run multiple schedulers simultaneously 
+alongside the default scheduler and instruct Kubernetes what scheduler to use for each of our pods. 
+Let's learn how to implement a custom scheduler in Kubernetes.
+
+As we know, if we set up a Kubernetes cluster with the kubeadm tool then all the control plane components 
+are run as a static pod and their YAML files are stored at /etc/kubernetes/manifests/ path.
+
+To implement a custom scheduler we have two options :
+>1.We can download the Kube-scheduler binary.
+>2.We can use the same static pod YAML file to create a custom scheduler.
+
+
+>Steps to Implement Custom Scheduler
+
+Below 10 steps will help you to create a custom scheduler as a pod and to use that scheduler to 
+schedule an Nginx pod. Let's copy the Kube-scheduler.yaml located under the /etc/kubernetes/manifests/ 
+directory to my-scheduler.yaml file outside the /etc/kubernetes/manifests/ directory and update the 
+my-scheduler.yaml file as mentioned in the below steps.
+
+
+>1. Change the name under the labels section to my-scheduler and we will create this pod under the default namespace.
+
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    component: my-scheduler
+    tier: control-plane
+  name: my-scheduler
+
+
+>2. Under command field update –leader-elect=true to –leader-elect=false. 
+>   Because we only have a single master node in our cluster. If we had multiple master nodes, 
+>   we would choose –leader-elect=true.
+
+spec:
+  containers:
+  - command:
+    - kube-scheduler
+    - --authentication-kubeconfig=/etc/kubernetes/scheduler.conf
+    - --authorization-kubeconfig=/etc/kubernetes/scheduler.conf
+    - --bind-address=127.0.0.1
+    - --kubeconfig=/etc/kubernetes/scheduler.conf
+    - --leader-elect=false
+
+
+>3. For our custom scheduler we have to find an available port to bind to the pod. In my case, 
+>   no service is running on the 10282 port. You can check the free port number by running the below command.
+
+netstat -natulp | grep 10282
+
+
+>4. Now set –scheduler-name property and assign the name you want to give to your custom scheduler. 
+>   I am using my-scheduler as a name so it will look like –
+
+    - --port=10282
+    - --scheduler-name=my-scheduler
+    - --secure-port=0
+
+
+>5. Leave other things as it is and change the port number in the livenessProbe section.
+
+port: 10282.
+
+    livenessProbe:
+      failureThreshold: 8
+      httpGet:
+        host: 127.0.0.1
+        path: /healthz
+        port: 10282
+
+
+>6. The final YAML file will look like the below code.
+
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    component: my-scheduler
+    tier: control-plane
+  name: my-scheduler
+spec:
+  containers:
+  - command:
+    - kube-scheduler
+    - --authentication-kubeconfig=/etc/kubernetes/scheduler.conf
+    - --authorization-kubeconfig=/etc/kubernetes/scheduler.conf
+    - --bind-address=127.0.0.1
+    - --kubeconfig=/etc/kubernetes/scheduler.conf
+    - --leader-elect=false
+    - --port=10282
+    - --scheduler-name=my-scheduler
+    - --secure-port=0
+
+    image: k8s.gcr.io/kube-scheduler:v1.19.0
+    imagePullPolicy: IfNotPresent
+
+    livenessProbe:
+      failureThreshold: 8
+      httpGet:
+        host: 127.0.0.1
+        path: /healthz
+        port: 10282
+        scheme: HTTP
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 15
+
+    name: kube-scheduler
+    resources:
+      requests:
+        cpu: 100m
+
+    startupProbe:
+      failureThreshold: 24
+      httpGet:
+        host: 127.0.0.1
+        path: /healthz
+        port: 10282
+        scheme: HTTP
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 15
+
+    volumeMounts:
+    - mountPath: /etc/kubernetes/scheduler.conf
+      name: kubeconfig
+      readOnly: true
+  hostNetwork: true
+  priorityClassName: system-node-critical
+  volumes:
+  - hostPath:
+      path: /etc/kubernetes/scheduler.conf
+      type: FileOrCreate
+    name: kubeconfig
+status: {}
+
+
+>7. Now, save the my-scheduler.yaml file and run the below command to create the pod.
+
+kubectl create -f my-scheduler.yaml
+
+>8. It will create a custom scheduler pod in the default namespace. You can check via the command below.
+
+kubectl get pods
+
+>9. Let’s create a pod YAML file and instruct Kubernetes to use my-scheduler as a scheduler for 
+>   this pod by using the schedulerName option in the file. YAML file will look like this –
+
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mypod
+  labels:
+    name: multischeduler
+spec:
+  schedulerName: my-scheduler    # to define the custom Scheduler for the Pod
+  containers:
+  - name: nginx
+    image: nginx
+
+
+>10. Now, we can check whether my-scheduler as a scheduler is used or not by looking into the event 
+>    section of this pod. Use the below command and check the events of this pod.
+
+kubectl describe pod mypod
+
+>You will see the output of the Event section like this –
+
+Events:
+>Type       Reason      Age          From                     Message
+------    ---------    ------    -----------------   --------------------------------------
+Normal    Scheduled     16m      my-scheduler        Successfully assigned mypod to minikube
+Normal    Pulling       16m      kubelet, minikube   Pulling image "nginx"
+Normal    Pulled        16m      kubelet, minikube   Successfully pulled image "nginx"
+Normal    Created       16m      kubelet, minikube   Created container nginx
+Normal    Started       16m      kubelet, minikube   Started container nginx
+
+
+>We have successfully created the custom scheduler and we have also tried to schedule a 
+>pod with that custom scheduler.
+
+
+***************************************************************************************************************

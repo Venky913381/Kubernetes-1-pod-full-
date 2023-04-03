@@ -1,4 +1,7 @@
 >
+*Deployment_
+
+
 >Deployment object is an evolution of the replica set, infact, Deployment uses RS as its backend.
 
 
@@ -184,7 +187,7 @@ spec:
         - name: cont1
           image: coolgourav147/nginx-custom:v2          
 
->-----------------------------------------------------------------------------
+>--------------------------------------------------------------------------------------------------------------
 
 RollOut Commands__:
 
@@ -200,4 +203,143 @@ RollOut Commands__:
 # to rolling back to most recent previous deployment_
 > kubectl rollout undo deployment  <deploy-name>
 
+# to set the new image without making changes to manifest
+> kubectl set image deployment/<deployment_name> <old_image_name>=<new_image_name:tag> --record=true
+
 >---------------------------------------------------------------------------------------------------------------
+
+*Rolling_back_a_Deployment
+
+*ref_https://devopspro.in/blog/rollback-in-deployment/
+
+In real life, if we make a mistake and if we want to rectify it, then we cannot go back in time 
+and we cannot correct it. But in the world of Kubernetes, we can do this magic🪄. 
+Don’t you want to know how such magic can be done🤔? Let’s move closer to this magic and know it better. 
+In this article, we are going to understand a very magical concept(Rolling back In Deployment) through a 
+story, so stay with me till the end.
+
+Meet harry, he is a DevOps engineer and works in an ABC private limited and his boss has given him the 
+task of deploying the Nginx web server which is a basic requirement of the software on which the company 
+is working. He ran the below command to deploy the Nginx server whose configuration is written in the 
+nginx-deployment.yaml file.
+
+
+>kubectl apply -f nginx-deployment.yaml --record=true
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    run: nginx
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      run: nginx
+  template:
+    metadata:
+      labels:
+        run: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.14.2
+        ports:
+        - containerPort: 80
+
+
+By running the above command, A deployment has been created with the name nginx-deployment, 
+image nginx:1.14.2, and with 3 replicas. We can check the same by running –
+
+kubectl get deployment
+
+>The output will be similar to the this –
+
+>NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+nginx-deployment   3/3     3            3           1s
+
+
+>After some time, Harry was asked to upgrade the image of the same deployment from nginx:1.14.2 to nginx:1.16.1. 
+>By using the below command, he updated the deployment’s image.
+
+kubectl set image deployment/nginx-deployment nginx=nginx:1.16.1 --record=true
+
+
+>The output is similar to:-
+
+deployment.apps/nginx-deployment image updated
+
+
+>To see the rollout status, run:-
+
+kubectl rollout status deployment/nginx-deployment
+
+
+>After some time again he was asked to upgrade the image from image nginx:1.16.1 to nginx:1.21.6.
+
+kubectl set image deployment/nginx-deployment nginx=nginx:1.21.6 --record=true
+
+
+As soon as the image was updated, the software stopped running due to the incompatibility of the software 
+with the image nginx=nginx:1.21.6 and no one was able to access that software. Harry got a little scared😰 
+and wondered what could happen so that he could get back the software running with the previous image.
+
+Then after a lot of research, he came to know about the rolling back in deployment, and by using that 
+approach he solved his problem. Let’s see what is the rolling back in deployment and how it works.
+
+>Whenever we make changes in the created deployment, the rollout is triggered and assigns a number to that change, 
+>that number is called the revision number.
+
+
+*Important_Note : 
+>The rollout is triggered whenever the deployment is updated but only if the Deployment's pod 
+>template (that is, .spec.template) is changed. for example, if the labels or container images of the 
+>template are updated. 
+>Other updates, such as scaling the Deployment, do not trigger a rollout.
+
+So that means the rollout started when Harry updated the image, and that change got assigned a revision number.
+
+
+To check the revisions of this Deployment:
+
+kubectl rollout history deployment/nginx-deployment
+
+>The output is similar to this:-
+
+deployments  "nginx-deployment"
+REVISION     CHANGE-CAUSE
+1            kubectl apply -f nginx-deployment.yaml --record=true
+2            kubectl set image deployment/nginx-deployment nginx=nginx:1.16.1 --record=true
+3            kubectl set image deployment/nginx-deployment nginx=nginx:1.21.6 --record=true
+
+
+>These revision numbers represent the versions of a deployment. To see the details of each revision, run,
+
+kubectl rollout history deployment/nginx-deployment --revision=2
+
+
+>Rolling Back to Previous Revision
+
+Harry has decided to undo the current rollout and rollback to the previous stable revision
+
+kubectl rollout undo deployment/nginx-deployment
+
+
+>By running the above command,  he has reached the last deployment version running nginx:1.16.1 image. 
+>But what if he wanted to rollback directly from nginx:1.21.6 to nginx:1.14.2? This is called rollback 
+>to a specific revision number, this can be achieved by specifying –to-revision, with the below command –
+
+kubectl rollout undo deployment/nginx-deployment --to-revision=1
+
+>The output is similar to this:-
+
+deployment.apps/nginx-deployment rolled back
+
+
+>The Deployment is now rolled back to a previous stable revision. We can see this by describing the deployment –
+
+kubectl describe deployment nginx-deployment
+
+
+*******************************************************************************************************************

@@ -1,8 +1,9 @@
 >
 *_Probes_In_Kubernetes_
+
 #--------------------POD LIVENESS PROBE ,READINESS PROBE and STARTUP PROBE-----------------------------
 
->refer, https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+*ref_https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
 
 >kubernetes provide three types of probes that we can carried out on pods/containers in order to know
 >if they are healthy ,ready to accept service requests or if they need a restart etc.. these are_
@@ -37,6 +38,8 @@
 >If you want to wait before executing a liveness probe you should use initialDelaySeconds or a startupProbe.
 >"failureThreshhold" in Liveness Probe, must be set in such way that, its value must always be less 
 >that "failureThreshhold" of Readiness probe.  (liveness_probe Overriddens the Readiness_probe)
+
+>Set the timer in a such way that, READINESS PROBE  will get finished before LIVENESS PROBE starts it execution.
 
 apiVersion: v1
 kind: Pod                                                 
@@ -100,7 +103,8 @@ A pod with containers reporting that they are not ready, will not receive traffi
 *Note: Readiness probes runs on the container during its whole lifecycle.
 >if readiness probe fails, k8s will stop traffic to the container until the probe passes. I.E. it is 
 >used throughout the lifetime of the container, at regular interval. It keeps checking if container is 
->ready/available to accept the traffic or not.
+>ready/available to accept the traffic or not. 
+>IT WILL NOT RESTARTS THE CONTAINER AFTER KILLING IT ON PROBE FAILURE.
 
 *Caution: Liveness probes do not wait for Readiness probes to succeed. 
 >If you want to wait before executing a liveness probe you should use initialDelaySeconds or a startupProbe.
@@ -146,7 +150,7 @@ spec:
 >If the readiness probe fails, the endpoints controller removes the Pod's IP 
 >address from the endpoints of all Services that match the Pod. 
 
->unlike liveness probe, it do not restarts the container.
+>unlike liveness probe, it do not Restarts the container.
 
 >The default state of readiness before the initial delay is Failure . 
 >If a container does not provide a readiness probe, the default state is Success 
@@ -154,13 +158,13 @@ spec:
 
 *-----------------------------------STARTUP_PROBE---------------------------------------------------------        
 
->start up probe is used to get know, if container is started or not. k8s will direct the traffic to containers
+>startup probe is used to get know, if container is started or not. k8s will direct the traffic to containers
 >only if configured startup probe is succeeded.
 
 >it is one time probe, executed at startup only. 
 >It is first probe that k8s do. (if all three probes are configured)
 
->startup probe is a signal to know, wheather an app container is successfully started. 
+>startup probe is a signal to know, wheather an app container is successfully started or not. 
 
 >if Startup Probe is configured k8s will ignore other probes (liveness and readiness), until the startup
 >probe succeeds.

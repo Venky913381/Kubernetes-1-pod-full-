@@ -7,9 +7,11 @@ phases:
     commands:
         - echo "entered in buildspec phase..."
         - mvn clean package
+
   post_build:
     commands:
         - echo "build completed..."
+
   artifacts:
     files:
         - target/hello-world.war
@@ -92,9 +94,6 @@ phases:
 
 
 
-
-
-
 Review
 
 Step 1: Choose pipeline settings
@@ -135,8 +134,4 @@ testapp
 EnvironmentName
 Testapp-env
 Create pipeline
-Previous
-
-
-
- 
+Previous 

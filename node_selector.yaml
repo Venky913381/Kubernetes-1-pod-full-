@@ -1,4 +1,7 @@
 >
+
+*SCHEDULING_IN_KUBERNETES_WITH_NODE-NAME_&_NODE-SELECTOR_
+
 >There are various ways to schedule a pod on the Node or to select a Node to schedule/execute the pod,
 >these are_
       1.Node Name and Node Selector
@@ -7,24 +10,25 @@
       4.Taints and Tolerations
 
 
->kubernetes user normally do not need to choose a node to execute their pod, Instead , selection of appropriate
->pod is automatically handled by kubernetes scheduler itself.
+>kubernetes user normally do not need to choose a node explicitely to execute their pod, Instead , 
+>selection of appropriate pod is automatically handled by kubernetes scheduler itself.
 
 >k8s scheduler watches for the newly created pod that have NO Node assigned and for every such pod scheduler
 >becomes responsible for finding the best node for that pod to run on.
 
 >Automatic node scheduling prevents user from scheduling pod on unhealthy node.
->However, k8s provide the flexibility , to allow user to select the node, so that certain h/w condition 
->like RAM, SSD , graphics, Processor etc. can be fullfilled for execution of certain pod that need such specifications.
+>However, k8s provide the flexibility , to allow user to select the node, so that certain condition like h/w
+>like RAM, SSD , graphics, Processor etc, and other like tenancy, AZ, Latency. can be fullfilled for 
+>execution of certain pod that need such specifications.
 
->both NodeName and NodeSelector are considered as a Hard scheduling, and both are manual scheduling as we are
->explicitly defining in the pod spec ,the node where we want to schedule the pod.
+>both NodeName and NodeSelector are considered as a Hard scheduling, and both are MANUAL scheduling methods
+>as we are explicitly defining in the pod spec ,the node where we want to schedule the pod.
 
->-----------------------------------------------------------------------------------------------------------------
+*-----------------------------------------------------------------------------------------------------------------
 
 *Node_Name_
 
-works based on the name of the Node. not based on the labels of the node.
+>it works based on the NAME of the Node. It is Not based on the LABELS of the node.
 
 apiVersion: v1
 kind: Pod
@@ -33,12 +37,13 @@ metadata:
   labels:
     name: myapp
 spec:
-  nodeName: <node_name>     #name of node, NOT LABEL
   containers:
   - name: myapp
     image: nginx
     ports:
       - containerPort: 80 
+
+  nodeName: <node_name>     #name of node, NOT LABEL    
   
 
 >Node name may be the hostname of the node, in cloud environment, hostname will not remain stable and may get 
@@ -60,14 +65,13 @@ spec:
 >node have a unique name , while labels can be common among group of nodes.
 
 to get names of the nodes in our k8s cluster.
->kubectl get nodes -o wide
-
+>kubectl get nodes -o wide --show-labels
 
 >-----------------------------------------------------------------------------------------------------------------
 
 *Node_Selector_
 
-works based on the Labels of the Node. not based on the Name of the node.
+>works based on the LABELS of the Node. it is NOT based on the NAME of the node.
 
 apiVersion: v1
 kind: Pod
@@ -86,16 +90,17 @@ spec:
     label: value 
 
 >nodeSelector is a feild in pod spec, which defines the node on which we wants pod to get 
->schedule based on the lables attached to the node.
+>schedule based on the labels attached to the node.
 
 >it is the simplest form of recommandation for node selection constraint.
 
 >it uses labels to select matching node on to which pod can be scheduled.  if the defined label does not exist
 >pod will go in to pending state forever.
 
->using these method, unlike NodeName, where we have only one node of choice,  it is possible to have choice 
->of having pool of nodes, as we can attach same label to multiple nodes, and scheduler will select any of 
->these node as per availibility.
+>using these method, unlike NodeName, where we have only ONE node of choice,  it is possible to have choice 
+>of having pool of MULTIPLE NODES, as we can attach same label to multiple nodes, and scheduler will select 
+>any of these node as per availibility.
+
 
 Assigning label to node_
 > kubectl label node <nodename> <label>=<value>
@@ -107,5 +112,9 @@ deleting the Node label
 
 >kubectl get nodes --show-labels -o wide
 
+to select specific pod based on the labels
+>kubectl get pod --selector=<label>=<value>
 
->-----------------------------------------------------------------------------------------------------------------
+*read_ how to change the Name of the NODE ?
+ 
+******************************************************************************************************************

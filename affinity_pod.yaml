@@ -1,4 +1,7 @@
 >
+
+*SCHEDULING_IN_KUBERNETES_with_POD-AFFINITY_and_POD_ANTI_AFFINITY_
+
 >There are various ways to schedule a pod on node or select a Node to schedule/execute the pod,
 >these are_
       1.Node Name and Node Selector
@@ -21,7 +24,7 @@
 
 >-----------------------------------------------------------------------------------------------------------------
 
-# Pod Affinity and Pod antiAffinity_ 
+Pod Affinity and Pod antiAffinity_ :
 
 >In pod Affinity and Pod antiAffinity ,scheduler will decides, How the perticular Pod will be placed Relative 
 >to other pods (which already exist on the node) based upon the rules defined under rule of Pod affinity and 
@@ -41,7 +44,7 @@ i.e. IT WILL CO-LOCATE THE BOTH PODS ON THE SAME NODE.
 >as pod with the same label, if the label selector on the new pod matches the label on the current pod.
 i.e. IT WILL PREVENT THE PODS FROM CO-LOCATING ON THE SAME NODE.
 
->we have two kinds of scheduling methods under affinty rules_
+>we have two kinds of scheduling methods under Pod affinity rules_
 1. HARD SCHEDULING - (requiredDuringSchedulingIgnoredDuringExecution)
 2. SOFT SCHEDULING - (prefferedDuringSchedulingIgnoredDuringExecution)
 
@@ -95,7 +98,7 @@ spec:
             operator: Exists        # this will match the expression with labels of the existing pod.
             value: 
               - nginx
-        topologyKey: gpu            # it will look for the node with label 'gpu', so that pods will colocate. 
+        topologyKey: gpu            # it will look for the node with label 'gpu', so that pods will co-locate. 
    
 
 
@@ -103,10 +106,9 @@ spec:
 >Pod that has labels mentioned as a labelSelector. 
 
 >SO THAT NEW POD AND OLD POD WILL BE CO-LOCATE ON THE SAME NODE. IT WILL FIRST SEARCH FOR OLD POD WITH 
->ITS LABELS AND THEN IT WILL ALSO CHECK ITS TOPOLOGYKEY.
+>ITS LABELS AND THEN IT WILL ALSO CHECK ITS TOPOLOGY KEY.
 
->topologyKey is the key for the node label. any node label can be topologykey.
-
+>topologyKey is the key for the node label. any node label can be topology key.
 
 >-----------------------------------------------------------------------------------------------------------------
 
@@ -123,7 +125,7 @@ spec:
   - name: nginx
     image: nginx
     
->this pod will get schedule on any node, as we have not defined any rules for this pod to get schedule.
+>this pod will get schedule on any node, as we have not defined any rules for this pod to get schedule. 
 
 apiVersion: v1
 kind: Pod                           # this is new pod, and it will not-colocate with existing pod.
@@ -135,7 +137,7 @@ spec:
     image: nginx
 
   affinity: 
-    podAntiAffinity:                                    #podAntiAffinity
+    podAntiAffinity:                                     #podAntiAffinity
       prefferedDuringSchedulingIgnoredDuringExecution:   #soft scheduling
       - weight: 100
         podAffinityTerm: 
@@ -162,7 +164,7 @@ i.e.
 
 
 >This is achieved using Labels, in anti Affinity rules, we are defining the matchExpression rules,
->which searches for the the node, for the pod with matching label, if it found that pod is on that node,
+>which searches the the node, for the pod with matching label, if it found that pod is on that node,
 >then the new pod will not get scheduled on it.
 
 
@@ -175,7 +177,8 @@ i.e.
 
 >-----------------------------------------------------------------------------------------------------------------
 
-> weight :- Weight is used to define the prefference of node selection, when we give multiple Matching nodes and 
+*weight :- 
+>           Weight is used to define the prefference of node selection, when we give multiple Matching nodes and 
 >           and there are multiple nodes that satisfies the affinity conditions. so K8S rates the nodes and based 
 >           on its values assign weight to it.
 
@@ -188,7 +191,7 @@ i.e.
 
 >-----------------------------------------------------------------------------------------------------------------
 
-using affinity and AntiAffinity rule to co-locate and Repel the pods :
+using affinity and AntiAffinity rules to co-locate and Repel the pods :
 
 >In below example, we are trying to schedule a pod on node in a such way that, No two Redis pod will get
 >schedule on same node, also, No two flask pod will get schedule on same node. 
@@ -279,12 +282,14 @@ spec:
 >AND NONE OF FLASK AND REDIS POD WILL GET CO-LOCATE.
         
 
->----------------------------------------------------------------------------------------------------------------
+
+*----------------------------------------------------------------------------------------------------------------
 
 >check, if we can apply the same rule in case multiple "LabelSelector" or multiple "matchExpressions"
 >in pod affinit/antiaffinty rule, like node affinity rule.
 
 ---> checked, no proper doucmentation is available on internet, but is ok to assume that same 
 >    logical OR / AND rule will be application to affinity as well. needed to test it practically.
+
 
 >----------------------------------------------------------------------------------------------------------------

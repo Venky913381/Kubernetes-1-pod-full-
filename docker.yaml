@@ -30,14 +30,14 @@ MAINTAINER
 >each instruction in dockerfile will add a new layer on the top of the existing layer.
 
 >each instruction in dockerfile will start it's execution from root directory , 
->unless we set working directory using WORKDIR instruction
+>unless we execlusively sets working directory using WORKDIR instruction
 
 >every command in dockerfile, runs as a root user/commands, it never requires a sudo permission.
 
->it is best practice to name the docker file as Dockerfile, this we need not to used name of dockerfile with
+>it is best practice to name the docker file as Dockerfile, this way, we need not to used name of dockerfile with
 >build command.
 >however it is also possible to use another name for docker, in this case we need to explicitly declaire 
->name of sockerfile using -f flag.
+>name of dockerfile using -f flag.
 
  docker build -t <name_of_image> -f <name_of_dockefile>       
 
@@ -61,7 +61,7 @@ ENTRYPOINT ["./helloworld"]
 >alpine is the smallest, stripped of all utilities, execept for bash or sh for any image.
 >alpine:latest, will not have any runtime , or libraries, it is simple bash shell.
 
->once executable is available from previous build, we did not need the code or runtime, so 
+>once executable is available from previous build, we do not need the code or runtime, so 
 >it is ok to delete it, and we do this by adding another stage.
 
 >COPY --from=Builder /helloworld/helloworld  : copying from builder stage, a helloworld build from /helloworld dir 
@@ -107,14 +107,14 @@ CMD ["java","-jar","/usr/src/mymaven/target/ROOT.war"]
   b)security of the image 
 
 >7.the container images are composed of several layers. and each layer can be a source of vulnerability,
->  so scanning each and every layer is very crucial in devsecops.
+>  so scanning each and every layer is very crucial in DevSecOps.
 >  the smaller the image is, lesser is the possibility of it to get exposed to potential vulnerabilities
 
 
 >8.SMALLER DOCKER IMAGES_ 
 
   1) container images should be small and lightweight as much as possible   
-  2) they should pack only the application code and its dependancies. rest everything to be scrapped off
+  2) they should pack only the application code and its dependancies. rest everything needed to be scrapped off
      to bring down its size including the build dependancies.
   3) smaller the images lesser is the attack surface area to the container and morever are easy to 
      distribute and deploy   
@@ -127,10 +127,10 @@ CMD ["java","-jar","/usr/src/mymaven/target/ROOT.war"]
 
 >9.WHY SMALLER DOCKER IMAGES_
 
-    1)they pack very few system utilities
+    1)they pack very few system utilities, which increases image security.
     2)smaller container can be moved much easier and faster
     3)it makes pull-push operation faster and improves performance
-    4)samller images are efficient in utilizing disk space and memory due to less running processes.
+    4)smaller images are efficient in utilizing disk space and memory due to less running processes.
 
 
 >10.HOW TO BUILD SMALLER IMAGES_
@@ -144,7 +144,7 @@ CMD ["java","-jar","/usr/src/mymaven/target/ROOT.war"]
     04)merge layers  (--squash)    [ docker build -f <dockerfile_name> -t <image_name> --squash ]
     05)use alpine or distroless images as base image
     06)use multistage build 
-    07)perform health checks
+    07)perform health checks using HEALTHCHECK instruction
     08)avoid exposing unnecessary ports
     09)avoid hardcoding the any credentials
     10)dockerhub host up to 7 miilion repositories, base base must be selected wisely, not all images are secure.
@@ -168,7 +168,7 @@ CMD ["java","-jar","/usr/src/mymaven/target/ROOT.war"]
 
 
 >13.Distroless Images_ 
-    Distroless containers images are language focussed docker images, sans the operating system distribution. 
+    Distroless containers images are language specific docker images, sans the operating system distribution. 
     it contains only application and its runtime dependancies, not other usual os package managers, linux shells
     or any such programm which we usually expect in a standard linux distribution.
 
@@ -241,7 +241,7 @@ Using Trivy Image Analyser CLI :
 
 
 
-*--------------------------------------------BEST-PRACTICES_2-----------------------------------------------------            
+*--------------------------------------------BEST_PRACTICES_2-----------------------------------------------------            
 
 >Every command in dockerfile, runs as a root user/commands, it never requires a sudo permission.
 
@@ -400,6 +400,12 @@ DOCKER CONTAINER SECURITY :
 
 >Use of minimal operating systems like Clear Linux is one of the best practices , we can implement for 
 >security of the system.
+
+>It is not advisable to use latest base image for image building as latest untested images may contain
+>security vulnerabilities . and Only to use base images from Authorised sources.
+
+>If possible Build your own base images with required utilities and Unpriviledged user for using it with 
+>all the future image builds.
 
 
 Apart from using secure host system, we need to implement following measures for securing docker images _ :

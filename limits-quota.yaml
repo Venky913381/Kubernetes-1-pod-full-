@@ -1,20 +1,24 @@
 >
 
+*Resource_Quota_and_Resource_Limits_in_Kubernetes_:
+
+
 >Namespace is like seperate virtual space within kubernetes.
 >kubernetes cluster may have multiple application deployed within same cluster. In this case, we can use seperate 
 >namespaces for each application deployement, which introduced layer of isolation between them.
 
 >Using namespace we can put limit on resource usage at namespace level, which ensure that each application 
->have enough resources, not all resources is consumed by one application only.
+>have enough resources for smooth functioning, and not all resources is consumed by one application only.
 
 >using limit, we put Hardware Resource restriction on Resources in Namespace
 
->to check resource restriction on namespace : - >kubectl describe ns test-space
+>to check resource restriction on namespace_
+kubectl describe ns test-space
 
 >apply limit to namespace using quota manifest
->kubectl apply -f <limit/quota.yml> -n <test-space-name>
+kubectl apply -f <limit/quota.yml> -n <test-space-name>
 
->read more in subsection :- https://kubernetes.io/docs/concepts/policy/
+*read_https://kubernetes.io/docs/concepts/policy/
 
 
 
@@ -30,9 +34,11 @@
 
 >-------------------------------------------------------------------------------------
 
+*Quota_
 
-Object Based Quota
->A) putting maximum pod limit for namespace. (Object Based Quota)
+Object Based Quota:
+
+>A) putting maximum pod limit for namespace
     
 apiVersion: v1
 kind: ResourceQuota 
@@ -47,7 +53,9 @@ spec:
 
 >kubectl apply -f <limit/quota.yml> -n <test-space-name>   --> if ns is not specified in metadata.
 
->Similarly, applicable for_ (Object Based Quota)
+
+>Similarly, applicable for other Objects in Namespace_
+
 persistentvolumeclaims
 services
 secrets
@@ -59,9 +67,10 @@ statefulsets
 jobs
 cronjobs
 
->------------------------------------------------------------------------------------------------
+*------------------------------------------------------------------------------------------------
 
-Compute Based Quota
+Compute Based Quota :
+
 >B) putting maximum compute resource limit for the entire namespace. (Compute Based Quota)
 
 apiVersion: v1
@@ -92,6 +101,7 @@ spec:
 >if we do not put limits in pod defination and only describe requests , then pod creation will error out,
 >becouse, it will exceeds the Namespace limit(if specified), i.e. requests==all resource capacity.
 
+
 >----------------------------sample test pod--------------------------
 
 apiVersion: v1
@@ -106,14 +116,20 @@ spec:
   containers:
     - name: firstcontainer
       image: coolgourav147/nginx-custom
+
       resources:
         requests:
           memory: 200Mi    #Applicable for this pod only.
           cpu: 100m
+
         limits: 
           memory: 300Mi
-          cpu: 300m     
->-------------------------------------------------------------------------------------------------------          
+          cpu: 300m 
+
+
+*-------------------------------------------------------------------------------------------------------          
+
+*LimitsRange_
 
 > to get rid of specifying the request and limit parameter in pods file  
 > we can use limit range object.
@@ -121,7 +137,7 @@ spec:
 > kubectl get limit / limitrange
 > kubectl describe ns <test-space>
 
->Type can also be _ Pod, Image, ImageStream, PersistanceVolumeClaim (pvc).
+
 
 apiVersion: v1
 kind: LimitRange
@@ -135,8 +151,12 @@ spec:
       cpu: 200m                     >.i.e. Quota for entire Namespace 
       memory: 500Mi                 >      Limit for the Container/pod
     type: Container    
-      
-> above will set the default Request equivalent to the default limit.
+
+Type can also be _ Pod, Image, ImageStream, PersistanceVolumeClaim (pvc).
+
+> above will set the default Request equivalent to the default limit for the Container inside the Test-space Namespace.
+
+
 > we can set the different default requests by specifying the following..
 
 apiVersion: v1
@@ -157,13 +177,15 @@ spec:
 
     type: Container 
 
->-----------------------------------------------------------------------------------
+>----------------------------------------------------------------------------------------------------------
+
+
 >apart from setting default limit and default request we can also set the MAX and MIN limit
 >on the h/w resources to be used by pod/container. this will ensure that pod/container must/at least get
 >resource h/w allocation defined by MIN AND MAX, even if default requested resources is not available.
 
-> This will be helpful, if any pod , contains a service, that have a minimum requirement of h/w resources. MAX/MIN 
-> will ensure that , container for that service will get the resources it needed.
+>This will be helpful, if any pod , contains a service, that have a minimum requirement of h/w resources. 
+>MAX/MIN will ensure that , container for that service will get the resources it needed.
 
 apiVersion: v1
 kind: LimitRange
@@ -204,7 +226,7 @@ apiVersion: v1
 kind: LimitRange
 
 metadata:
-  name: limtrange3
+  name: limitrange3
   namespace: test-space
 spec: 
   limits:
@@ -214,11 +236,13 @@ spec:
 
 
 > this specifies that pod's , limit/request must not exeed 2. 
-> i.e. max request of pod must be less than or equivalent to half of the limit.
+> i.e. max request of pod must be less than or equivalent to half of the limit. 
+> .i.e. limit must atleast twice the size of the request.
 
 so, if memory limit is 500Mi then request must not be more than 250Mi, which ensure the ratio of 2.
 
->------------------------------------------------------------------------------------------------------------
+
+*------------------------------------------------------------------------------------------------------------
 
 
 >If you add a LimitRange in a namespace that applies to compute-related resources such as cpu and memory, 
@@ -232,4 +256,120 @@ so, if memory limit is 500Mi then request must not be more than 250Mi, which ens
 >which default value will be applied
 
 
->------------------------------------------------------------------------------------------------------------
+
+>************************************************************************************************************
+
+ *Troubleshooting_Out_Of_Memory_(OOM)_
+
+
+apiVersion: v1
+kind: Pod
+metadata:
+ name: k8s-troubleshooting-ep-2
+spec:
+ containers:
+ - name: test-av
+   image: ruby
+   resources:
+    requests:
+      memory: "128Mi"
+      cpu: "250m"
+    limits:
+      memory: "250Mi"
+      cpu: "500m"
+
+
+What is OOM ?
+>When application tries to consume more resources than, what the node have or what is allowed for the
+>application to use, pod runs in to OOM state.
+
+>This may be becouse of we have alloted for less resources or Just Enough resources to the pod , that what
+>it actually needed or We have deployed to many application pods/Containers than what Node is capable of Handling.
+
+
+Types of OOM ?
+The OOM error is catagorised in to two types : 
+>OOM_Killed : Limit Overcommit 
+>OOM_Killed : Container Limit Reached
+
+In production cluster, there may be multiple applications deployed on a single cluster, each in its 
+respective namespace. And each such Namespace will have definite amount of resources allocated by
+the Administrator. In such case we expect that application with all of its pods, will consume the compute
+resources within specified limits only. This will gave rise to following two scenarios_
+
+1.OOM_Killed_Limit_Overcommit : 
+>This error occurs when the sum of pod limits is greater than the available memory on the node. 
+>that is , becouse of excessive numbers of the pod, node have runs out of the memory, and there is not
+>enough memory left to run the more pods, so we will run in to OOM state.
+
+
+2.OOM_Killed_Container_Limit_Reached : 
+>This error occurs a pod is using more memory than the set limit.
+>that is, Even though Node have more that sufficient memory left with it, but becouse, as a admnistrator
+>we have not allocated enough momory to the Namespace where our pod is deployed, our pod rans into OOM state.
+
+>In production environment, allocating memory to the namespace is well calculated task, and there is always a 
+>spare memory to spend on, so that we can prevent OOM type situation. 
+>But still such situation arises, this may be becouse of Developmental Defiencies while developing the 
+>application, due to which application may be leaking the memory or Application do not performing the 
+>Garbage Collection etc. in such case Pod which is leaking the memory goes into OOM state.
+
+
+
+How to Fix OOM ?
+1. 
+(OOM_Killed_Container_Limit_Reached )(enough memory was allocated, but pod demanding more)
+>In case of pod running in to OOM state due to MEMORY LEAKAGE, 
+>we have identify the process in to the container which is leaking the excessive memory using 
+>simple linux "ps -ef" command.  it will give us the process if, and using this process id, we have 
+>take a Thread Dump, using  "kill -3" or JSTAck command to get the o/p in to file and analyse it, 
+>based on which new desirable chnages can be made in to an application.
+
+
+2. 
+(Limit Overcommit )(Node have enough resources, Namespace dont)
+>In other case, where there is No issue with Application, but due to excessive numbers of the pod, which is 
+>beyond the capacity of the resource allocated to the Namespace, all we need to due is either Reduce the 
+>number of the pods or Increase the resource quota for that namespace. 
+
+
+>if application deployed in a cluster are interdependant or if app not having proper segregation, 
+>OOM issue with one application may leads to failure or OOM with another application. in this scenario,
+>k8s goes back and look in to linux OOM ranking mechanism. 
+
+
+>Linux OOM Ranking Mechanism_
+
+But before we deep dive into each one of them, we need to understand how a linux operating system handles 
+this problem in general.
+
+There is a program called OOM (Out of Memory Manager) that tracks memory usage per process. 
+If the system is in danger of running out of available memory, OOM Killer will come in and start 
+killing processes to try to free up memory and prevent a crash. The goal of OOM Killer is to free up as 
+much memory as possible by killing off the least number of processes.
+
+Under the hood, OOM Killer allocates each running process a score. The greater the score, 
+the greater the possibility the process will be killed off. The method it uses to calculate this score 
+is beyond this tutorial, but it's good to know that Kubernetes takes advantage of the score to help make 
+decisions about which pods to kill.
+
+The kubelet running on the VM monitors memory consumption. If resources on a VM become scarce, 
+the kubelet will start killing pods. Essentially, the idea is to preserve the health of the VM so that 
+all the pods running on it won't fail. The needs of the many outweigh the needs of the few, and the few get murdered.
+
+
+
+Tools which help in case of OOM ?
+>kubectl get logs
+>kubectl get events
+>ps -ef
+>kill -3
+
+>CONTAINER-IQ
+
+Application Logs
+Thread Dumps
+Heap Dumps
+
+
+*************************************************************************************************************

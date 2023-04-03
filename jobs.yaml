@@ -1,4 +1,6 @@
 >
+*JOBS_IN_KUBERNETES_
+ 
 >There are two types of jobs in kubernetes_
 1.Run to completion jobs
 2.cron jobs
@@ -64,7 +66,7 @@ RestartPolicy applies to the Pod, and not to the Job itself.
 >------------------------------------------------------------------------------------------------------------
 
 
->ref_ https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/
+*ref_https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/
 
 2.CRON JOBS: 
 
@@ -124,5 +126,50 @@ is set to Allow, the jobs will always run at least once
 Caution: If startingDeadlineSeconds is set to a value less than 10 seconds, the CronJob may not be scheduled. 
 This is because the CronJob controller checks things every 10 seconds
 
+
 >------------------------------------------------------------------------------------------------------------
 
+>Automatic Cleanup for Finished Jobs
+
+*ref_https://kubernetes.io/docs/concepts/workloads/controllers/ttlafterfinished/
+*ref_https://kubernetes.io/docs/concepts/workloads/controllers/job/#clean-up-finished-jobs-automatically
+
+
+Finished Jobs are usually no longer needed in the system. Keeping them around in the system will put 
+pressure on the API server. If the Jobs are managed directly by a higher level controller, 
+such as CronJobs, the Jobs can be cleaned up by CronJobs based on the specified capacity-based cleanup policy.
+
+
+TTL mechanism for finished JOBS :
+
+Another way to clean up finished Jobs (either Complete or Failed) automatically is to use a TTL mechanism 
+provided by a TTL controller for finished resources, by specifying the .spec.ttlSecondsAfterFinished field of the Job.
+
+When the TTL controller cleans up the Job, it will delete the Job cascadingly, i.e. delete its 
+dependent objects, such as Pods, together with the Job. Note that when the Job is deleted, its 
+lifecycle guarantees, such as finalizers, will be honored.
+
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pi-with-ttl
+spec:
+  ttlSecondsAfterFinished: 100
+  template:
+    spec:
+      containers:
+      - name: pi
+        image: perl:5.34.0
+        command: ["perl",  "-Mbignum=bpi", "-wle", "print bpi(2000)"]
+      restartPolicy: Never
+
+
+>The Job pi-with-ttl will be eligible to be automatically deleted, 100 seconds after it finishes.
+
+>If the field is set to 0, the Job will be eligible to be automatically deleted immediately after it finishes. 
+
+>If the field is unset, this Job won't be cleaned up by the TTL controller after it finishes.
+
+
+****************************************************************************************************************

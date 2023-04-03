@@ -37,12 +37,12 @@ spec:
 flow:
 >request------>[k8s_cluster----->External name service]----> [out_of_cluster]--[DNS]-->[microservice/database]
 
->--------------------------------------------------------------------------------------------------------------
-
 ExternalName accepts an IPv4 address string, but as a DNS name comprised of digits, 
 not as an IP address. ExternalNames that resemble IPv4 addresses are not resolved by 
 CoreDNS or ingress-nginx because ExternalName is intended to specify a canonical DNS name. 
 To hardcode an IP address, consider using headless Services.
+
+>--------------------------------------------------------------------------------------------------------------
 
 
 *EXTERNAL_IP_

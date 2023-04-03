@@ -1,0 +1,240 @@
+>
+
+*Networks_Policy_For_Pod_
+
+*ref_https://kubernetes.io/docs/concepts/services-networking/network-policies/
+
+
+>In kubenretes pod are in Non-Isolated state, they can accept traffic from any source.
+>Any pod in any node can communicate with another pod.
+>Pod_1 in namespace Prod can communicate with Pod_2 in Dev namespace
+
+>To control traffic flow at the IP address or Port (OSI layer 3 or 4) , we might need to use kubenetes
+>network policies for the perticular application in our cluster.
+
+>When defining a pod or a namespace based network policy, we use a selectors to specify , 
+>what traffic is allowed TO and FROM the pod's that match the selectors labels.
+
+>.i.e, By default, if no policies exist in a namespace, then all ingress and egress traffic is 
+>allowed to and from pods in that namespace. The following examples let you change the default behavior 
+>in that namespace.
+
+
+>-------------------------------------------------------------------------------------------------------------
+
+*Network_policy_
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: default
+
+spec:
+  podSelector:
+    matchLabels:                               # this will select pod for attaching the policy
+      role: db
+  policyTypes:
+    - Ingress
+    - Egress
+
+  ingress:                                     # <------- policy for Ingress traffic
+    - from:                                   
+        - ipBlock:                             # will ALLOW ALL the ingress traffic from mentioned cidr
+            cidr: 172.17.0.0/16                # except from the ip's defined in except block.
+            except:
+              - 172.17.1.0/24
+        - namespaceSelector:                   # look description below          
+            matchLabels:
+              project: myproject
+        - podSelector:
+            matchLabels:
+              role: frontend
+      ports:
+        - protocol: TCP
+          port: 6379
+
+  egress:                                      # <------- policy for Ingress traffic
+    - to:
+        - ipBlock:
+            cidr: 10.0.0.0/24
+      ports:
+        - protocol: TCP
+          port: 5978
+
+>pod_
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: testpod
+  labels: 
+    role: db
+spec:
+  containers:                           
+    - name: test_container
+      imagePullPolicy: IfNotPresent
+      image: redis:latest
+
+>-----------------------------------------------
+
+Behavior of TO and FROM selectors :
+
+There are four kinds of selectors that can be specified in an INGRESS FROM section or ENGRESS TO section.
+
+>podSelector :-
+This selects particular Pods in the SAME NAMESPACE as the NetworkPolicy which should 
+be allowed as ingress sources or egress destinations.
+
+>namespaceSelector :- 
+This selects particular namespaces for which ALL PODS should be allowed as 
+ingress sources or egress destinations.
+
+  ingress:
+  - from:                          #LOOK AT THE SYNTAX, 
+    - namespaceSelector:
+        matchLabels:
+          user: alice
+
+    - podSelector:
+        matchLabels:
+          role: client
+
+
+>namespaceSelector and podSelector :- 
+A single to/from entry that specifies both namespaceSelector and podSelector selects PERTICULAR PODS 
+within PERTICULAR NAMESPACE. Be careful to use correct YAML syntax.
+
+  ingress:
+  - from:                          #LOOK AT THE SYNTAX, 
+    - namespaceSelector:
+        matchLabels:
+          user: alice
+      podSelector:
+        matchLabels:
+          role: client
+
+
+>----------------------------------------
+
+
+*Setting_Default_Policies_on_Namespace_
+
+>Default DENY ALL INGRESS traffic policy :
+
+We can create a "default" ingress isolation policy for a namespace by creating a NetworkPolicy 
+that selects all pods but does not allow any ingress traffic to those pods. 
+it will be applied to the Namespace.  
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+spec:
+  podSelector: {}                 #no ingress entry
+  policyTypes:
+  - Ingress
+
+
+>Allow ALL INGRESS traffic :
+
+If you want to allow all incoming connections to all pods in a namespace, 
+you can create a policy that explicitly allows that.
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-all-ingress
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress  
+  ingress:
+  - {}
+
+>----------------------------------------
+
+>Default deny ALL EGRESS traffic :
+
+You can create a "default" policy for a namespace which prevents all INGRESS AND EGRESS traffic 
+by creating the following NetworkPolicy in that namespace.
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-egress
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+
+
+>Allow ALL EGRESS traffic :
+
+If you want to allow all connections from all pods in a namespace, you can create a policy that 
+explicitly allows all outgoing connections from pods in that namespace. 
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-all-egress
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - {}
+
+
+>----------------------------------------
+
+>Default deny ALL INGRESS and ALL EGRESS traffic :
+
+You can create a "default" policy for a namespace which prevents all ingress AND egress traffic 
+by creating the following NetworkPolicy in that namespace.
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+
+
+>Allow ALL INGRESS and ALL EGRESS traffic :
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - {}  
+  egress:
+  - {}
+
+
+>Targeting a range of ports :
+
+When writing a NetworkPolicy, we can target a range of ports instead of a single port.
+This is achievable with the usage of the endPort field
+
+  egress:
+    - to:
+        - ipBlock:
+            cidr: 10.0.0.0/24
+      ports:
+        - protocol: TCP
+          port: 32000
+          endPort: 32768
+
+
+
+******************************************************************************************************************

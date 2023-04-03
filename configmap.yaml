@@ -1,5 +1,13 @@
 >
 
+*Config_Maps_
+
+>The problem with Environemtal variable is that , their scope is limited to the container/pod, that is if
+>we are having same env variable for all the pods we are creating then we have to declair the env vars in 
+>to the respective file of the pods, which leds to the repeatation and errors. Config map provides the
+>centralised solution for this problem, as we have data stored in single map, which we can pass to multiple
+>pods at once.
+
 >we use config map to decouple the application specific properties and data from application image. and we pass
 >this application specific properties as environmental variable during pods creation. 
 >However, this is not the secure way to pass the data.
@@ -7,11 +15,16 @@
 >kubectl get cm  <cm-name>
 >kubectl describe cm  <cm-name>
 
->kubectl create configmap <cm-name> --from-literal=<literal>="<value>"  ---> from literal , directaly from cmd.
+
+Creating Config_Map using Imperative Commands:
+
+>kubectl create configmap <cm-name> --from-literal=<literal>="<value>"  -----> from literal , directaly from cmd.
 >kubectl create configmap <cm-name> --from-literal=param1="value1"  --from-literal=param2="value2" --fro....
 
 
-#a)----------------------necessicities for demo -------------------------------
+#---------------------------------------   necessicities for demo   ---------------------------------------------
+
+>a) config map from single file
 
 single property file: application.properties
 #databse_details
@@ -25,19 +38,23 @@ password="12345"
 
 >kubectl create cm <cm-name> --from-file=application.properties   ---> from file (imperative)
 >kubectl create cm <cm-name> --from-file=file1 --from-file=file2 --from-file=file3 --fr.......
->-------------------------------------------------------------------------------------------------
 
-b)---------------------------------------------------------------------
-multiple properties file from folder (create any folder): /properties 
+*-------------------------------------------------------------------------------------------------
+
+>b) config map from multiple files in the directory
+
+multiple properties file from folder (create any folder): /properties/
 create/add needed number of properties file in it: 
 test1.properties
 test2.properties
 test3.properties
 
 >kubectl create configmap <my-cm1> --from-file=properties/   ---> from folder (/)
->----------------------------------------------------------------------------------------------------
 
-c)-----------------------config map from environmental file-----------
+*----------------------------------------------------------------------------------------------------
+
+>c) config map from environmental file
+
 file: env.sh
 
 var1=val1    # this is different from above i.e --from-file, 
@@ -45,9 +62,10 @@ var2=val2    # in the sense that it do not consider spaces or comments in it.
 var3=val3
 
 >kubectl create cm <my-cm5> --from-env-file=env.sh
->---------------------------------------------------------------------------------------------------
 
-> creating configmap using manifest file.
+*---------------------------------------------------------------------------------------------------
+
+>d) creating configmap using manifest file.
 
 apiVersion: v1
 kind: ConfigMap
@@ -61,7 +79,7 @@ data:
   my-key4: my-value4
   my-key5: my-value5
 
->--------------------------------------------------------
+>---------------------------------
 
 apiVersion: v1
 kind: ConfigMap
@@ -69,18 +87,19 @@ metadata:
   name: configmap2
   
 data:
-  application.properties: |
+  application.properties: |           # data in plain text format in form of Map
     database_ip="8.8.8.8"
     database_password="12345"
     database_username="swapnil"
-
+                                      
   admin.properties: |
     username="swapnil"
     password="12345"
 
 >kubectl apply -f <config_map_file.yml>    
-  
->----------------------------------------INJECTING CONFIG MAP--------------------------------------
+
+
+*----------------------------------------INJECTING_The_CONFIG_MAP--------------------------------------
 
 >1. using a map as environment variable inside pod. (injecting var as env vars, one value at a time)
 
@@ -106,7 +125,7 @@ spec:
             name: configmap1   # name of config map      
 
 
->2.accessing entire map inside container.
+>2.Injecting entire map inside container.
 
 apiVersion: v1
 kind: Pod 
@@ -121,7 +140,7 @@ spec:
           name: configmap2  # all values will be available as files.
 
         
->3.Getting all map variables as a files inside container.
+>3.Getting all map variables as a files inside container. (volume needed to be attached)
 
 apiVersion: v1
 kind: Pod 
@@ -167,4 +186,5 @@ spec:
         - key: admin.properties
           path: "variable-2"   
 
->-------------------------------------------------------------------------------------------------------------
+
+*-------------------------------------------------------------------------------------------------------------

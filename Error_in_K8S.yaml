@@ -1,0 +1,110 @@
+>
+
+*COMMON_ERRORS_IN_KUBERNETES_
+
+*ref_https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/
+*ref_https://kubernetes.io/docs/reference/kubectl/cheatsheet/
+
+>In kubernetes , we might encountered the various error during the course of deployment and Operation
+>of the cluster. the possible errors in the cluster are as follow_
+
+ImagePullBackOff Error
+ErrImagePull Error
+RegistryUnavailable Error
+InvalidImageName Error
+KillContainer Error
+
+CrashLoppBackOff Error
+OOM Error
+
+>---------------------------------------------------------------------------------------------------------
+
+*ImagePullBackOff__Error
+
+>reasons : Invalid Image, Invalid Tag, Invalid Permissions 
+
+>troubleshooting :
+1.check image name and image tags
+2.check if private registry is properly configured and have proper permissions
+
+>tool:
+kubectl get pod [options]
+kubectl describe pod <pod name>
+kubectl edit <pod/deploy> <pod/deploy name>
+
+
+>---------------------------------------------------------------------------------------------------------
+
+*ErrImagePull__Error
+
+>reasons : 
+>troubleshooting :
+>tool:
+
+>---------------------------------------------------------------------------------------------------------
+
+
+*RegistryUnavailable__Error
+
+>reasons :
+>troubleshooting :
+>tool:
+
+>---------------------------------------------------------------------------------------------------------
+
+
+*InvalidImageName__Error
+
+>reasons :
+>troubleshooting :
+>tool:
+
+>---------------------------------------------------------------------------------------------------------
+
+*KillContainer__Error
+
+>reasons :
+>troubleshooting :
+>tool:
+
+
+>---------------------------------------------------------------------------------------------------------
+
+
+*CrashLoppBackOff__Error
+
+>reasons :
+>troubleshooting :
+>tool:
+
+(refer_ pod.yaml)
+
+
+
+*OOM_or_NOT_ENOUGH_hw_RESOURCES_
+
+>Image pulled but pod is pending
+
+>reasons : 
+1. ResourceQuota on namespace
+2. Request and Limits are set
+3. Node or Nodes lacks resources
+
+>troubleshooting :
+
+issues with Admission Controller :
+*ref_https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/
+
+Admission control takes place after the authentication.admission controller admister the things like 
+validating the pods only if it get deployed on node X/ node X group else it will not validate. and if 
+our pod is not configured in that way, admission is denied and pod will run in to Error.
+
+
+>tool:
+kubectl describe pod -n namespace
+kubectl logs
+kubectl events
+
+(refer_ limit-quota.yaml)
+
+>---------------------------------------------------------------------------------------------------------

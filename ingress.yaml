@@ -6,7 +6,8 @@
 *Ingress_Class
 
 >Instead of exposing each service independently , we use ingress controller to expose the multiple services 
->using same ip address. 
+>using same ip address. which allow us to have single IP mapped to multiple DNS, instead of having IP for
+>each service exposed.
 
 >Ingress controller allows us to manage all the functionalities like SSL, scallings, Auth, Cert within the k8s 
 >cluster itself with a defination file, that lives along the rest of your application deployments file.
@@ -42,14 +43,15 @@ metadata:
 spec:
   selector:
     appname: app1
-    type: ClusterIP
-    ports:
+  type: ClusterIP
+  ports:
     - name: http
       port:  80
       targetPort:  8080 
       protocol: tcp     
 
 >---------------------------------
+
 apiVersion: v1
 kind: Pod
 metadata :
@@ -71,8 +73,8 @@ metadata:
 spec:
   selector:
     appname: app2
-    type: ClusterIP
-    ports:
+  type: ClusterIP
+  ports:
     - name: http
       port:  80
       targetPort:  8000 
@@ -94,7 +96,7 @@ spec:
       paths:
 
       - path: /test1
-        pathType: Prefix               # 8.8.8.8:6060/test1 --> app1service --> app1
+        pathType: Prefix            # 8.8.8.8/test1 --> app1service -->port 80 ---> port 8080 --> app1
         backend:
           service:
             name: app1service
@@ -102,7 +104,7 @@ spec:
               number: 80
 
       - path: /test2
-        pathType: Prefix               # 8.8.8.8:6060/test2 --> app2service --> app2
+        pathType: Prefix            # 8.8.8.8/test2 --> app2service -->port 80 ---> port 8000 --> app2
         backend:                      
           service:
             name: app2service
@@ -132,7 +134,7 @@ spec:
 
 > Ingress/Ingress_Resources/Ingress_Rule :--> 
     is an API object that manages external access (typically HTTP) to the services in the cluster.
-    it provides Load balancing, SSL termination, and Name-based /Host-based virtual hosting. 
+    it provides Load balancing, SSL termination, and Path-based /Host-based virtual hosting. 
 
     It exposes HTTP and HTTPS routes from outside the cluster to services within the cluster.
 
@@ -268,7 +270,7 @@ features out of the box (like SSL, Auth, Routing, etc)
 
 *------------------------------------------------------------------------------------------(below_by_vikram)....
 
->ref_ https://kubernetes.io/docs/concepts/services-networking/ingress/
+*ref_https://kubernetes.io/docs/concepts/services-networking/ingress/
 
 
 # Issues with Cloud Load Balancer_
@@ -304,7 +306,7 @@ features out of the box (like SSL, Auth, Routing, etc)
 >this way we can avoid exposing each service independently and having ip's assign for each service.
 
 >ingress controllers do not come with standard k8s binary, they need to be deploy seperatly.
->thay can generally implemeted by a third party proxy, that can read the ingress rules and adjust its 
+>thay can generally implemented by a third party proxy, that can read the ingress rules and adjust its 
 >configuration accordingly.
 
 >there are many ingress controller implementations, like AWS ALB, Traefik, Nginx, Istio, Contour, HAProxy, voyger etc.
@@ -327,8 +329,8 @@ features out of the box (like SSL, Auth, Routing, etc)
 
 Ingress/Ingress Resources/Ingress Rules: 
 
->An API object that manages external access to the services in a cluster, typically HTTP.
->Ingress may provide load balancing, SSL termination and name-based virtual hosting.
+>Ingress is an API object that manages external access to the services in a cluster, typically HTTP.
+>Ingress will provide load balancing, SSL termination and name-based virtual hosting.
 
 >Ingress exposes HTTP and HTTPS routes from outside the cluster to services within the cluster. 
 >Traffic routing is controlled by rules defined on the Ingress resource.
@@ -345,7 +347,7 @@ Ingress/Ingress Resources/Ingress Rules:
 
 Ingress Controller:
 
->is one  responsible for the implemetation of the all ingress rules, usually with a load balalncer, to help
+>is one responsible for the implemetation of the all ingress rules, usually with a load balalncer, to help
 >handle the traffic.
 >even ingress controller acts like a proxy inside k8s platform.
 
@@ -353,7 +355,7 @@ Ingress Controller:
 
 # Path Based Routing _
 
->in path based routing , NO host is specified, so the rule applies to all inbound HTTP traffic through
+>in path based routing , NO HOST is specified, so the rule applies to all inbound HTTP traffic through
 >ingress controller. 
 >it will respond to any of the Host, all it cares about is the path, Not the Host. so host can be anything
 >like nginx.com or xxxx.com but the path i.e /<path> , is all it cares about.
@@ -385,7 +387,7 @@ eg_ www.google.com/gmail or www.google.com/drive or www.amazon.co.in/wishlist or
 >In this case, all we care about is the path to perticular microservice. Host may be anything that mapped to
 >any DNS or application is even accessible on IP:PORT/PATH combination.
 
->in this case, we need not proxy server like HAProxy, as we are not resolving IP:PORT combination to any DNS.
+>in this case, we do not need proxy server like HAProxy, as we are not resolving IP:PORT combination to any DNS.
 
 
 
@@ -473,7 +475,7 @@ Status Code: 200
 Remote Address: 142.251.42.67:443
 
 >this HTTP headers is transffered to the receiving server, and the receiving server can read the HTTP Headers
->from the requests. i.e. once header is trasffered to the receiving server, it will get know , that from which
+>from the requests. i.e. once header is trasffered to the receiving server, it will get know , that for which
 >DNS/URL the request is made.
 
 *                               **********************************************
@@ -497,7 +499,7 @@ DNS/URL  ----> FE-hap ---->BE-hap ---> IC ----> (IC will evaluaute IR)IngressRul
 >www.xyz.com ----> *:80 ----->100.0.0.2:8080 -----> IC---> /path/ or Ingress Rule -----> microservice
 
 
->ref_ https://jhooq.com/ingress-controller-nginx/
+*ref_https://jhooq.com/ingress-controller-nginx/
 
 >1.Install/setup HAProxy on kubernetes node (refer link)
 >2.Update frontend, backend configuration of haproxy.cfg (/etc/haproxy/haproxy.cfg)
@@ -626,7 +628,7 @@ cat nginx.conf | grep -A 10 </route name>
 
 
 read more on HAProxy_ :
->ref_ https://jhooq.com/ingress-controller-nginx/
->ref_ https://www.haproxy.com/documentation/hapee/latest/configuration/config-sections/frontend/#
+*ref_https://jhooq.com/ingress-controller-nginx/
+*ref_https://www.haproxy.com/documentation/hapee/latest/configuration/config-sections/frontend/#
 
 >-----------------------------------------------------------------------------------------------------------------

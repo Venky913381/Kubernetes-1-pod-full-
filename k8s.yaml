@@ -1,4 +1,10 @@
 >
+*KUBERNETES_STEP_BY_STEP_
+
+*ref_https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25
+*ref_https://kubernetes.io/docs/home/
+*ref_https://kubernetes.io/docs/reference/kubectl/cheatsheet/
+
 *--------------------------------------BASIC-K8S-CLI-INSTRUCTIONS-----------------------------------------------
 
 >kubectl get <type>  
@@ -7,6 +13,7 @@
 >kubectl get <type> <name> --show-labels / -o wide    ---> to get types as per the label assigned
 >kubectl get all -n <name_space>                      ---> to get all the resources in given namespace
 >kubectl get all/<resource> --all-namespaces          ---> to get all the resources in all namespaces
+>kubectl get pod --select=<label>=<value>             ---> to select pod by its labels
 
 >kubectl logs <pod_name>                              ---> to get logs of the k8s pod
 >kubectl logs -f <pod_name>                           ---> to get logs of the k8s pod in follow mode
@@ -52,6 +59,11 @@
 >kubectl get componentstatuses/cs               ---> to get the status of components of cluster
 >kubectl run <type> --help                      ---> to get Imperial commmand structure for k8s resource
 >kubectl -n kube-system top nodes
+
+>kubectl drain <node_name> --ignore-daemonsets  ---> to stop scheduling the pod on the node and evict the existing pod
+>kubectl cordon <node_name>                     ---> to stop scheduling the pods in future, existing will remain
+>kubectl uncordon <node_name>                   ---> to enable the scheduling on the nodes
+ 
 
 *******************************************************************************************************************
 
@@ -1983,7 +1995,6 @@ spec:
 
 *----------------------------------------------K8S_Accessories-------------------------------------------------
 
-
 #Kubernetes Package Managers and Plugins Managers
 
 Kubernetes Krew plugin manager for kubectl :
@@ -2041,7 +2052,6 @@ kubectl config use-context <context-name>
 kubectl config set-context --current --namespace=<ns_name>
 
 
-
 *krew_
 
 1.krew is a plugin manager for kubectl command line tool
@@ -2092,6 +2102,8 @@ to check the installation.
   version     Show krew version and diagnostics
 
 
+*kubectx_
+
 >snap install kubectx --classic    ---> to install kubectx and kubens
 
 # using ctx (context)              ---> k8s context utility
@@ -2101,7 +2113,12 @@ to check the installation.
 >kubectx <name_of_context>         ---> to change the context
 >kubectx --help
 
-# kubens (namespace)               ---> k8s namespace utility
+
+*kubens_
+
+>snap install kubectx
+
+# using kubens (namespace)         ---> k8s namespace utility
 
 >kubens                            ---> to list the available namespaces
 >kubens <namepsace_name>           ---> to switch the context to namespace i.e to make ns default
@@ -2110,6 +2127,8 @@ to check the installation.
 
 
 #installing plugin with krew
+
+*Score
 
 >kubectl krew search <plugin_name>
 eg1_ kubectl krew search score
@@ -2125,50 +2144,58 @@ eg1_ helm template bitnami/nginx | kubectl score -
    resource are set, affinity rules, probes, container security/context is set or not. 
 
 
-eg2_ pod lense :- it will show pod related info like, namespace, service, node, secrets, cofigmaps etc.
+*Pod_Lense
+>pod lense :- it will show pod related info like, namespace, service, node, secrets, cofigmaps etc.
 
 >kubectl krew install pod-lens
 >kubectl pod-lens <pod_name/deployment_name>
 
 
-eg3_ prune-unused :- prune unused secrets/configmaps from current namespace
-     checks against all resorces from mounted volume, env, and envFrom and imagePullSecrets.
+*prune_unsused
+>prune-unused :- prune unused secrets/configmaps from current namespace
+>checks against all resorces from mounted volume, env, and envFrom and imagePullSecrets.
 
 >kubectl krew install prune-unused
 >kubectl prune-unused secrets / configmaps --dry-run  
 
-eg4_ neat :- neat removes clutter from k8s manifest file like creationtimestamps, resource ids, 
-             status information to make them more readable.
+*neat
+>neat removes clutter from k8s manifest file like creationtimestamps, resource ids, 
+>status information to make them more readable.
 
 >kubectl krew install neat
 >kubectl get pod <pod_name> -o wide | kubectl neat
 
-eg5_ tree :- tree explores the ownership relationships between kubernetes objects 
-              through owners references on them.
+*tree
+>tree explores the ownership relationships between kubernetes objects 
+>through owners references on them.
 
 >kubectl krew install tree
 >kubectl tree <resource> <name>              
 
 
-eg6_ tail :- tail streams a logs from all containers of all matched pods and can match pods by service,
-             replicaset, deployment and others.
+*tail 
+>tail streams a logs from all containers of all matched pods and can match pods by service,
+>replicaset, deployment and others.
+
 >kubectl krew install tail
 >kubectl tail -p <name_of_pod>
 
 >-l : --label , -p : --pod, -n : --ns ,-svc , -rc, -rs, -d, -sts            
 
-eg7_ popeye :- scans live k8s cluster and reports potential issues with deployed resources and configurations.
-               it detects misconfigurations and helps us to ensure that best prectices are in place, thus
-               preventing future headaches.
+*popeye
+>scans live k8s cluster and reports potential issues with deployed resources and configurations.
+>it detects misconfigurations and helps us to ensure that best prectices are in place, thus
+>preventing future headaches.
 
 >kubectl krew install popeye
->kubectl popeye                 
-it will scans the cluster and give details report on it.
+>kubectl popeye       
+
+>it will scans the cluster and give details report on it.
 
 
 >----------------------------------------------------------------------------------------------------------
 
-#Kubernetes Tool
+*Kbernetes_Tools_
 
 DATREE : 
 
@@ -2187,4 +2214,11 @@ datree test <k8s_manifest.yaml>
 After signing up, you'll be automatically redirected to your Centralized policy where you can configure 
 it according to your needs.
 
->----------------------------------------------------------------------------------------------------------
+
+
+
+***************************************************************************************************************
+
+>CKA_
+*read_https://kubernetes.io/docs/tasks/manage-kubernetes-objects/
+

@@ -1,34 +1,64 @@
 >
-> refer, https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
 
->Taints and Tolerations
+*SCHEDULING_IN_KUBERNETES_WITH_TAINTS_AND_TOLERATIONS_
 
-Node affinity is a property of Pods that attracts them to a set of nodes,
+*ref_https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
+
+>There are various ways to schedule a pod on node or select a Node to schedule/execute the pod,
+>these are_
+      1.Node Name and Node Selector
+      2.Node Affinity
+      3.Pod Affinity and Pod-Anti-Affinity
+      4.Taints and Tolerations
+
+>kubernetes user normally do not need to choose a node to execute their pod, Instead , selection of appropriate
+>Node is automatically handled by kubernetes scheduler.
+
+>k8s schedules watches for the newly created pod that have no Node assigned and for every such pod scheduler
+>becomes responsible for finding the best node for that pod to run on.
+
+>Automatic node scheduling prevents user from scheduling pod on unhealthy / unsuitable node.
+>However, k8s provide the flexibility , to allow user to select the node, so that certain condition like RAM, SSD
+>is fullfilled for execution of certain pod that need such specifications.
+
+
+Taints and Tolerations :
+
+Node Affinity is a property of Pods that attracts them to a set of nodes in the Cluster,
 (either as a preference or a hard requirement). 
 Taints are the opposite, they allow a nodes to Repel a set of pods from getting schedule on them.
 
-Tolerations are applied to pods. Tolerations allow the scheduler to schedule pods with matching taints. 
-Tolerations allow scheduling but don't guarantee scheduling, the scheduler also evaluates other parameters 
-as part of its function.
+>Tolerations are applied to pods. Tolerations allow the scheduler to schedule pods with matching taints. 
+>Tolerations allow scheduling but don't guarantee scheduling, the scheduler also evaluates other parameters 
+>as part of its function.
 
-Taints and tolerations work together to ensure that pods are not scheduled onto inappropriate nodes. 
+Taints and tolerations work together to ensure that pods are not scheduled on to inappropriate nodes. 
 One or more taints are applied to a node; this marks that the node should not accept any pods that do
 not tolerate the taints.
 
 
 >--------------------------------------------------------------------------------------------------------------
 
-> kubectl taint node <node-name> <key>=<taint>:<effect>    --> NoSchedule /PreferNoSchedule / NoExecute
+Tainting the Node: 
+
+to taint the node , we have below kubectl instruction, effects can be NoSchedule, PreferNoSchedule ,NoExecute.
+and the operator can be Exist or Equal. The default value for operator is Equal.
+
+>kubectl taint node <node-name> <key>=<taint>:<effect> 
 
 Taint is nothing but the putting the conditions on node for k8s resources to get scheduled on it.
 if we taint the node , then only those pod, which can tolerate the taint of node will get schedule on
 that node, else they will get schedule on another node .i.e NOSCHEDULE on tainted node, if they do not tolerate
 the taint.
 
-> eg,  kubectl taint node nodename mysize=large:NoSchedule        / PreferNoSchedule / NoExecute
+>However, Matching the taint , does not gaurentees the scheduling as there are other factor, which scheduler
+>evaluate before scheduling the pod. Also, Non-Scheduling of the Pod on tainted node , which it do not have 
+>tolerations for, is Gaurenteed.
 
 
 *NoSchedule
+
+>kubectl taint node <node_name> mysize=large:NoSchedule
 
 we can assign taint to node using above commands. 
 above, we have tainted the node ,that these node is of large size,
@@ -46,8 +76,8 @@ spec:
     - name: container1         
       image: nginx
       imagePullPolicy: Never  
-
-  tolarations:                   # mysize=large:NoSchedule , # it will tolerate the NoSchedule taint on node.                
+                                           # mysize=large:NoSchedule ,
+  tolarations:                             # it will tolerate the NoSchedule taint on node.                
     - key: "mysize"                        # attaching tolerations so that it will tolerate the tainted node.
       operator: "equal"                    # it may also get schedule on non tainted available nodes.
       value: "large"
@@ -55,8 +85,9 @@ spec:
 
                               > operator : equal or exists
                                                
->in NoSchedule taint, if any pod is already i.e before assigning the taint is running on node
->then after assignment of taint, pod will remain on that node only.
+>in NoSchedule taint, if any pod is already i.e before assigning the taint to the node, is running 
+>on that node then after assignment of taint, pod will remain on that node only, It will not get
+>evicted, even if it does not tolerate the taints on the node.
 
 >-----------------------------------------------------------------------------------------------------------
 
@@ -64,7 +95,7 @@ spec:
 
 you can use effect of PreferNoSchedule. This is a "preference" or "soft" version of NoSchedule.
 the scheduler will try to avoid placing a pod that does not tolerate the taint on the node but will
-not gaurentee , that pod will not be placed.
+not gaurentee , that pod will not be placed on the tainted node.
 i.e. prefferNoSchedule, if pod do not tolerate the taint on the node, but is does not gaurentees the non Sheduling.
 
 > kubectl taint node <node_name> mysize=large:PreferNoSchedule
@@ -75,86 +106,115 @@ Howevewer other pods can also get schedule on it, even though it is not preferre
 i.e. it does not gauretees that other pods will not get schedule on it.
 
 
->-----------------------------------------------------------------------------------------------------------
+*-----------------------------------------------------------------------------------------------------------
 
 *NoExecute
 
-if a taint with effect NoExecute is added to a node, then any pods that do not tolerate the taint will 
-be evicted immediately, and pods that do tolerate the taint will only remains on that node. 
-However, a toleration with NoExecute effect can specify an optional tolerationSeconds field that dictates 
+if a taint with effect "NoExecute" is added to a node, then any pods which is running on that node, and
+which do not tolerate the taint will be evicted immediately, and pods that do tolerate the taint will only 
+remains on that node. 
+However, a toleration with NoExecute effect can specify an optional "tolerationSeconds" field that dictates 
 how long the pod will stay bound to the node after the taint is added
 
-> kubectl taint node <noddename> mysize=large:NoExecute     
+> kubectl taint node <node_name> mysize=large:NoExecute  
+
 if any pod is already previously (before tainting) running on the tainted node , 
 then that pod will get deleted iummediatly or after specified "tolerationSeconds" time.
-
 
 
 #to delete taint on node
 >kubectl taint node <nodename> <taint>-          --> this (-) will delete the taint.
 >kubectl taint node worker01 mysize-
 
->---------------------------------------------------------------------------
-The default value for operator is Equal.
+*-----------------------------------------------------------------------------------------------------------
 
-> Different effects of the tolerations...............
+>Different effects of the tolerations :-
 
 tolarations:
     - effect: NoSchedule 
       key: mysize             --> if operator is not given, by default it will consider the                            
-      value: large                                "equal" operator
+      value: large                "equal" operator
 
 
 tolarations:
-    - effect: ""         --> no matter what taint is, if effect is not specified, pod will tolerate all
-      key: "mysize"                           i.e. all 3 effects
+    - effect: ""              --> no matter what taint is, if effect is not specified, pod will tolerate all
+      key: "mysize"               i.e. all 3 effects
       operator: "equal"                             
       value: "large"
 
 
 tolarations:
-    - effect: NoSchedule    --> this will check taint "mysize" is available or not". No matter what the "value" is.
-      key: mysize                    .i.e it do not tell to schedule or not to schedule on node.           
-      operator: Exists        > pod can get schedule on any available node, including tainted one.                
+    - effect: NoSchedule      --> this will check taint "mysize" is available or not". as "value" is not defined
+      key: mysize                 i.e it do not tell, to schedule or not to schedule on node.           
+      operator: Exists            pod can get schedule on any available node, including tainted one.                
 
 
 tolarations:
-    - effect: NoSchedule        --> it will tolerate everything, as no key is specified.
+    - effect: NoSchedule      --> it will tolerate everything, as both key and Value is not specified.
       key: ""                          
       operator: "Exists"                  
 
 
 tolarations:
-    - effect: ""               --> it will tolerate all
+    - effect: ""              --> it will tolerate all taints, as key, value along with effect remains undefined
       key: ""                          
       operator: "Exists"                             
       value: ""
 
 
-
 tolarations:
-    - effect: "NoExecute"     # noExecute     
+    - effect: "NoExecute"         
       key: "mysize"                          
-      operator: "equal"   --> if the pod is available or assigned on the node, as soon as taint is assigned to Node,                
-      value: "large"                 pod will tolerate the taint for 60 seconds, after that it will get Terminated
-      tolerationSeconds: 60             > only iff no execute is effect.
+      operator: "equal"       --> if the pod is available or assigned on the node, as soon as taint is assigned ,                
+      value: "large"              to Node, pod will tolerate the taint for 60 seconds only, after that it will get 
+      tolerationSeconds: 60       Terminated only iff "NoExecute" is effect defined.
 
->------------------------------------------------------------------------------------------------------------
 
+*------------------------------------------------------------------------------------------------------------
 
 A toleration "matches" a taint if the "keys" are the same and the "effects" are the same, and:
+
 >1.the operator is Exists (in which case no 'value' should be specified), or
+tolarations:
+    - effect: "same-effect"              
+      key: "same-key"                          
+      operator: "Exists"         ---------> will tolerate the taint on node                    
+      value: ""
+
 >2.the operator is Equal and the values are Equal.
+tolarations:
+    - effect: "same-effect"              
+      key: "same-key"                          
+      operator: "Equal"          ---------> will tolerate the taint on node                    
+      value: "Equal-Value"
+
+
 
 There are two special cases:
+
 >1.An empty key with operator Exists matches all keys, values and effects which means this will tolerate everything.
+
+tolarations:
+    - effect: ""              
+      key: ""                          
+      operator: "Exists"         ---------> will tolerate everything                       
+      value: ""
+
+
 >2.An empty effect matches all effects with key key
 
+tolarations:
+    - effect: ""              
+      key: "some-key"           ---------> will tolerate everything, asno effect is defined                    
+      operator: "Exists"                             
+      value: "some-value"
+
+
+*Important :-
 >There can be multiple taints on the node with same or different keys, so in order for pod to get schedule on that 
 >node, we need to add all the tolarations with all the keys to the pod, as per taints on the node.
 
 >if there are multiple taints on node, pod need to tolerate all the taints , else it will not able to tolerate the
 >taints on the node.
-
 
 ******************************************************************************************************************

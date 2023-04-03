@@ -67,7 +67,7 @@ if minikube is running on aws ec2:
 
 >You need to port forward the traffic from your EC2 node to minikube, as minikube itself will
 >runs as separate Virtual Machine on ec2.
-Once you have kubectl setup on the host machine,to communicate with the minikube cluster, 
+Once you have kubectl setup on the host machine, to communicate with the minikube cluster, 
 you can use kubectl port-forward to forward traffic to any service/pod running inside minikube.
 
 >kubectl port-forward --address 0.0.0.0 svc/<svc-name> <host-port>:<service-port>
@@ -84,7 +84,7 @@ LOAD BALANCER_ :
 >in our cluster.
 
 >A LoadBalancer service is the standard way to expose a service to the internet. 
->On GKE, this will spin up a Network Load Balancer that will give you a single IP address that
+>On Managed K8S services, this will spin up a Network Load Balancer that will give you a single IP address that
 >will forward all traffic to your service.
 
 >load balancer service will create a External IP provided by cloud provider, it also exposes the node port

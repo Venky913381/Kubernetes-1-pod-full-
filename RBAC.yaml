@@ -1,4 +1,5 @@
 >
+*ROLE_BASED_ACCESS_CONTROL_IN_KUBERNETES_
 
 Access Control in Kubernetes, WHY and HOW _ :
 
@@ -61,7 +62,7 @@ kubectl get role/ clusterrole
 kubectl describe clusterrole admin
 
 
->ref_ https://kubernetes.io/docs/reference/access-authn-authz/rbac/
+*ref_https://kubernetes.io/docs/reference/access-authn-authz/rbac/
 
 
 Role and ClusterRole_ :
@@ -108,7 +109,8 @@ flow_
 
 
 > Service Account :-
-> ref_ https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
+
+*ref_https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
 
 
 apiVersion: v1
@@ -121,8 +123,9 @@ metadata:
 
 
 
-> Cluster Role :-
-> ref_ https://kubernetes.io/docs/reference/access-authn-authz/rbac/
+>Cluster Role :-
+
+*ref_https://kubernetes.io/docs/reference/access-authn-authz/rbac/
 
 
 apiVersion: rbac.authorization.k8s.io/v1
@@ -308,7 +311,5 @@ data:
 read _ IRSA (IAM Role for Service Account)
 
 
->-----------------------------------------------------------------------------------------------------------
 
-
-
+>--------------------------------------------------------------------------------------------------------

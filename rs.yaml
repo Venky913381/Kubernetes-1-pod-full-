@@ -1,4 +1,5 @@
 >
+*Replica_Set_
 
 >Desired state is core concept in k8s.
 >through declarative or imperative Aproch, we describe the desire state of the objects 
@@ -118,13 +119,14 @@ spec:
 > kubectl delete -f <rs.yaml>
 > kubectl delete rs <rs-name>      
 
->-----------------------------------------------------------------------------------------------------------------
+>----------------------------------------------------------------------------------
 
 >can also be written as_
 
 selector:                   
     matchExpressions:
     - {key: appname, operator: In, values: [app1,app2]}
+    - {key: type, operator: NotIn, values: [backend]}
 
 >----------------------------------------------------------------------------------
 

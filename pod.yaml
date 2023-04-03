@@ -1,6 +1,7 @@
 >
-*----------------------------------------POD_IN_KUBERNETES--------------------------------------------------
 
+*POD_IN_KUBERNETES_
+ 
 >pods are the most basic scheduling unit in k8s. (container is based on docker Linux Containers [LXC])
 
 >k8s doesn't run the container directaly, instead it wraps one or more containers 
@@ -15,25 +16,26 @@
 >pods can hold multiple containers as well, when we scale pod, the containers inside 
 >the pod will get scalled together, regardless of their individual needs.
 
->every pod is like a separate logical machine with its own IP, HOSTNAME, PROCESS and so on, running a single
+>every pod is like a separate logical machine with its own IP, HOSTNAME, PROCESSES and so on, running a single
 >application. it is just a sandbox to run the containers in.
 
->any container in the same pod will share the same storage volume and network resource 
->and communicates using localhost. containers also shares the port-space with each other, that means containers
->in pod will have same ip, but they will never have same port number.
+>any container in the same pod will share the same storage volume and network resource and communicates
+>using localhost. containers also shares the Network-Space with each other, that means containers
+>in pod will have same IP, but they will never have same port number as they do not share the Port-Space.
 
 >each container in pod will have its own Process space , Network Space, it can run applications and services as root.
->it uses host os kernal for virtualization, Control Groups and Namespaces, and it does NOT need SYSTEMD as PID1
-
+>it uses host OS kernal for virtualization, Control Groups and Namespaces, and it does NOT need SYSTEMD as PID1
 
 
 lifecycle of Pod_:
+
+>Pod goes through various lifecycle processes from its inception to its termination , these are_
 
 1. pending    :- pod is accepted, but container is yet to be created.
 2. running    :- pod is scheduled on node, and all containers are created and at least one is in running state.
 3. succeeded  :- all container in pod existed with status 0 and will not be restarted
 4. failed     :- all containers in pod have exited and at least one container have returned the non zero status.
-5. CrashLoopBackoff :-the container failed to start and tried again and again
+5. CrashLoopBackoff :-the container failed to start and tried again and again to rereate/start
 6. unknown          :- state of pod, could not be obtained
 
 
@@ -42,7 +44,7 @@ Restart policy in k8s_ :
 >restart policy applies to all the containers in the pod. possible values are, Always, OnFailure, and Never.
 
 >when container in a pod exited, the kubelet restart them with an exponential back-off delay (10s, 20s, 40s...)
->that is capped at 5 minutes.
+>and is capped at 5 minutes.
 >once a container has executed for 10 minutes without any problem, the kubelet resets the restart backoff
 >timer for that container.
 
@@ -52,7 +54,7 @@ Restart policy in k8s_ :
 3. DaemonSet  --> Any
 
 
->read : https://kubernetes.io/docs/concepts/workloads/pods/
+*read_https://kubernetes.io/docs/concepts/workloads/pods/
 
 >kubectl run <podname> label="key=value" --image=<image:version> -i --rm --restart=Never -- <cmd>  --->Imperative
 
@@ -105,7 +107,7 @@ spec:
           value: swapnil 
         - name: city
           value: pune  
-      args: ["sleep", "300"]  
+      args: ["sleep", "300"]  ----> #!/bin/bash -c sleep 300
               
     - name: containertwo
       image: nginx
@@ -197,9 +199,10 @@ we can telnet between the containers_
 >netstat -nltp         : to check open ports on container
 >netcat -l -p  <port>  : to open port on container
 
->-------------------------------------------------------6--------------------------------------------------------
+*---------------------------------------------------------------------------------------------------------------
 
-> read more on_ Types of Containers in K8S_
+
+*read_more_on_Types_of_Containers_in_K8S_
 
   1. Sidecar container           (log exporter)        --> send the logs created by main container to buckets
   2. Ambassador/envoy container  (proxy pattern)       --> proxies-database connection/service mesh
@@ -208,7 +211,7 @@ we can telnet between the containers_
   5. Ephemeral containers        (debugging container for main container build with distroless images)
   6. Main App Container          (container for main app or microservice)
   7. Pause container             (provides ip to the pod)
-  8. Static Pod                  (container managed by kubelet on worker node)
+  8. Static Pod                  (contains container managed by kubelet on worker node)
  
 
 >having only one container in one pod is desirable, however , there may arise a condition where we need to
@@ -220,7 +223,7 @@ we can telnet between the containers_
 >So scanning the each layer is very crucial operation in DevSecOps.
 
 >container scanning, is the process of identifying vulnerabilities within containers by using scanning tools
->like Synk, Anchore , trivy etc.
+>like Synk, Anchore , trivy etc. and is a part of DevSecOps.
 
 >it is key to container security and enables developers and cyber security teams to fix security threats in 
 >containerized application before deployments.
@@ -232,7 +235,7 @@ we can telnet between the containers_
 >They should pack only the application code and its dependancies. Rest everything needed to be scrapped off 
 >to bring down its size including the build dependancies.
 
->the  smaller the images the lesser is the attack on the surface to the container and morever
+>smaller the images the lesser is the attack on the surface to the container and morever
 >are easy to distribute and deploy.
 
 >larger images can have more software vulnerabilities in the form of vulnerable dependencies 
@@ -269,8 +272,8 @@ we can telnet between the containers_
 >until init container executions completes, other main container will not start and remains in pending state.
 
 >init containers may contains Utilities or custom code for setup that are not present in an app image.
->like, sed, awk, python or dig during setup, also functions like cloning a git repo in to volume, or checking if
->other pods/ database pods are ready or not etc...
+>like, git, sed, awk, nslookup, python or dig during setup, also functions like cloning a git repo in to volume, 
+>or checking if other pods/ database pods are ready or not etc...
 
 >if pods, init containers fails, k8s repeatedly restart the pod until the init container succeeds.
 >however, if we set the restart policy for init container, then it will behave accordingly.
@@ -279,11 +282,12 @@ we can telnet between the containers_
 >volumes, security. However, resource limits and requests are handled differently as init container
 >do not exists persistanly.
 
->init containers DO NOT  supports probes like liveness, readiness, startup probes.
+>init containers DO NOT supports probes like liveness, readiness, startup probes.
 >init container executes in an order they are defined in a manifest file.
 >once execution of init container is done, it will be removed from pod, with exit status as zero.
 
->use cases : 1. to clone the directory which is not present in image before execution of main container.
+*use_case : 
+>1. to clone the directory which is not present in image before execution of main container.
 
 apiVersion: v1
 kind: Pod
@@ -320,7 +324,9 @@ spec:
 
 >
 
->use cases : 2. to delay the application start/ or to know if application database is ready or not.
+*use_case : 
+>2. to delay the application start/ or to know if application database is ready or not.
+
 apiVersion: v1
 kind: Pod
 metadata:
@@ -360,8 +366,9 @@ spec:
 >sidecar container will keep running along with main application container, unlike init container, which
 >exit after doing the initialization tasks.
 
-eg. A logging agent that collects logs and send them to the data aggregation system 
-    and sync it to the monitoring agent.
+*use_case:
+>1. A logging agent that collects logs and send them to the data aggregation system 
+>   and sync it to the monitoring agent.
 
 
 kind: apiVersion: v1
@@ -396,13 +403,17 @@ spec:
     - name: temp
       emptyDir: {}      
 
+
+*use_case:
+>2. As a data collection system, that uploads the large amount of transactional data from temporary storage
+>   on a disk to long term storage system such as AWS S3.
     
 >--------------------------------------------------------------------------------------------------------
 
 3. Ambassador/Envoy Container :
 
 >The Ambassador pattern employs a proxy for the main application container to communicate to external world.
->i.e. it act as a proxy for main application container.
+>i.e. it act as a proxy for main application container that intercepts Ingress and Egress requests/ data.
 
 >they handle request/response,  to/from the server or external services, so it acts like a proxy or
 >buffer container between external traffic and main application.
@@ -420,7 +431,7 @@ spec:
 
 4. Adapter Container :
 
->Some application can not be integrated with standard system due to compatibility issues.
+>Some application such as Old Legacy Applications can not be integrated with standard system due to compatibility issues.
 >the adapter pattern standerdizes the hetrogeneous applications by modifying the output to match the target system.
 
 >eg, sending logs to central logging server that accepts logs in only a specific format.
@@ -439,7 +450,7 @@ spec:
 
 >so, in such case, Ephemeral containers come in to picture, Ephemeral containers are those 
 >container which run in same pod as main app container and contains the Debugging utilities 
->like bash, sh, ping, curl etc. we can also  debug pod in CrashLoopBackOff state.
+>like bash, sh, ping, curl etc. we can also debug pod in CrashLoopBackOff state.
 
 >Ephemeral Container share the process space with main app container. so they have a full view of the processes
 >which are going on in main app container build with distroless images.
@@ -461,10 +472,10 @@ spec:
 >Pause container is a additional container that gets created every time, when we created any new pod. 
 >Pause container is usually the first container that gets created when any pod gets created.
 
->When any new pod is created, controller allot it a new ip address, behind the scene, it is really
+>When any new pod is created, controller allocates it a new ip address, behind the scene, it is really
 >not the pod that get the ip address, but ip address is actually get alloted to the Pause container.
 
->Pause container's only job is to hold the network namespace. and Once pause container is ready, Bussiness
+>Pause container's only job is to hold the Network namespace. and Once pause container is ready, Bussiness
 >application is get created by scheduler.
 
 >if we deletes the pause container, kubernetes recreates the entire pod, including bussiness application containers.
@@ -489,23 +500,45 @@ spec:
 
 >Static Pods are always bound to one Kubelet on a specific node.
 
->The main use for static Pods is to run a self-hosted control plane: in other words, 
+>The main use for static Pods is to run a self-hosted control plane, in other words, 
 >using the kubelet to supervise the individual components of control plane.
 
 >The kubelet automatically tries to create a mirror Pod on the Kubernetes API server for each static Pod.
 >This means that the Pods running on a node are visible on the API server, but cannot be controlled from there.
 
-Note: The spec of a static Pod cannot refer to other API objects (e.g., ServiceAccount, ConfigMap, Secret, etc).
+Note: The spec of a static Pod can not refer to other API objects (e.g., ServiceAccount, ConfigMap, Secret, etc).
 
->every kubelet in each node will have a defualt location eg_ /etc/kubernetes/manifest/.., if we put the 
+*how_to_create :
+
+>every kubelet in each node will have a default location eg_ /etc/kubernetes/manifest/.., if we put the 
 >manifest to create a resource such as pod there, it will automatically spin up the pod , which will be 
->static in nature.
+>static in nature. 
 
->to delete the static pod, we need to deletre the manifest yml itself from this location.
+>Kubelet periodically checks the directory to check if there are any new pod to create or 
+>if any manifest was deleted to delete the static pod.
 
->this pod can not be control from master server as it is not aware about it.
+>to delete the static pod, we need to delete the manifest yml itself from this location.
 
->--------------------------------------------------------------------------------------------------------
+>Static pod by-passes all the pod creation and scheduling sequence that kubernetes control; plane follow 
+>to create a normal pod.
+>this pod can not be control from master server as it is not aware about it. Kubelet can only create a pod, 
+>it can not create a other k8s objects such as deployments , RS, JOBS or DAEMON SET
+
+
+How_to_Identify_which_Static_pod_and_which_is_NOt_:
+
+>when any static pod is created by kubelet, it appends the name of the Node to the name of the POD.
+>so when we inquire the pods in cluster using "kubectl get pods --all-namespaces" , we can see that the static
+>pods will have name of the node appended to its name, and this way we can indentify the static pods.
+
+*note_
+>as static pod is simply created by placing the manifest file in a directory when kubelets checks for the
+>pod manifest file to create a static pod, we can check this location by quering the kubelets config file,
+>which can be found at "/var/lib/kubelet/config.yaml".
+>this file will have "StaticPodPath" attribute, it referes to the location where we can place the manifest
+>for static pods. we can also change this location by editing the kubelet config file.
+
+*--------------------------------------------------------------------------------------------------------------
 
 
 *_DEBUGGING_THE_Crash_Loop_BackOFF_State_of_pod__
@@ -515,7 +548,7 @@ Note: The spec of a static Pod cannot refer to other API objects (e.g., ServiceA
 
 >when container in a pod exited with non-zero/error code, kubelet will not start it immediatly,
 >instead, it will wait for some time after that the kubelet restart them with an exponential back-off delay 
->(10s, 20s, 40s...) that is capped at 5 minutes.
+>(10s, 20s, 40s...) and this time is capped at 5 minutes.
 
 >once a container has executed for 10 minutes without any problem, the kubelet resets the restart backoff
 >timer for that container.
@@ -533,13 +566,12 @@ Some of the errors linked to the actual application are:
 >5.Image tag/name is incorrect   : image , we tried to spun the container from do not exist or have improper tagging.
 
 
-errors from the network , h/w and permissions are:
+errors from the network , probes , h/w and permissions are:
 
 >1.You tried to bind an existing port.
 >2.The memory limits are too low, so the container is Out Of Memory killed.
 >3.Errors in the liveness probes are not reporting the Pod as ready.
 >4.Read-only filesystems, or lack of permissions in general.
-
 
 >A similar back-off period is ImagePullBackOff, which is a waiting status when a container image couldn’t be pulled.
 
@@ -554,7 +586,425 @@ tools you can use to debug it, and in which order to use it, This could be our b
 >7.Check if Init Containers are properly configured or not, Unsuccessful execution of initContainer will 
 >  prevent the execution of application containers.
 
-
-
+>8.In case of error due to Permission issue, Application code will works correctly or do  ot have any issues,
+>  but, there might be a situation where, it is tries to run with user with not proper permission. such as 
+>  writting to /etc directory will require root user or user with root permission. also pod Security context
+>  might be in conflict with provided user , conflict might be user id or group id etc..
 
 ******************************************************************************************************************** 
+
+What happen when we are create a pod ?:
+
+When you apply the manifest, definition will be received and inspected by the API servers and same time 
+it stores it in etcd. Also, it will be add to the Scheduler's queue.
+
+Once it is added to schedule, kube-scheduler inspect the yaml file and collect the details defined 
+in that like resources etc, based on that it picks the best node to run it using filters and predicates.
+
+At last, the pod will be marked as scheduled, node assigned and state stored in Etcd
+
+>The kubelet — the Kubernetes agent
+
+We all know Kubelet's job to poll the control plane or master node for updates.
+if there is any pod to create, it will collect the details and creates it.
+
+The kubelet doesn't create the Pod by itself. Instead, it delegates the work to three other components:
+
+>The Container Runtime Interface (CRI) — 
+the component that creates the containers for the Pod.
+
+>The Container Network Interface (CNI) — 
+the component that connects the containers to the cluster network and assigns IP addresses.
+
+>The Container Storage Interface (CSI) — 
+the component that mounts volumes in your containers.
+
+The Container Networking Interface (CNI) is always interesting because it is in charge of:
+
+>Generating a valid IP address for the Pod.
+>Connecting the container to the network.
+
+When the Container Network Interface finishes its job, the Pod is connected to the network and with 
+valid IP address assigned.
+After that, The kubelet collects all the details of the Pod such as the IP address and report them back to the 
+control plane it will be stored on etcd.
+
+*Note_:
+>Pod is nothing but the abstraction, like a BOX or COVER, which abstarct the container or multiple 
+>containers inside it,
+>Pod is created by KUBE_API-SERVER and containers is created by CRE which may be the Docker or ContainerD 
+>or any other Container Runtime.
+
+>--------------------------------------------------------------------------------------------------------------
+
+*Environmental_Variable_
+
+*ref_https://kubernetes.io/docs/tasks/inject-data-application/define-environment-variable-container/
+*ref_https://github.com/devopsproin/certified-kubernetes-administrator
+
+>we use enviromental variable to pass the values to the microservices during runtime, or to overrride the 
+>existing enviromental variable that micrioservices/images have from its creation.
+
+>we can pass the enviromental variable in two different ways_
+1.env
+2.envFrom
+
+env:
+- name: name
+  value: nisha 
+
+envFrom:                  -----> #refere to, ConfigMap and Secretes Files
+- configMapRef:
+    name: env-configmap
+- secretRef:
+    name: env-secrets
+
+
+>To print enviromental variable on pods execution_ 
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: testpod
+  labels: 
+    name: pod
+    appname: app2
+spec:
+  containers:                           
+    - name: containerone
+      imagePullPolicy: IfNotPresent
+      image: coolgourav147/nginx-custom
+      env:
+        - name: version
+          value: 1.1.0
+        - name: password
+          value: zxcv1234 
+      command: ["echo"]    
+      args: ["$(version) $(password)"]     # arguments to the Command
+
+>we can check the same using kubectl logs command_
+kubectl logs <pod_name>
+
+
+>Exposing pods information to the containers through Environmental Variables_
+
+pod can use Environmental Variables to expose information about itself to containers running in the Pod,
+using the DOWNWARD-API (Environmental Variables , Volume files are known as DownWard API)
+
+*ref_https://kubernetes.io/docs/concepts/workloads/pods/downward-api/#available-fields
+
+
+in k8s there are two ways to expose Pod feilds like POD_IP, POD_NAMESPACE, Node, NODE_NAME, 
+NODE_IP, POD_ANNOTATION on the Node, POD_LABEL and Container feilds like Container Name , Port and 
+other RESOURCE FEILD REFERENCES etc, to the running container_
+
+>1.Environmental Variables
+>2.Volume files
+
+
+>Environmental Variables :-
+
+*1.Pod_level_Feild_Reference
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: testpod
+  labels: 
+    name: pod
+    appname: app2
+spec:
+  containers:                           
+    - name: containerone
+      imagePullPolicy: IfNotPresent
+      image: coolgourav147/nginx-custom
+
+      env:
+        - name: MY_NODE_NAME
+          valueFrom: 
+            fieldfRef: 
+              fieldPath: spec.nodeName
+
+        - name: MY_POD_NAME
+          valueFrom: 
+            fieldfRef: 
+              fieldPath: metatdata.name  
+
+        - name: MY_POD_NAMESPACE
+          valueFrom: 
+            fieldfRef: 
+              fieldPath: metadata.namespace
+
+        - name: MY_POD_IP
+          valueFrom: 
+            fieldfRef: 
+              fieldPath: status.podIP             
+
+      command: [ "sh", "-c"]
+      args:
+      - while true; do
+          echo -en '\n';
+          printenv MY_NODE_NAME MY_POD_NAME MY_POD_NAMESPACE;
+          printenv MY_POD_IP MY_POD_SERVICE_ACCOUNT;
+          sleep 10;
+        done;
+
+*2.Container_Level_Feilds_Reference
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: dapi-envars-resourcefieldref
+spec:
+  containers:
+    - name: test-container
+      image: registry.k8s.io/busybox:1.24
+
+      command: [ "sh", "-c"]
+      args:
+      - while true; do
+          echo -en '\n';
+          printenv MY_CPU_REQUEST MY_CPU_LIMIT;
+          printenv MY_MEM_REQUEST MY_MEM_LIMIT;
+          sleep 10;
+        done;
+
+      resources:
+        requests:
+          memory: "32Mi"
+          cpu: "125m"
+        limits:
+          memory: "64Mi"
+          cpu: "250m"
+
+      env:
+        - name: MY_CPU_REQUEST
+          valueFrom:
+            resourceFieldRef:
+              containerName: test-container
+              resource: requests.cpu
+
+        - name: MY_CPU_LIMIT
+          valueFrom:
+            resourceFieldRef:
+              containerName: test-container
+              resource: limits.cpu
+
+        - name: MY_MEM_REQUEST
+          valueFrom:
+            resourceFieldRef:
+              containerName: test-container
+              resource: requests.memory
+
+        - name: MY_MEM_LIMIT
+          valueFrom:
+            resourceFieldRef:
+              containerName: test-container
+              resource: limits.memory
+
+  restartPolicy: Never
+
+>kubectl exec pod <pod_name> -- printenv
+>kubectl logs <pod_name>
+
+*---------------------------------------------------------
+
+
+>Volume files
+
+*1.Pod_level_Feild_Reference
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: downwardapi-volume
+  labels:
+    dapi: volume
+    cluster: test-cluster
+  annotations:
+    color: red
+spec:
+  containers:
+    - name: client-container
+      image: registry.k8s.io/busybox
+
+      command: ["sh", "-c"]
+      args:
+      - while true; do
+          if [[ -e /etc/podinfo/labels ]]; then
+            echo -en '\n\n'; cat /etc/podinfo/labels; fi;
+          if [[ -e /etc/podinfo/annotations ]]; then
+            echo -en '\n\n'; cat /etc/podinfo/annotations; fi;
+          sleep 5;
+        done;
+
+      volumeMounts:
+        - name: podlevelinfo
+          mountPath: /etc/podlevelinfo
+
+  volumes:
+    - name: podlevelinfo
+      downwardAPI:
+        items:
+            - path: "labels"
+              fieldRef:
+                fieldPath: metadata.labels
+
+            - path: "annotations"
+              fieldRef:
+                fieldPath: metadata.annotations
+
+
+
+>(similar to Environmental Variables we will have both Pod_Level_Feilds and Container_Level_Feild References)
+
+*Container_Level_Feilds_Reference
+
+volumes:
+ - name: podlevelinfo
+   downwardAPI:
+     items:
+      - path: "some_path"
+        resourceFieldRef:
+              containerName: test-container
+              resource: requests.cpu
+
+
+>*******************************************************************************************************************
+
+*Pod_Security_Context_
+
+*ref_https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+
+
+Pod security is crucial when it comes deploy production ready application on the kubernetes cluster. 
+Apart from creating and deploying secure docker images by implementing the practice of Creating Secure Docker
+Images, Kubernetes gives us a way to set the user and Groups using pod security context.
+
+if we do not have set the user at the time of creation of docker image, all the container will run with
+'root' as a default user, which will intern grant a unlimited and unrestricted access to the root directory
+as well as etcd and other secure system.
+
+so, it is important to set the user with restricted or non root access to the containers system, this can 
+be done in below way_ 
+
+
+>Setting Groups and User for Pod security with securotyContext_
+
+apiVersion: apps/v1
+kind: Deployment 
+
+metadata:
+  name: deploy1
+  labels: 
+    label1: dep1 
+
+spec:
+  replicas: 5
+  selector: 
+    matchLabels:
+      appname: app
+
+  template:   
+      metadata:
+        name: pod1
+        labels: 
+          appname: app
+      spec:
+        containers:
+        - name: cont1
+          image: coolgourav147/nginx-custom
+          volumeMounts:
+          - name: temst_vol
+            mountPath: /tmp/ed
+
+        securityContext:                                #security context for container
+          runAsUser: 11000
+          runAsGroup: 22000
+          fsGroup: 33000
+          allowPrivilegeEscalation: false
+          capabilities:
+            add: ["NET_ADMIN", "SYS_TIME", "some_capability"] 
+
+        volumes:
+        - name: test_vol
+          emptyDir: {}            
+
+
+>commands_
+kubectl exec
+ps -aux
+whoami
+id
+
+>Security Context for Pod
+
+To specify security settings for a Pod, include the securityContext field in the Pod specification. 
+The securityContext field is a PodSecurityContext object. The security settings that you specify for a 
+Pod apply to all Containers in the Pod
+below  is a configuration file for a Pod that has a securityContext and an emptyDir volume
+
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: security-context-demo
+
+spec:
+  securityContext:                      #security context for pod
+    runAsUser: 1000 
+    runAsGroup: 3000
+    fsGroup: 2000
+
+  volumes:
+  - name: sec-ctx-vol
+    emptyDir: {}
+  containers:
+  - name: sec-ctx-demo
+    image: busybox:1.28
+    command: [ "sh", "-c", "sleep 1h" ]
+    volumeMounts:
+    - name: sec-ctx-vol
+      mountPath: /data/demo
+
+    securityContext:
+      allowPrivilegeEscalation: false
+
+
+In the configuration file, the runAsUser field specifies that for any Containers in the Pod, 
+all processes run with user ID 1000. 
+The runAsGroup field specifies the primary group ID of 3000 for all processes within any containers of the Pod. 
+If this field is omitted, the primary group ID of the containers will be root(0).
+
+Any files created will also be owned by user 1000 and group 3000 when runAsGroup is specified. 
+Since fsGroup field is specified, all processes of the container are also part of the supplementary group ID 2000. 
+The owner for volume /data/demo and any files created in that volume will be Group ID 2000.
+
+>Security Context specified at Pod Level .i.e. Pod.spec[*].securityContext will be applied to all the containers
+>in that pod. Security Context specified at Container level .i.e. Pod.spec.containers[*].securityContext, will 
+>be applied to that container only.
+>ALSO, IF SECURITY CONTEXT IS SPECIFIED AT BOTH LEVELS , THEN CONTAINERS SECURITY CONTEXT WILL OVERRIDE THE
+>PODS SECURITY CONTEXT SPECIFICATION. i.e. Containers security context is given more prioruity than Pods SC.
+
+
+>Set capabilities for a Container
+
+With Linux capabilities, you can grant certain privileges to a process without granting all the 
+privileges of the root user. To add or remove Linux capabilities for a Container, include the 
+capabilities field in the securityContext section of the Container manifest.
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: security-context-demo-4
+spec:
+  containers:
+  - name: sec-ctx-4
+    image: gcr.io/google-samples/node-hello:1.0
+    securityContext:
+      capabilities:
+        add: ["NET_ADMIN", "SYS_TIME"]   
+
+
+
+ ****************************************************************************************************************** 

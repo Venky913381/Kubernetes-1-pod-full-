@@ -1,4 +1,6 @@
 >
+*Replication_Controller_
+
 
 >Desired state is the core concept in k8s.
 >through declarative or imperative Approch, we describe the desire state of the objects 
@@ -9,7 +11,7 @@
 
 >kubeController managers in the MASTER responsible for the regulating the state of the system. if they
 >detects any drift in current state of the cluster, they instruct the KUBELET components in the WORKER
->to spin up the additional pods depends on the desired state. 
+>to spin up the additional pods depends on the stored desired state. 
 >this way k8s ensured that all the containers running across the cluster are always in the desired state.
 
 >we need a controller for our application , for the purpose of Relibility, LoadBalancing, Scalling.
@@ -20,7 +22,7 @@
 >replication controller, was tasked with ensuring high availibilty by replacing unhealthy/dead pods with 
 >new ones to ensure required replicas are always up and running inside the cluster.
 
->we can use rc to control the deployment of single pod also. rc will help by automatically bringing up the
+>we can use RC to control the deployment of single pod also. rc will help by automatically bringing up the
 >new pod when the existing one fails.
 >Another reason we need replication controller to create multiple pod and share the load across them.
 
@@ -64,8 +66,7 @@ spec:
 #manual scalling__
 >kubectl scale rc --replicas=<n> <rc-name>   ---> imperative command
 >kubectl edit rc <rc-name>                   ---> imperative object configuration 
->edit in this yaml file                      ---> declarative object configuration 
-
+>edit in this yaml file and apply again      ---> declarative object configuration 
 
 
 
@@ -94,10 +95,13 @@ spec:
           imagePullPolicy: Never
           name: contone
 
+>kubectl get pods --selector=appname=myapp
+
+
 # selector value and pods label needed to match,  even if selector is given
 # pod label is must. If selector attribute  is not provided
 # then pods label is taken as default selector for rc.
 
->if there are multiple selectors ALL SELECTORS MUST NEEDED TO BE MATCHED.
+>if there are multiple selectors ALL SELECTORS MUST NEEDED TO BE MATCHED. (logical AND)
 
 >--------------------------------------------------------------------------------------------------------------

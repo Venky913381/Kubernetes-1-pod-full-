@@ -1,8 +1,11 @@
 >
+
+*STATEFUL_SETS_
+
 *pre-requisite_
 >1) read, Cluster IP service
 >2) read, Headless Service
->3) read, pod-to-pod communication in clusterip file
+>3) read, pod-to-pod communication, in clusterip file
 
 >if a headless service manages more than one pod, on quering service dns name it will return a lists of pods (ip's) 
 >managed by the service. The requests will be accepted by the first IP address returned after dns round robin load
@@ -21,8 +24,8 @@ requests to the pods and this type of load balancing is called as DNS ROUND ROBI
 
 >The utility of headless service is lies, when it is used with Stateful Sets.
 >headless service , when used with StatefulSets [ which provides a stable unique identity to each pod 
->managed by StatefulSet ], it possible to access the single pods using headless service, as now it is
->possible to forward all request to single pod, despite of requests being load balanced using syntax_
+>managed by StatefulSet ], it possible to access the single pods repeatedly using headless service, as now 
+>it is possible to forward all request to single pod, despite of requests being load balanced using syntax_
 <statefulset_name>-<ordinal>.<headless_svc_name>
 
 >the combination of stable and unique identity to pod offered by Stateful set AND the ability of headless
@@ -38,7 +41,7 @@ requests to the pods and this type of load balancing is called as DNS ROUND ROBI
 
 1> stateless applications do not depends on state, i.e. it do not saves the client data generated in one session
    for use in next session with that client. It also do not need permanant storage.
-   eg_ nginx, apache, nodejs, wikipedia etc..
+   eg_ nginx, apache, nodejs, wikipedia, any static web apps etc..
 
 2> we can simply scales a stateless application by deploying it on multiple servers, 
    it easily scales Horizontally.
@@ -100,14 +103,14 @@ Naming of Pods with Replication Controller/Deployments :
 
 > but in case of stateful application, we need a pod with stable IP , 
 > so that the write/read request or in case of other pod replicate the data from pod 
-> can be redirected to it in consistance manner even in case of pod recretion.
+> can be redirected to it repeatedly in consistance manner even in case of pod recretion.
 
 > in case of deployments, the names generated for the pods is in following format_
   <name of the deployment>-<hash value of the replica set>-<hash of the pod>
 >  eg_ mysql-1234567-abcdef
 
-> if we create or  upgrade the existing deployment, the hash of the RS will get changed.
-
+> if we create or  upgrade the existing deployment, the hash of the RS will remain same but 
+> hash of pod will get get changed.
 > in case of pod recreation, new pod gets a new name/identity, the first and second part of its name 
  i.e. <name of the deployment>-<hash value of the replica set> , 
 > remains same but the HASH of POD will get changed, thus effective changing the name/identity also ip 
@@ -147,7 +150,7 @@ Naming of Pods with Replication Controller/Deployments :
 
 
 
-2> Sticky / Indentity Hostname (Naming of Pods with Stateful Sets):
+2> Sticky/Fixed Indentity Hostname (Naming of Pods with Stateful Sets):
 
 > Each pod created by StatefulSet has a ordinal value (0 through # replica 1 ) and a stable n/w id, 
 > which is '<statefulsetname>-<ordinal>' assigned to it.
@@ -172,7 +175,7 @@ can we use name of the pod ?
 can we use Headless service name ?
 >NO, becouse, the request may go to any replica as service always load balances the requests (dns round robin).
 
-combination of pod anem and Stateful set name _
+combination of pod name and Stateful set name _
 >Stateful sets when combined with headless service, gives a unique identity/fqdn to each pod which is combination 
 >of name of pod and name of headless service.
 >to target the pod, we can use the following syntax, so the all the desired request will go to only targeted pod
@@ -211,7 +214,7 @@ combination of pod anem and Stateful set name _
 >Each pod inside theStatefulSet mounts these PVC's as volume to retain the data.
 
 >Volume Claim Template , will create a PVC's and The PVC is named as _ 
-><volumeClaimTemplates_name>-<pod_name/statful_set_name>-<ordinalNumber>
+*<volumeClaimTemplates_name>-<statful_set_name>-<ordinalNumber>
   eg _ data-mysql-0
 
 
@@ -249,7 +252,7 @@ USING BOTH HEADLESS SERVICE AND CLUSTER IP IN AN APPLICATION :
 >In this case, it is possible to use both HEADLESS AND CLUSTER IP SERVICE in our deployment of stateful application
 
 >We can serve the all Write requests via Headless Service to the Primary database instance and 
->all the Read request can be served by clusterip service from the replicated and primary datbase instances.
+>all the Read request can be served by clusterip service from the replicated as well as primary datbase instances.
 
 >cluster ip service , will manage all the pods in our application deployement including primary databse pod for
 >all the read requests, while headless service will serve the write requests.
@@ -265,7 +268,7 @@ eg : http://db-clusteripservice:3306
 
 >--------------------------------------------------------------------------------------------------------------
 
->Statefulset are valueable for application that requires one or more of the following_
+>Statefulsets are valueable for application that requires one or more of the following_
 
 1> stable, unique network identifiers (ip, hostnames) with help of headless service.
 2> stable, persistant storage
@@ -357,9 +360,31 @@ spec:
   selector:
     app: nginx
 
->--------------------------------------------------------------------------------------------------------------
 
+>Storage Class for PVC
 
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: my-storage-class
+
+provisioner: kubernetes.io/aws-ebs     # determines what volume plugin is used for provisioning
+parameters:
+  type: gp2
+  iopsPerGB: "10"
+  fsType: ext4                         # gp2, aws specific
+
+reclaimPolicy: Retain                  # retain or delete or recycle
+allowVolumeExpansion: true             # allow dymanic resizing, can be expanded
+mountOptions:
+  - debug
+volumeBindingMode: Immediate           # or WaitForFirstConsumer
+ 
+
+*************************************************************************************************************
+>kubectl get svc
+>kubectl get sc
 >kubectl get sts
 >kubectl get pv
->kubectl get pvc    
+>kubectl get pvc  
+>------------------------------------------------------------------------------------------------------------  

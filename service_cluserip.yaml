@@ -1,5 +1,5 @@
 >
->Service in k8s
+Service in k8s :
 
 >we need a services for enabling the pod-to-pod communication, also to enable external traffic to access 
 >microservice/app deployed in k8s pod.
@@ -24,7 +24,7 @@
 
 >--------------------------------------------------------------------------------------------------------------
 
->Cluster IP_
+*Cluster_IP_
 
 >cluster IP makes the service available within the cluser, So that pod to pod communication becomes possible.
 >ClusterIp service is available within cluster only, to access application out of cluster we need to go for other
@@ -68,7 +68,7 @@ spec:
 
 >--------------------------------------------------------------------------------------------------------------
 
->End Points
+*End_Points
 
 >endpoints tracks the ip addresses of the k8s object, that the service send traffic to.
 
@@ -135,7 +135,6 @@ spec:
 
 >--------------------------------------------------------------------------------------------------------------      
 
-
 *Port_Forwarding_ :
 
 >Port forwarding is the way to Temporarily Communicates with applications in your cluster without
@@ -192,14 +191,13 @@ pod-to-pod communication_ (without Service, Using POD's IP_):
 port is not a service port, but the port to which application listens like 3306 for mysql db, 5432 for postgres db.   
 
 
->                                     ********************************
-
+*                                     ********************************
 
 pod-to-pod communication_ (with ClusterIP Service):
 
 >pod-to-pod communication with Service, each service gets its own IP address.
 
->each service will have incoming port and target port i.e. containers port.
+>each service will have incoming port (service port) and target port i.e. containers port.
 >It always load balances the incoming requests between replicas.
 
 >service acts like a proxy placed before the pods, and pods are mapped to service with help of labels.

@@ -1,6 +1,9 @@
 >
-*READ_FIRST:-
->Volumes [EmptyDir/HostPath]
+**PERSISTANT_VOLUMES_and_PERSISTANT_VOLUME_CLAIMS_
+ 
+*ref_https://kubernetes.io/docs/concepts/storage/persistent-volumes/
+
+read_ Volumes [EmptyDir/HostPath]
 
 >What problems does it solve?
 
@@ -10,7 +13,7 @@
     All the files inside the container are temporary which means if you terminate the container,
     you are going to lose all your files.(in case of EmptyDir)
 
-    Secondly, if in any case, your container crashes then there is no way to recover files.
+    Secondly, if in any case, your container crashes then there is no way to recover the files.
     Kuberenetes provides volume plugin as Persistent Volume to address the above problems.
 
     The lifecycle of these volumes are independent of the lifecycle of pods. (host path)
@@ -143,7 +146,8 @@ spec:
 >be bind together.
 
 
-> AccessModes, can be_ (from pv/pvc@50min mark)
+> AccessModes, tell us, how the provisioned volume can be accessed by the nodes in the cluster.
+> possible values can be_ (from pv/pvc@50min mark)
 
      ReadWriteOnce (RWO) : only single worker "NODE" can mount the volume for reading and writing at same time.
                            this mode will still allow multiple PODS to access the volume when pods are running
@@ -163,13 +167,14 @@ spec:
 
 *ref_https://alexandre-vazquez.com/untangling-reclaim-policies-for-persistent-volume-in-kubernetes/
 
+
 >persistentVolumeReclaimPolicy, can be_
 
   >Reclaim policy tell us , what happens to persistent volume , when the PVC is deleted.
 
      Delete  : it deletes volume content/data and makes the volume available to be claimed again as 
                soon as pvc gets deleted. 
-               Delete reclaim policy deletes both the PersistentVolume object from your cluster and 
+               Delete reclaim policy, deletes both the PersistentVolume object from your cluster and 
                the associated storage asset in external infrastructure, such as AWS EBS
 
      Retain  : pv content/data will be persisted after pvc is deleted and it(data) can NOT be reused, until
@@ -261,17 +266,18 @@ changing the reclaim policy using cli :
 2> Dynamically : When none of the admin created pv that matches the users pvc, then the cluster 
                  may try to dynamically provisioned the volume/pv as per users request, specially for the pvc. 
                   
->                 This dynamic provisioning is based on StorageClasses, the pv must request a storage class 
->                 and the admin must have created and configured that class for dynamic provisioning to occure.
+>                This dynamic provisioning is based on StorageClasses, the pv must request a storage class 
+>                and the admin must have created and configured that class for dynamic provisioning to occure.
 
->                 to enable dynamic storage provisioning , we have to enable the DefaultStorageClass admission'
->                 controller on the k8s API server.
+>                to enable dynamic storage provisioning , we have to enable the DefaultStorageClass admission'
+>                controller on the k8s API server.
 
 
 >-----------------------------------------------------------------------------------------------------------------
 
 Storage Class_ :
 
+*ref_https://kubernetes.io/docs/concepts/storage/storage-classes/
 *ref_https://containerjournal.com/topics/container-networking/using-ebs-and-efs-as-persistent-volume-in-kubernetes/
 
 >storage class is a k8s object thats let user to specify which type of the storage they need from the 
@@ -307,7 +313,7 @@ that our claim will fail.
 
 storage class / pv are not namespaced object. pvc is namespaced.
 
->ref_ https://kubernetes.io/docs/concepts/storage/storage-classes/
+*ref_https://kubernetes.io/docs/concepts/storage/storage-classes/
 
 
 apiVersion: storage.k8s.io/v1
@@ -339,13 +345,15 @@ annotation:
   storageClass.kubernetes.io/is-default-class: "true"
 
 
-*volumeBindingMode_
+
+*volumeBindingMode_ (sc and pv binding)
 
 >Immediate            : -  mode indicates that volume binding and dynamic provisioning occurs once the 
 >                          PersistentVolumeClaim is created
 
 >WaitForFirstConsumer : -  mode which will delay the binding and provisioning of a PersistentVolume until a
 >                          Pod using the PersistentVolumeClaim is created.
+
 
 
 *important_
@@ -416,10 +424,12 @@ spec:
 
 
 *flow_
->aws ebs ---> StorageClass ---> PV ---> PVC ---> Pod/Deployments ---> Application
+>aws ebs ---> StorageClass ---> PV ---> PVC <------------- Pod/Deployments ---> Application
 *----------------------------------------------------------------------------------------------------------------
 
 *read_next:
->Persistance volume claim templates
+>Persistance volume claim templates for StatefulSets
+>volume snapshot
+>CSI Volume Cloning
 
 >-----------------------------------------------------------------------------------------------------------------

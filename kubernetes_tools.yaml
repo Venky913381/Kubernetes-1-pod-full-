@@ -1,0 +1,241 @@
+>
+*Kubernetes_Accessories_and_Tools_
+
+*----------------------------------------------K8S_Accessories-------------------------------------------------
+
+#Kubernetes Package Managers and Plugins Managers
+
+Kubernetes Krew plugin manager for kubectl :
+
+*ref_https://krew.sigs.k8s.io/docs/
+
+In devops environment, we may have to manage multiple k8s resources, across multiple
+clusters.
+we may also have different kubeconfig file for each environment or we hay have single kubeconfig
+file multiple context and cluster.
+
+>kubectl is a command line utitlity used to communicates with k8s API server to create , read, 
+>update , delete (CRUD) workload within k8s.
+
+>kubeconfig file is file used to configure access to the kubernetes cluster, when used in conjunction
+>with kubectl command line tool.
+
+>by default, kubectl looks for a file in  $HOME/.kube directory. we can specify other kubeconfig files by 
+>setting the KUBECONFIG environment variable or by setting the --kubeconfig flag while running kubectl commands_
+*kubectl --kubeconfig /pathto_/kube.config get pods
+
+>Kubectl performs following task in k8s cluster_
+
+Client Side Validation :
+1. check yaml syntax
+2. check for misconfigurations
+3. check for non supported resource
+4. fail fast mechanism to avoid loading the API server
+
+Forms the HTTP request :
+1. forms API calls
+2. includes authentication tokens and certifications for user validations.
+3. reads kubeconfig file
+4. submits pod spec to the api server
+5. Communicates with API server
+                            
+API server performs below task :
+1. then api server perform user authentication and authorization.
+2. verifies the APi
+3. communicates with varies k8s components like ETCD, CONTROLLER, SCHEDULERS.
+
+
+>use kubernetes lens tool for managing multiple clusters.
+
+>to view the kube config details
+kubectl config view
+
+>to get context_
+kubectl config get context
+
+>to change context_
+kubectl config use-context <context-name>
+
+>to change/set namespace in kubeconfig file for upcoming commands
+kubectl config set-context --current --namespace=<ns_name>
+
+
+*krew_
+
+1.krew is a plugin manager for kubectl command line tool
+2.it discovers and installs kubectl plugins
+3.there are 154 kubectl plugins currently distributed on krew
+4.it works across all major platforms ,like Macos, linux and windows.
+
+#Follow -> {google-->krew github -->documentation-->krew docs-->quickstart-->install&setup krew}
+
+>install krew on Bash or ZSH shells
+ Make sure that git is installed.
+
+Run this command to download and install krew :
+
+(
+  set -x; cd "$(mktemp -d)" &&
+  OS="$(uname | tr '[:upper:]' '[:lower:]')" &&
+  ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" &&
+  KREW="krew-${OS}_${ARCH}" &&
+  curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/latest/download/${KREW}.tar.gz" &&
+  tar zxvf "${KREW}.tar.gz" &&
+  ./"${KREW}" install krew
+)
+
+>Add the $HOME/.krew/bin directory to your PATH environment variable.
+To do this, update your .bashrc or .zshrc file and append the following line 
+>export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
+and restart your shell.
+
+Run 
+>kubectl krew 
+to check the installation.
+
+>Usage :-
+  kubectl krew [command]
+
+>Available Commands :-
+  completion  generate the autocompletion script for the specified shell
+  help        Help about any command
+  index       Manage custom plugin indexes
+  info        Show information about an available plugin
+  install     Install kubectl plugins
+  list        List installed kubectl plugins
+  search      Discover kubectl plugins
+  uninstall   Uninstall plugins
+  update      Update the local copy of the plugin index
+  upgrade     Upgrade installed plugins to newer versions
+  version     Show krew version and diagnostics
+
+
+*kubectx_
+
+>snap install kubectx --classic    ---> to install kubectx and kubens
+
+# using ctx (context)              ---> k8s context utility
+
+>kubectx                           ---> to list context
+>kubectx -                         ---> to switch to the previous context
+>kubectx <name_of_context>         ---> to change the context
+>kubectx --help
+
+
+*kubens_
+
+>snap install kubectx
+
+# using kubens (namespace)         ---> k8s namespace utility
+
+>kubens                            ---> to list the available namespaces
+>kubens <namepsace_name>           ---> to switch the context to namespace i.e to make ns default
+>kubens -                          ---> t switch to the previous namespace in the current context
+>kubens --help
+
+
+#installing plugin with krew
+
+*Score
+
+>kubectl krew search <plugin_name>
+eg1_ kubectl krew search score
+
+>kubectl krew install <plugin_name>
+eg1_ kubectl krew install score
+
+>kubectl score <manifest.yaml>
+eg1_ kubectl score pod1.yaml
+eg1_ helm template bitnami/nginx | kubectl score -
+
+-->score is a plugin for static code analysis for k8s object definations, it checks , if n/w policies are in place, 
+   resource are set, affinity rules, probes, container security/context is set or not. 
+
+
+*Pod_Lense
+>pod lense :- it will show pod related info like, namespace, service, node, secrets, cofigmaps etc.
+
+>kubectl krew install pod-lens
+>kubectl pod-lens <pod_name/deployment_name>
+
+
+*prune_unsused
+>prune-unused :- prune unused secrets/configmaps from current namespace
+>checks against all resorces from mounted volume, env, and envFrom and imagePullSecrets.
+
+>kubectl krew install prune-unused
+>kubectl prune-unused secrets / configmaps --dry-run  
+
+*neat
+>neat removes clutter from k8s manifest file like creationtimestamps, resource ids, 
+>status information to make them more readable.
+
+>kubectl krew install neat
+>kubectl get pod <pod_name> -o wide | kubectl neat
+
+*tree
+>tree explores the ownership relationships between kubernetes objects 
+>through owners references on them.
+
+>kubectl krew install tree
+>kubectl tree <resource> <name>              
+
+
+*tail 
+>tail streams a logs from all containers of all matched pods and can match pods by service,
+>replicaset, deployment and others.
+
+>kubectl krew install tail
+>kubectl tail -p <name_of_pod>
+
+>-l : --label , -p : --pod, -n : --ns ,-svc , -rc, -rs, -d, -sts            
+
+*popeye
+>scans live k8s cluster and reports potential issues with deployed resources and configurations.
+>it detects misconfigurations and helps us to ensure that best prectices are in place, thus
+>preventing future headaches.
+
+>kubectl krew install popeye
+>kubectl popeye       
+
+>it will scans the cluster and give details report on it.
+
+
+>----------------------------------------------------------------------------------------------------------
+
+*Kbernetes_Tools_
+
+DATREE : 
+
+Datree is a CLI tool that supports Kubernetes owners in their roles, by preventing developers from making 
+errors in Kubernetes configurations that can cause clusters to fail in production. 
+Our CLI solution is open source, enabling it to be supported by the Kubernetes community.
+
+
+>install datree on linux
+curl https://get.datree.io | /bin/bash
+
+>Run a policy check against a Kubernetes manifest
+datree test <k8s_manifest.yaml>
+
+>Enable/disable built-in rules
+After signing up, you'll be automatically redirected to your Centralized policy where you can configure 
+it according to your needs.
+
+>----------------------------------------------------------------------------------------------------------
+
+*read_
+
+>kubeadm
+>kubespreay
+>kube-sphere
+>KOPS
+>KillerCoda
+
+>skooner Dashboard
+>Lense Dashboard
+
+>kubeapps
+>kaniko
+>kube-shell
+>kind

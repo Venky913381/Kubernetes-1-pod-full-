@@ -1,7 +1,9 @@
 >
 
->Namespaces are like seperate virtual-spaces/workspaces within kubernetes cluster.
->kubernetes cluster may have multiple application deployed within same cluster. In this we can use seperate 
+*Namespaces_in_Kubenetes_
+
+>Namespaces are like seperate virtual-spaces/workspaces within the kubernetes cluster.
+>kubernetes cluster may have multiple application deployed within same cluster. In this case we can use seperate 
 >namespaces for each application deployement, which introduce the layer of isolation between them.
 
 >Using namespace we can enforce quota and limits on the pod for resource usage, which ensure that each application 
@@ -23,10 +25,10 @@ to set custom Namespace as default
 > kubectl config set-context --current --namespace=<ns-name>
 
 To access service in another namespace 
-> <servicename>.<namespacename>.svc.cluster.local  --> fqdn of service, curl it
+> <servicename>.<namespace_name>.svc.cluster.local  --> fqdn of service, curl it
 
 To access pod without service in another namespace 
-> <ip_of_pod>.<namespacename>.pod.cluster.local    --> fqdn of pod, curl it
+> <ip_of_pod>.<namespace_name>.pod.cluster.local    --> fqdn of pod, curl it
 
 
 >we can control resources in custom namespace in two different ways_(check limit-quota for more)
@@ -37,7 +39,7 @@ To access pod without service in another namespace
 
 there are two types of quota/limits : 
 1) OBJECT BASED QUOTA, where we limit the number of Object that can be created inside the namespace.
-2) COMPUTE BASED QUOTA, where we limit the node resources to be used by k8s resource.
+2) COMPUTE BASED QUOTA, where we limit the node's hardware resources to be used by k8s resource.
 
 2> LimitRange
 >This will set the combine limit on the quantity of the compute resource like RAM and CPU
@@ -45,7 +47,20 @@ there are two types of quota/limits :
 
 #----------------------------------------------------------------------------------------------------------------
 
->to set namespace in yml_
+>to create the namespace via declarative approch_
+
+apiVersion: v1
+kind: Namespace
+
+metadata:
+  name: testnamespace
+  labels: 
+    target: test
+    team: sedt-team 
+    app: iot-app
+
+
+>to set namespace in resource's yaml_
 
 apiVersion: v1
 kind: Pod 
@@ -62,26 +77,26 @@ spec:
 
 
 
->-----------------------------------------------------------------------------------------------------------------
+*-----------------------------------------------------------------------------------------------------------------
 
->Namespace are the k8s obects that partitioned the single k8s cluster into multiple virtual cluster/workspaces.
+>Namespace is the k8s object that partitioned the single k8s cluster into multiple virtual cluster/workspaces.
 
 >k8s can manage large number of workloads concurrently and organizations often
 >choose to deploy projects created by seperate teams on shared clusters.
 
 >k8s namespaces allow different teams , projects or customers share a same k8s cluster.
 
->namespace allows us to logically group objects together , so that we can control them as a unite/group.
+>namespace allows us to logically group objects together , so that we can control them as a unit/group.
 
 >Namepsaces allows you to have similarly named k8s resources in different namepsaces.
 
->Using RBAC, we can implements the access control for different namespaces.
+>Using RBAC, we can implements the access control for different namespaces in the cluster.
 
 >k8s namespace provides the scope for k8s names it contains , which means using the 
 >combination of an object name and namespace, each objects gets unique identity across the cluster.
 
->Not all k8s resources are namespaced, like k8s obects like Nodes, PV are not namespaced.
->they are cluster wide resources to be accessible by all objects in the cluster.
+>Not all k8s resources are namespaced, like k8s objects like Nodes, PV , Ingress Controllers etc are not namespaced.
+>they are cluster wide resources to be accessible by all objects, in all the nacespaces in the cluster.
 
 >resources in same namespace can communicate with each other by their names/ip's.
 >But, across the cluster with multiple namespaces, they must use FQDN/fully qualified domain name for communication.
@@ -92,7 +107,7 @@ spec:
 .svc.cluster.local, is a Base domain name
 
 >within namespace communication between pods happens through service.
->core-dns pod, in kube-system namespace, manages the dns services and resolve the ip addresses
+>core-dns POD, in kube-system NAMESPACE, manages the DNS services and resolve the ip addresses
 >in k8s cluster and service.
 
 >kube-proxy, is a core-dns service , which provide the service for the 
@@ -108,14 +123,14 @@ options ndots:5
 
 >-----------------------------------------------------------------------------------------------------------------
 
->Different existing namepsces in kubernetes.
+Different existing namepsces in kubernetes :
 
 >Default_
-this is default namespace, by default all the resources get created in this namespace.
+this is default namespace, If no namespace os specified, by default all the resources get created in this namespace.
 
 >Kube-system_
 it is namespace for objects created by k8s system/control plane. any changes to objects in this ns
-would couse irreperable damages to the cluster itself.
+would cause irreperable damages to the cluster itself.
 
 >kube-public_
 created automatically and is readable by all users, including non authenticated users. this is mostaly
@@ -131,16 +146,6 @@ heartbeats so that control plane can detect node failures.
 >kubectl create ns <ns-name>
 
 
-apiVersion: v1
-kind: Namespace
-
-metadata:
-  name: testnamespace
-  labels: 
-    target: test
-    team: sedt-team 
-    app: iot-app
-
 >-----------------------------------------------------------------------------------------------------------------
 
 *Types_Of_Namespaces_in_k8s_
@@ -150,10 +155,10 @@ metadata:
 3.Mount Namespace
          
 >PID Namespace
-each container gets its PID_1 process and it is isolated from other containers and processes of host machine.
+each container get its PID_1 process and it is isolated from other containers and processes of host machine.
 
 >Network Namespace
-each container gets its own network space , which makes it possible to have own IP , Route tables , ports etc..
+each container gets its own network namespace , which makes it possible to have own IP , Route tables , ports etc..
 all containers created will get attached to the virtual network interface for the communication.
 
 >Mount Namespace
@@ -161,9 +166,9 @@ each container will have its own mount space, which makes it possible to have it
 
 
 
-C-GROUPS :
+C-GROUPS : (control groups)
 
->C-Groups Allocates and Limits the use of memory, cpu and other resources which are used by containers.
+>C-Groups Allocates and Limits the use of memory, cpu and other h/w resources which are used by containers.
 
 >They restrict containers from too much utilization of the host resources.
 

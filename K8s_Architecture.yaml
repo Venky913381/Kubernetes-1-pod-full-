@@ -1,4 +1,4 @@
->
+> 
 
 *Kubernetes_Architecture :
 
@@ -71,11 +71,12 @@ Master Node :
 >we can communicate with master node through its frontend component, API-SERVER by using kubectl CLI utility,
 >or GUI utility like Kube-Lens, K8S Dashboard or an API http request via API endpoint.
 
+*ref_https://kubernetes.io/docs/concepts/overview/components/
 
 *Master_Node_Components _
 
-API-SERVER:
->It acts as Frontend for the kubernetes cluster, Kubectl cli utility talks only with api server. To communicate
+API-SERVER: 
+>It acts as Front-end for the kubernetes cluster, Kubectl cli utility talks only with api server. To communicate
 >with other kubernetes manager components we have to pass through the api-server.
 
 >The Kubernetes API server Validates and Configures data for the api objects which include pods, services, 
@@ -85,8 +86,13 @@ API-SERVER:
 >Kube API Server in k8s , is tasked with communicating with other kubernetes componetes in 
 >Master and passing the commands/instruction from kubectl to them to complete the given task.
 
->Kube API server Validates and Executes the REST commands. it also makes sures that Configurations in the ETCD matches 
->with current configurations of the containers deployed in the cluster
+>Kube API server Validates and Executes the REST commands. it also makes sures that Configurations in the  
+>ETCD matches with current configurations of the containers deployed in the cluster
+
+*Note_:
+>Pod is nothing but the abstraction, like a BOX, which abstarct the container or multiple containers inside it,
+>it is the Responsibility of KUBE_APT-SERVER to create a pod and containers inside the pod is created by CRE 
+>which may be the Docker or ContainerD or any other Container Runtime.
 
 
 Controller_manager:
@@ -98,6 +104,8 @@ Controller_manager:
 
 >There are various controllers like_
 NODE CONTROLLER, REPLICATION CONTROLLER, ENDPOINT CONTROLLER, JOB CONTROLLER, DEAMON SET CONTROLLER etc...
+
+>Controller Manager is the unified process of the above Controllers.
 
 
 Scheduler:
@@ -116,7 +124,7 @@ ETCD:
 >down , restoring cluster to previous state based on values stored in ETCD is possible.
 
 >All the Data written in ETCD is Encrypted by default when written. In some managed k8s like Openshift
->ETCD is not encrypted by deafault. and in some only values are encrypted, key are not.
+>ETCD is not encrypted by default. and in some only values are encrypted, key are not.
 
  
 *                               ***************************************
@@ -220,6 +228,18 @@ Container Runtime Interface [CRI]:
 >to implement the CRI, CRE must be complient with the OPEN CONTAINER INITIATIVE [OCI]. 
 >OCI sets up the rules for CRI, once CRE follows all the rules ser by OCI it can used with a CRI.
 
+>CRE, which do not implemets the CRI, need a extra layer of protocols in order to be able to communicate 
+>with kubelet. Docker do not implements the CRI, so its needs a extra layer called as a DockerShim (deprecated)/
+>CRI-DOCKERD to communicated with kubectl.
+
+#with docker
+>           CRI   
+*KUBELET---------->DOCKESHIM---->DOCKER------>CONTAINERD------->container/container/........
+
+#without Docker/conteinerD
+>           CRI  
+*KUBELET---------->CRI_CONTAINERD--------->container/container/........
+
 >-----------------------------------------------------------------------------------------------------------
 
 Container Networking Interface [CNI]: 
@@ -289,7 +309,7 @@ rules created by kube-proxy by running the command [ipvsadm -Ln] on any node in 
 
 Docker-Shim: 
 
->ref_ https://kubernetes.io/blog/2022/05/03/dockershim-historical-context/
+*ref_https://kubernetes.io/blog/2022/05/03/dockershim-historical-context/
 
 >this is deprecated component of kubernetes.  Dockershim has been removed as of Kubernetes v1.24 release.
 >with deprecation of docker as runtime for k8s, Docker-shim is also deprecated.
@@ -300,10 +320,38 @@ Docker-Shim:
 
 >docker-shim communicates with Docker over the REST-API.
 
->However , as of now ContainerD is implemeting the Docker-shim.
+>However, as there are many container runtimes available which works according to the CRI implementations,
+>it was not feasible for k8s to maintain seperate code/support for DockerShim to support Docker as a Runtime.
+
+>Mirantis and Docker maintains the DockerShim as standalone outside the kubernetes as a conformant interface 
+>for the Docker CRE, and they called its as cri-dockerd. 
+>So if we wants to use Docker as a CRE in our k8s cluster, we need to seperatly implement the cri-dockerd to
+>integrate docker with kubernetes cluster.
+>Docker is not just a CRE, it is bundle of the tools sits on the top of the CONTAINERD CRE. 
+
+>-----------------------------------------------------------------------------------------------------------
+
+Container Storage Interface [CSI] :
+the component that mounts volumes in your containers
 
 
 >-----------------------------------------------------------------------------------------------------------
+
+*Kube-Scheduler_
+
+>Kubernetes comes with a default scheduler called Kube-Scheduler, it runs as a Static Pod on the Master Node.
+>The kube scheduler plays a key role to choose the right node for each pod by taking care of all the
+>scheduling conditions such as Resource Requirement, Taints and Tolerations, Affinity Rules and Node Selectors
+>in pods Configuration.
+
+>when we send the request to create a pod either through Imperative approch or through Declarative approch,
+>the request is accepted by API-server from kubectl, which then gets forwarded to the ETCD, and the request 
+>parameter is first gets written in to the ETCD database as a State. 
+>It is the Job of controller Manager to instruct the creation of Pod as per data/state written inside the ETCD, 
+>But pod created first goes in to Pending State , as No Node have been assigned to create the pod. 
+>It is the job of the Scheduler to assign the node, once Scheduler assigns the Node as per the Constraints, 
+>pod created by Controller Manager goes from Pending state to the Running Mode.
+
 
 *How_to_Schedule_the_Pod_?
 
@@ -311,12 +359,13 @@ Docker-Shim:
 *ref_https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/
 *ref_https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
 *ref_https://kubernetes.io/docs/concepts/scheduling-eviction/node-pressure-eviction/
+*ref_https://kubernetes.io/docs/reference/command-line-tools-reference/
 
 >Scheduler does the job of scheduling the pod on the perticular node based upon the rules defined
->in various forms like Affinity and AntiAffinity Rules, Taint and Toleration attached to the Pod, 
->Availaibility of the H/W resources with node. 
+>in various forms like Affinity and AntiAffinity Rules, Taint and Toleration , Node Name, Node Selector
+>attached to the Pod, Availaibility of the H/W resources with node. 
 
->But apart from this there are various factor that Scheduler considers while scheduling the pod on 
+>But apart from this there are various other factor that Scheduler considers while scheduling the pod on 
 >perticular node in the cluster, This implies that even if certain node have the most resource available 
 >with it and which satisfied all the scheduling conditions for the pod_
 
@@ -329,6 +378,18 @@ Docker-Shim:
 4.NOTIFIER
 5.BINDING POLICIES
 6.BINDINGS
+
+
+>Step 1:- Filtering the nodes
+In this step, Kube-scheduler first filters out all the nodes that are suitable according to the pod's 
+requirements and makes a List. If the list is empty it means that no node is capable of scheduling that pod 
+and in such condition, the pod remains in a pending and unscheduled state. But if the list is not empty it 
+means there are some nodes available that are capable enough to schedule the pods.
+
+>Step 2:- Scoring the nodes
+In this step, Kube-scheduler assigns a score to each node present in the list to choose the most suitable 
+node for the pod and the pod gets scheduled in the node with the highest score. If there is more than one 
+node with equal scores, Kube-scheduler selects one of these at random.
 
 
 The various "FILTERS" in scheduler are :
@@ -363,8 +424,8 @@ The various "SCORE" in scheduler are :
 13.EvenPodSpreadPriority
 
 
->All the above scheduling predicates decides on which node the pod will get schedule, However 
->kubernetes have provided us with various method to influence the scheduling decisions, and to 
+>All the above scheduling predicates decides on which node the pod will get schedule, various Node selection
+>cluases in kubernetes have provided us are the ways to influence the scheduling decisions, and to 
 >customise scheduling behaviour of the scheduler , these are_
 
 1.NodeSelector
@@ -374,10 +435,11 @@ The various "SCORE" in scheduler are :
 5.Taint and Tolerations
 6.Topology Constraints
 7.Scheduler Profiles
-8.Scheduler Policies (v1.25)
+8.Scheduler Policies (v1.25)  (profile and policies as defined in custom scheduler)
 
 
 >-----------------------------------------------------------------------------------------------------------
+
 
 *Kubernetes_Components__
 
@@ -391,12 +453,11 @@ The various "SCORE" in scheduler are :
     kubelet
     kube-proxy
 
-  Runtime-Networking-CLI :
+  Runtime-Networking-CLI Components:
     Kubectl
     CNI 
     CRE
     CRI 
-
 
 *******************************************************************************************************************
 
@@ -410,16 +471,30 @@ and now pod can communicate with other pod using cluster n/w
 Ip tables contains a reference , which states that, if any pod refers to ip of the pod, request must redirects to the
 any of the pod belonging to that service.
 
-two data states are stored in k8s
-1.control-plane + etcd
-2.kube-proxy state (on nodes/data plane)
+two types of data states are stored in k8s :
+
+>1.control-plane + etcd
+>2.kube-proxy state (on nodes/data plane)
 
 kube proxy keeps on checking for any changes in the control plane , such as addition of new service or Pod, 
 if it found, new service with its endpoint, it will notifies these changes, and it will add these 
 changes in to its kube-proxy state and this is how it will redirects the requests comming for pod from service 
 to the pod.
 
-
 check iptable rules using_
 >iptable -t nat --list | wc -l
 >iptable --list | wc -l
+
+
+*******************************************************************************************************************
+
+>Why does Kubernetes have 3 master nodes for HA ? Why not 2 nodes ?
+
+Having multiple master nodes ensures that services(control plane) remain available should master node(s) fail. 
+In order to facilitate availability of master services, they should be deployed with 
+odd numbers (e.g. 3,5,7,9 etc.) so quorum (master node majority) can be maintained should one or 
+more masters fail. In the HA scenario, Kubernetes will maintain a copy of the etcd databases on 
+each master, but hold elections for the control plane function leaders kube-controller-manager 
+and kube-scheduler to avoid conflicts. The worker nodes can communicate with any master's 
+API server through a load balancer. Deploying with multiple masters is the minimum recommended 
+configuration for most production clusters.
