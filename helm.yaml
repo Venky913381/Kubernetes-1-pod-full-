@@ -9,20 +9,22 @@ sample_project/
 ├── chart.yaml
 ├── values.yaml
 ├── templates/
-│   ├── NOTES.txt
-│   ├── _helpers.tpl
+│   ├── NOTES.txt                       ------->contains a template for output which is displayed on apply command
+│   ├── _helpers.tpl                    ------->contains template for metadata
 │   ├── deployment.yaml
 │   ├── hpa.yaml 
 │   ├── ingress.yaml
 │   ├── service.yaml
 │   ├── serviceaccount.yaml
-│   └── tests/
-│           └── test-connection.yaml
+│   └── tests/                          ------->(/project/templates/tests)
+│         └── test-connection.yaml
 |
+├── .helmignore
 └── requirements.yaml (helm 2.0 version, deprecated in 3.0 version)
 └── readme.md         (optional, not available in v3.0, needed to be created)
 └── LICENCE           (optional, not available in v3.0, needed to be created)
 ├── index.yaml        (optional, not available in v3.0, needed to be created)
+
 
 
 >charts/
@@ -32,8 +34,23 @@ manually managed chart dependancies can be placed in this directory.
 this directory contains templates file like deployments, service and many more as shown above.
 
 >charts.yaml
-A yaml file with metadata about the chart, such as chart name and version, maintainer information,
-a relevant website and search keyword.
+A yaml file with metadata about the chart, such as chart name , api-version, description type,
+version, appVersion, maintainer information,a relevant website and search keyword.
+we can declair dependancies under "dependacies" coloumn (we need to add dependacy keyword in the yaml).
+
+depedancies:
+- name: mariadb
+  version: 5.x.x.x
+  repository: https://github/some/repo....
+  condition: mariadb.enabled
+  tags: 
+    - database
+
+           ----> helm dependancy build
+           ----> helm dependancy list
+           ----> helm dependancy update
+
+
 
 >values.yaml
 a yaml file of default configuration values for the chart.
@@ -41,9 +58,16 @@ a yaml file of default configuration values for the chart.
 >helpers.tpl
 this is where we will declare our functions
 
->Test
+>Test / test_connection
 before doing actual deployment,  we we want to do some testing, we will do it here.
- 
+if any yaml file is in this directory, then this file will run frst before the actual chart. this is used 
+to carry out the tests, like password are working or not, if any application already running or not etc.
+
+>to do the test, we used below command, (we need to have yaml file their first)
+>helm test <release_name>
+
+
+
 >requirements.yaml (deprecatred)
 in this yml file we define charts dependancies, so that it can be download dynamically.
 
@@ -51,38 +75,92 @@ in this yml file we define charts dependancies, so that it can be download dynam
 
 >-------------------------------------------------------------------------------------------------------------
 
+*Helm_Commands_
+
+>helm -h
+>helm completion                    ---> will generate a auto completiuon script 
+>source < (helm completion bash)    ---> will generate a auto completiuon script for bash and sourcing it
+ 
+>helm dependancy build/list/update
+build :  it will sync the chart with dependancy, it will not download the dependancy, it just sync it.
+         it also create chart.lock file, which will have description of the dependancy.
+list  :  it will list all the dependancies in tgz format.
+update:  it will update the dependancy, like if we want upgrade in the version of the dependancy, OR 
+         if have added new dependancies to charts.yml.
+
 >helm create <chartname>
->helm install <release_name> <chart_name>       / --debug --dry-run
->helm uninstall <release_name> <chart_name>
->helm list -a
-
+>helm install <release_name> <chart_name>    / --debug --dry-run
 >helm upgrade <release_name> <chart_name>    # after making changes to the chart
->helm lint <chart_name>
->helm template <chart_name>                  # will create a templates of the deployment yml's with all values
+>helm uninstall <release_name> <chart_name>  
+>helm list -a   /--all-namespaces
 
+
+>helm package <chart>   --destination <path/. / --version <version>  ---> will package chart dir in to an archieve
+
+>helm search hub <chart name>     ---> to search for helm chart at hub.helm.sh
+>helm show <chart>   /  all <chart>  . values <chart> / readme <chart> ---> will give all yaml on terminal
+>helm status <release name>
+>helm verify <chart name>      ---> to verify the chart
+>helm version 
+>helm 
+>helm 
+>helm 
+
+
+>helm get -h                                 # for all the options and flags
+>helm get all <name of release>              # will give extended info the releases
+>helm get manifest <release name>            # will give all the manifest for the chart
+
+>helm history <release name>                 # will give the all release history
+>helm rollback <release name> <version>      --force/--no-hooks/
+
+>helm lint <chart_name>                      # check for the syntactical error in configuration files
+>helm template <chart_name>                  # will create a templates of the deployment yml's with all values
+>helm install <release_name> --debug --dry-run <chart_name>    # checks, validate, verify
+>helm install <release_name> <chart_name> --repo <repo> --version <version> --generate-name
+         
+>helm repo list     
+>helm search repo <repo_name>                # will list out all the chart versions
 >helm repo add <repo_name> <repo_url>
->helm repo list
 >helm repo update
->helm search repo <repo_name>
->helm repo index <chart_name>      # will create index.yml file for chart
+>helm repo index <chart_name>                # will create index.yml file for chart
 >helm repo remove <repo_name>
 
+>helm pull <chart name> --version <version> --repo <repo_url> --untar/--untardir
 
->helm search repo <chart_name> --versions      # will list out all the chart versions
+>helm search repo <chart_name> --versions    
 >helm show readme <repo>/<chart> --versions <specific_version>   # will give the readme file for that version
 
 >helm install <release_name> <repo_name>/<chart_name>     / --debug --dry-run
 >helm install <release_name> <repo>/<chart> --values=<chart-values.yaml> --namespace <app_ns> --version <version>
    # to provide external values file, such as password, username etc.
 
+>helm show          -------> inspect       
+>helm pull          -------> fetch
+>helm delete        -------> uninstall
+
+
+>1.be careful while reusing helm create command, if the chart is already exist, it will override the all
+>  file in the chart with default values, and all the setting will vanished. there is no wayto recover.
+
+
+
+*----------------------------------------------------------------------------------------------------------------
+
+
 *WordPress_App_via_Helm
->ref_https://jhooq.com/helm-chart-wordpress-installation/
+
+*ref_https://jhooq.com/helm-chart-wordpress-installation/
+
+*----------------------------------------------------------------------------------------------------------------
 
 
+*Plugins_for_Helm_
 
->helm plugin install <plugin_url>
 >helm plugin list
+>helm plugin install <plugin_url>
 >helm plugin uninstall <plugin_name>
+>helm plugin update <plugin_name>
 
 *Diff_Plugin_
 helm plugin install https://github.com/databus23/helm-diff
@@ -99,8 +177,10 @@ helm plugin install https://github.com/databus23/helm-diff
 >helm install -f <custom_value_file> <release_name> <chart_name>
 >helm show values <global_name i.e. chart/repo>  ---> shows the values file in chart
 
+
 *ref_https://jhooq.com/helm-pass-environment-variables/
 *ref_https://jhooq.com/helm-multiple-values-files/
+
 *custom_value_file_
 
 myvalue.yml
@@ -118,7 +198,7 @@ imagePullPolicy: Never
  
 
 
->
+
 
 
 
@@ -165,7 +245,7 @@ HelmFile:
 >3.It can help you to identify the differences between the new changes which you want to apply 
 >  against the existing running deployment inside kubernetes cluster
 
->4.Helmfile uses the Go Templates which lets you templatify your Helmfile and also you can use Sprig 
+>4.Helmfile uses the Go Templates which lets you templatify your Helmfile and also you can use Spring 
 >  Library with functions - requiredEnv, exec, readFile, toYaml, fromYaml, setValueAtPath, get, tpl, required, 
 >  fetchSecretValue, expandSecretRefs
 
@@ -218,3 +298,94 @@ Now you can run the $ helmfile sync command for installing the helm chart from r
 
 
 >-------------------------------------------------------------------------------------------------------------
+
+
+>HELM 2 vs HELM 3
+
+>the major difference between helm 2 and helm3 is how they compare the deploymets.
+
+1.
+Helm2 architecture have extra componant called tiller (before k8s 1.6)
+
+2.
+helm 2 perform , 2 way strategic merge, whch mean , when we upgrade the chart , it compare the current
+chart configuration with previous chart only. and if have done any changes like scalling ,using 
+imperative approch it will have o idea about that changes.
+
+helm 3 performs the 3 way strategic merge, which mean , it will  not just compare the current chart
+configuration with previous one, but also take in to consideration the chnages that might have done to the
+deployments of the helm environment.
+
+3.
+>other differences_
+
+1.secretes are default storage driver
+2.validates the charts with JsonSchema
+3.release name is now mendatory
+
+
+
+
+
+BuildIn obejcts in Helm_ :
+
+
+>1. Release
+this object describe the release itself.
+
+Release.Name          ---> hold name of therelease 
+Release.Namespace     ---> 
+Release.IsUpgrade
+Release.IsInstall
+Release.Revision
+Release.Service
+
+
+>2.Charts
+content of chart.yaml and any data in chart.yml is accessible using this object
+
+>3.Files
+provide access to the all non special files
+
+Files.Get
+File.GetByte
+File.Glob
+Files.Lines
+File.AsSecret
+Files.AsConfig
+
+>4.Values
+contains values passed to thetemplate from values.yml and from user supplied values. by default value.yml is empty.
+
+
+>5.Capabilities
+provide the information about the capabilties of our k8s cluster have and supports.
+
+capabilities.APIVersion
+capabilities.APIversion.Has $version
+
+>6.Templates
+contains information about the template that is being executed.
+
+Name
+Basepath
+
+
+Template Functions and Pipelines :
+
+we use templates, when we wants transform the supplied data that makes it more useful
+
+>syntax
+Function_name arg1 arg2 arg3....
+
+there are more than 60 functions available , 
+we can pipe (|) the o/p of one go command/template in to another go function
+
+1.quote
+2.repeat
+3.upper
+4.lower
+5.include
+6.required
+7.default
+8.nindent

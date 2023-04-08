@@ -1,7 +1,7 @@
 >
 
 *POD_IN_KUBERNETES_
- 
+  
 >pods are the most basic scheduling unit in k8s. (container is based on docker Linux Containers [LXC])
 
 >k8s doesn't run the container directaly, instead it wraps one or more containers 
@@ -563,17 +563,14 @@ Some of the errors linked to the actual application are:
 >2.A resource is not available   : Like a PersistentVolume for pvc's that is not mounted.
 >3.Wrong command line arguments  : Either missing, or the incorrect ones.
 >4.Bugs & Exceptions             : That can be anything, very specific to your application.
->5.Image tag/name is incorrect   : image , we tried to spun the container from do not exist or have improper tagging.
 
 
 errors from the network , probes , h/w and permissions are:
 
 >1.You tried to bind an existing port.
->2.The memory limits are too low, so the container is Out Of Memory killed.
->3.Errors in the liveness probes are not reporting the Pod as ready.
->4.Read-only filesystems, or lack of permissions in general.
+>2.Errors in the liveness probes are not reporting the Pod as ready.
+>3.Read-only filesystems, or lack of permissions in general.
 
->A similar back-off period is ImagePullBackOff, which is a waiting status when a container image couldn’t be pulled.
 
 tools you can use to debug it, and in which order to use it, This could be our best course of action:
 
@@ -1004,7 +1001,5 @@ spec:
     securityContext:
       capabilities:
         add: ["NET_ADMIN", "SYS_TIME"]   
-
-
 
  ****************************************************************************************************************** 

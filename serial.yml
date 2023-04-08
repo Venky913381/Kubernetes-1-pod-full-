@@ -23,21 +23,27 @@ Studying the Kubernetes Administration_ :
   kube DNS 
   Core DNS
 
+
 >Pod_ 
   Init Containers
   SideCar Pattern
   Adapter Pattern
   Envoy Pattern
   Euphemeral Container
-  Static Containers
   pause container
- 
+  Static pods
+
   Environemntal Variable
   DownWard API
 
   Debugging the CrashLoopBackOff Error
-  Pod's Security Context
-  Network Policy for Pods
+  Debugging the ImagePullBackOff Error
+
+> Pod's Security Context
+> Network Policy for Pods
+
+> Pod Priority and Preemption
+> Pod Disruption Budget
 
 
 >Replication controller 
@@ -116,6 +122,7 @@ Studying the Kubernetes Administration_ :
   FQDN
   VolumeClaimTemplate
 
+>Admission Controllers
 >Role Based Access Control in Kubernetes_
   Role 
   Role Bindings 
@@ -123,8 +130,9 @@ Studying the Kubernetes Administration_ :
   Cluster Role Binding 
   Service Account
   IRSA
->Tenant  
->Capsule  
+> Tenant  
+> Capsule  
+
 
 >Helm Package manager 
 >Krew Plugin Manager

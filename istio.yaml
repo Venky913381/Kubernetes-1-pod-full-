@@ -1,4 +1,9 @@
 >
+>SERVICE MESH FOR MICROSERVICE ARCHITECTURE IN KUBERNETES
+
+*ISTIO_ 
+
+*ref_https://istio.io/v1.5/docs/
 
 >Monolithic Application :-
 
@@ -175,7 +180,7 @@ so discovery of one microservice by another microservice is concern as communica
 happening over the ip, so it is important for microservices to know ip addresses of each other. 
 we need to have service registry, for keeping the records of the ips of services.
 
->3. tracing : jaeger
+>3. tracing : jaeger/zipkins
 as microservices are spread across the hosts, it is difficult to trace the requests and responses from them.
 as request might have to propagate multiple microservices to get proper response.
 
@@ -245,7 +250,7 @@ all the above discussed responsibilities and function is carried out by service 
 >implements the additional logic.
 
 >also , these proxy container can be developed using any technology, and need not to be of same
->technology as main microservices. so we can own choice of proxy container language. it also allow us to
+>technology as main microservices. so we can have own choice of proxy container language. it also allow us to
 >use polyglot code , as per need.
 
 >these proxies are part of the DATA PLANE as these are included with main microservices containers, so

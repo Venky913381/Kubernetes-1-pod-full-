@@ -24,7 +24,7 @@ This is where the service account comes in to picture_
 >at first we have an aws Policies which allows access to the aws resources , these policies are now
 >attached to the IAM Role and then we associates this IAM role to the kubernetes Service account.
 
-[AWS-RESOURCES] ----> AWS POLICIES ----> AWS IAM ROLE -----> K8S SERVICE ACCOUNT ----> DEPLOYMENTS
+*AWS-RESOURCES<----AWS_POLICIES---->AWS_IAM_ROLE----->K8S_SERVICE_ACCOUNT---->DEPLOYMENTS
 
 >Now, once we have a service account created, this service account can be attached to the Deployments manifest.
 
@@ -51,7 +51,7 @@ kubectl describe sa <sa_name> -n <ns_name>   :- will give the details related to
 
 Now , Pods also needs a kubernetes cluster access, thats where ROLE/CLUSTER ROLE come in play_ :
 
->like IAM Role, grants access to cloud specific resources, Role/ClusterRole in kuberntes grants
+>like IAM Role, grants access to cloud specific resources, Role/ClusterRole in kubernetes grants
 >access to the cluster specific resources like , It enables us to create, Delete, List -> NODES,
 >PODS, NAMESPACES etc.
 
@@ -105,7 +105,7 @@ Role Binding/ Cluster Role Binding_ :
 >-----------------------------------------------------------------------------------------------------------
 
 flow_
-> Service Account -----> Cluster Role Binding -----> Cluster Role --------> Deployments/PODS/USERS
+*Deployments------->Service_Account------->Cluster_Role_Binding------->Cluster_Role------>K8S_Resources 
 
 
 > Service Account :-
@@ -137,7 +137,7 @@ metadata:
 
 rules:
 - apiGroups: 
-    - "my-app-1"
+    - "L2-Engineer"
     - extensions
 - resources: 
     - configmaps          # these are k8s resources
@@ -155,7 +155,7 @@ rules:
 
 
 - apiGroups: 
-    - "my-app-2"
+    - "L3-Engineer"
     - extensions
 - resources: 
     - nodes
@@ -166,7 +166,25 @@ rules:
 - verbs:
     - get 
     - list
-    - watch   
+    - watch 
+
+
+- apiGroups: 
+    - "L1-Engineer"
+    - extensions
+- resources: 
+    - networkPolicy
+    - limitRange
+    - QuotaObject
+    - namespaces
+- verbs:
+    - get 
+    - list
+    - watch
+    - update   
+    - watch
+    - patch 
+
 
 
 cluster role is reusable, if we have another namespace , and if we have created a service account in that
@@ -187,11 +205,15 @@ roleRef:
   name: my-cluster-role
 
 subjects: 
-- apiGroup: my-app-2
+- apiGroup: L2-Engineer
   kind: ServiceAccount              # have various values, depending on need. check docs
   name: my-service-account
   namespace: my-namespace
 
+- apiGroup: L3-Engineer
+  kind: ServiceAccount              # have various values, depending on need. check docs
+  name: my-service-account
+  namespace: my-namespace
 
 
 > Deployment :-
@@ -308,8 +330,26 @@ data:
 >this makes it possible, to have different users with different set of permission having
 >different set of access in the different namespaces  running is same or different nodes.
 
-read _ IRSA (IAM Role for Service Account)
-
-
+*read_IRSA_(IAM_Role_for_Service_Account)
 
 >--------------------------------------------------------------------------------------------------------
+
+>Add ImagePullSecrets to a service account :
+
+*ref_https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
+
+ apiVersion: v1
+kind: ServiceAccount
+metadata:
+  creationTimestamp: 2021-07-07T22:02:39Z
+  name: default
+  namespace: default
+  uid: 052fb0f4-3d50-11e5-b066-42010af0d7b6
+imagePullSecrets:
+  - name: myregistrykey   
+
+kubectl create secret docker-registry myregistrykey --docker-server=DUMMY_SERVER \
+        --docker-username=DUMMY_USERNAME --docker-password=DUMMY_DOCKER_PASSWORD \
+        --docker-email=DUMMY_DOCKER_EMAIL
+
+  >--------------------------------------------------------------------------------------------------------    

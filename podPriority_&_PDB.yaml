@@ -1,0 +1,350 @@
+>
+
+*Pod_Priority_and_Preemption_   &
+*Pod_Disruption_Budget_
+ 
+ 
+*ref_https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
+*ref_https://kubernetes.io/docs/concepts/workloads/pods/disruptions/
+*ref_https://kubernetes.io/docs/tasks/run-application/configure-pdb/
+
+
+>There are two types of Disruption the pod can face, these are Voluntary and involuntary disruptions 
+
+involuntary disruptions: (Unavoidable disruptions)
+
+>these disruption arises due to following reasons _
+1.a hardware failure
+2.if admin deletes VM by mistake
+3.cloud provider / hypervisor failure
+4.a kernal panic / OS Crash
+5.the node done - n/w partition
+6.node being out of resource
+
+
+
+voluntary disruptions: (Avoidable disruptions)
+
+>these disruption arises due to following human errors/app owner errors/ reasons _
+1.draining a node (repair/upgrade)
+2.removing a pod from a node to replace something
+3.delete deploy - causing restart
+4.directaly delete a pod by accident
+5.node software upgrades
+
+>--------------------------------------------------------------------------------------
+
+>Dealing with Involuntary Disruptions : 
+
+As these are cause by the system failure, these disruption are out of the admin's scope and can not be avoided.
+all we can do, is to make our cluster robust using below methods_
+
+1.ensure our pod requests the resources it needed
+2.replicate the pod for applications heigher availability
+3.for high-availability, spread pod across racks using anti-affinity rules
+4.for high-availability, aspread the pods across the Zone (AZ's)
+
+
+
+>Dealing with Voluntary Disruptions : 
+
+As these disruptions are initiated by Admin/Humans, these might be due to Node software upgrades (kubectl drain),
+Auto Scalling or for above reasons. these are under the control of the k8s admin.
+we can control these disruption using_
+
+1.Pod Disruption Budget
+2.Pod Priority and Pre-emption
+
+>---------------------------------------------------------------------------------------------------------------
+
+
+*Pod_Priority_and_Preemption_   
+
+>Pods can have priority. Priority indicates the importance of a Pod relative to other Pods. 
+
+>If a Pod cannot be scheduled, the scheduler tries to preempt (evict) lower priority Pods to make room for
+>scheduling of the pending Pod with higher priority possible.
+
+>A Priority Class in non-namespaced i.e. it is global resource
+
+>It indicated the scheduling importance of the pod relative to other pods (vd/ivd)
+
+>Priority value can be anywhere from 0 to 2 Billion
+
+>by default "priority" is set to 0 and preemptionPolicy is set to "PreemptLowerPriority", i.e it will evict 
+>lower priority pods.
+
+>all the pods in kube-system namespace have heighest priority of 2 Billion and more (>2000 000 000)
+
+>Larger number of the priority is reserved for system critical pods that should not normally be preempted 
+>or evited by any other pods.
+
+
+
+#preempting PriorityClass :
+
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: high-priority
+value: 1000000
+globalDefault: false
+description: "This priority class should be used for high priority pods only i.e it will evict other pods."
+
+
+>If a Pod can not be scheduled, the scheduler tries to preempt (evict) lower priority Pods to make 
+>scheduling of the pending Pod with higher priority possible.
+>it will Not Evict any pod, who will have higher priority than this class.
+
+
+#Non-preempting PriorityClass
+
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: high-priority-nonpreempting
+value: 1000000
+preemptionPolicy: Never
+globalDefault: false
+description: "This priority class will not cause other pods to be preempted i.e it will not evict other pods"
+
+>pods with Non-preempting PriorityClass i.e. "" preemptionPolicy: Never "", will be placed in the scheduling
+>queue ahead of Lower Priority pods , but they can not preempt other lower priority pods.
+
+
+EXAMPLE - ASSIGNING PRIORITY TO THE POD/Deployment :
+
+>PriorityClass
+
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: high-priority
+value: 1000000
+globalDefault: false
+description: "preempting priority class"
+
+
+>pod
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+  labels:
+    env: test
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+    imagePullPolicy: IfNotPresent
+  priorityClassName: high-priority    
+  
+
+>this will mark the pod with Priority of the 1000,000 out of 1000,000,000. and Before any eviction
+>this priority will be considered.
+>all the pod, having less priority than this will be evicted for this pod to get schedule on node, in 
+>case of extreme resource crunch on node or namespace.
+>any pod with heigher priority than this, will not get evicted.
+
+
+Effect of Pod priority on scheduling order:
+
+When Pod priority is enabled, the scheduler orders pending Pods by their priority and a pending Pod is 
+placed ahead of other pending Pods with lower priority in the scheduling queue. As a result, the higher 
+priority Pod may be scheduled sooner than Pods with lower priority if its scheduling requirements are met.
+
+If such Pod cannot be scheduled, scheduler will continue and tries to schedule other lower priority Pods.
+
+>---------------------------------------------------------------------------------------------------------------
+
+>TOOLS_
+
+kubectl get pc / priorityClass
+kubectl explain pc 
+kubectl describe pc <pc_name>
+
+>---------------------------------------------------------------------------------------------------------------
+
+
+*Pod_Disruption_Budget_
+
+*ref_https://kubernetes.io/docs/tasks/run-application/configure-pdb/
+
+>PodDisruptionBudget is supported, but not guaranteed .i.e. _
+
+>1.A PodDisruptionBudget (PDB) allows application owners to limit the number of Pods of a replicated application 
+>that are down simultaneously from voluntary disruptions. 
+>i.e. it allows us to limit the number of the pods of Replicated Application that can be Unavailable at any time 
+>due to Voluntary Disruptions.
+
+>Kubernetes supports/considers PDB when preempting Pods, but respecting PDB is best effort. 
+>i.e. K8S considers PDB, when Evicting the low priority pods, so that , it can maintain desireable number of 
+>high priority pods in deployment. But respecting the PDB is the best effors k8s can do, it does not 
+>gaurentees the high Availability by maintaning the desired/optimal numbers of the pods in all cases, i.e 
+>even if we have PDB, Non Eviction of the Pod is not gaurenteed.
+
+>2.The scheduler tries to find victims, whose PDB are not violated by preemption, but if no such victims are found, 
+>preemption will still happen, and lower priority Pods will be removed despite their PDBs being violated
+
+
+>In terms of minimum availability
+  
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: web-pdb
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: web
+
+
+
+>In terms of maximum un-availability
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: web-pdb
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: web
+
+
+>In terms of percentage, for both maxUnavailable and minAvailable
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: web-pdb
+spec:
+  maxUnavailable: 25%   #  minAvailable: 75%
+  selector:
+    matchLabels:
+      app: web
+
+
+>imperative commands_ 
+kubectl create pdb <name> -n <namspace> --selector <key>=<value> --max-unavailable <n> /or --min-available <n>
+kubectl get pdb
+kubectl describe pdb <pdb name>
+kubectl explain pdb  /pdb.spec
+
+
+EXAMPLE - POD AND Pod Disruption Budget :
+
+>deployment: 
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  labels:
+    app: nginx
+
+spec:
+  replicas: 7
+  selector:
+    matchLabels:
+      app: web
+
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.14.2
+        ports:
+        - containerPort: 80
+
+        affinty: 
+          podAntiAffinity: 
+            prefferedDuringSchedulingIgnoredDuringExecution: 
+            - weight: 100
+              podAffinityTerms:
+                labelSelector: 
+                  matchExpression: 
+                  - key: app
+                    operator: In 
+                    values: 
+                    - web
+                topologyKey: "kubernetes.io/hostname"    
+
+
+>pdb:
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: web-pdb
+spec:
+  minAvailable: 75%       #maxUnavailable: 2
+  selector:
+    matchLabels:
+      app: web
+
+
+
+>in above case , PDB will tries to avoid eviction , as long as 75 % of 7 replicas are maintain. 
+>i.e. PDB will always tries to maintain min of 5 replicas. it also means that it will allow Eviction of 2
+>pods as, eviction of 2 pods will not voilet the PDB policy.
+
+>setting "minAvailable: 100%" or "maxUnavailable: 0", we will not allow to evict any of the pod. 
+>i.e. 0 eviction, so in case we tries to drain the node, it will throws an error and Drain will be blocked.
+
+>in case , if we want to reduce pod by 10% then , we will set the pdb with minAvialibity with 90%, 
+>so 10% can be compromised.
+
+>in case of Stateful Sets, where we may not wants the application to terminate, we can either DO NOT USE PDB,
+>or we can strictly set the "maxUnavailable: 0%" or "minAvailable: 100%"
+
+>in case of multiple pods, where, if we have  a SLA where do not reduce the pods by X number, in such case,
+>we can use pdb to set maxUnavailable to 1 (out of ,let say 5), or we can set minAvailable to 3 (out of ,let say 5).
+
+>in case of Batch Job, where it is needed to complete the job, in case of voluntary disruptions, we do not use 
+>PDB , as it will NOT create a replacemnt pods.
+
+
+>TO PERFORM DISRUPTIVE OPTIONS, we can do following_
+1. create a Failover node, similar to the outgoing node and move the workload to that node
+2. write/code a disruption tolerant application
+3. use a PodDisruptionBudget
+
+
+Advantages of  PodDisruptionBudget:
+
+>1. we can avoid downtime
+>2. minimal resource duplication
+>3. allows more automation of cluster administration
+>4. writing disruption-tolerant application is tricky, so PDB is always bettor choice
+>5. voluntary disruptions largely overlaps with work to support Autoscalling 
+>   and Tolerating involuntary disruptions
+
+>---------------------------------------------------------------------------------------------------------------
+
+>Draining the Node_
+
+kubectl drain <node_name>   --ignore-daemonsets --delete-emptydir-data
+kubectl cordon <node_name>
+kubectl uncordon <node_name>
+
+>---------------------------------------------------------------------------------------------------------------
+
+>How we do meet various SLA's, while designing the system.
+1.pods security context
+2.pods network policies
+3.pods scheduling using various scheduling methods
+4.Affinity and AntiAffinity policies
+5.Pod Priority and Preemption
+6.Pod disruption budgets
+7.RBAC in K8S
+7.Building the secure Docker Images 
+
+
+****************************************************************************************************************

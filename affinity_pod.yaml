@@ -1,7 +1,7 @@
 >
 
 *SCHEDULING_IN_KUBERNETES_with_POD-AFFINITY_and_POD_ANTI_AFFINITY_
-
+ 
 >There are various ways to schedule a pod on node or select a Node to schedule/execute the pod,
 >these are_
       1.Node Name and Node Selector

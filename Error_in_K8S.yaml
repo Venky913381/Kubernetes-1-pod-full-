@@ -5,6 +5,11 @@
 *ref_https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/
 *ref_https://kubernetes.io/docs/reference/kubectl/cheatsheet/
 
+
+>ERROR CODES IN KUBERNETES_
+*ref_https://komodor.com/learn/exit-codes-in-containers-and-kubernetes-the-complete-guide/
+
+
 >In kubernetes , we might encountered the various error during the course of deployment and Operation
 >of the cluster. the possible errors in the cluster are as follow_
 
@@ -13,6 +18,9 @@ ErrImagePull Error
 RegistryUnavailable Error
 InvalidImageName Error
 KillContainer Error
+
+Pod_In_Pending_State
+Application_on_Pod_Failing
 
 CrashLoppBackOff Error
 OOM Error
@@ -27,35 +35,58 @@ OOM Error
 1.check image name and image tags
 2.check if private registry is properly configured and have proper permissions
 
->tool:
+>tools:
 kubectl get pod [options]
 kubectl describe pod <pod name>
 kubectl edit <pod/deploy> <pod/deploy name>
 
 
+>this error is next stage of the "ErrImagePull__Error", on non descovery of the image or if pod failed to get image , 
+>It first went in to "ErrImagePull" error, after that it automatically goes in to "ImagePullBackOff"
+
 >---------------------------------------------------------------------------------------------------------
 
 *ErrImagePull__Error
 
->reasons : 
+>reasons : incorrect name, incorrect registry, unable/failed to pull the image, 
+>          if image is private, it needs correct Username and Password and permission.
+
+           this error arises when, k8s failed to find the specified image in the registry. kube-scheduler
+           first assign the node for the pod creation ,but failed as no proper image is found to create pod.
+
+
 >troubleshooting :
+1.check image name and image tags
+2.check if private registry is properly configured and have proper permissions
+3.if image is private, check if it have correct Username and Password and permission.
+
 >tool:
+kubectl describe pod <pod_name>
+kubectl events
+kubectl log <pod_name>
+
+
+>on non descovery of the image or if pod failed to get image , It first went in to "ErrImagePull" error,
+>after that it automatically goes in to "ImagePullBackOff"
+
 
 >---------------------------------------------------------------------------------------------------------
 
 
 *RegistryUnavailable__Error
 
->reasons :
->troubleshooting :
->tool:
+>reasons : incorrect registry name
+
+>troubleshooting : leads to the "ErrImagePull__Error" and then to the "ImagePullBackOff__Error"
+
+>tool: 
 
 >---------------------------------------------------------------------------------------------------------
 
 
 *InvalidImageName__Error
 
->reasons :
+>reasons : incorrect image name
 >troubleshooting :
 >tool:
 
@@ -67,23 +98,105 @@ kubectl edit <pod/deploy> <pod/deploy name>
 >troubleshooting :
 >tool:
 
+>---------------------------------------------------------------------------------------------------------
+
+*Pod_In_Pending_State
+
+
+>reasons : 
+            1.misconfigured node selector in pods manifest, 
+            2.specified node labels do not exist
+            3.no matching node is found through affinity rules
+
+>troubleshooting :
+1.check if pod selector are correctaly configured
+2.make sure that specified affinity rules are correct and at least one node matches then affinity rules for pod 
+
+>tool:
+kubectl get nodes --show-labels -o wide
+kubectl edit <pod_manifest>
+
 
 >---------------------------------------------------------------------------------------------------------
+
+*Application_on_Pod_Failing
+
+>sometimes error arises , not becouse of the issues with cluster or incorrect label or misconfigured manifest,
+>But becouse of the Application itself. 
+
+>reasons : issues with application itself
+
+>troubleshooting : check the logs of pod, this could be the developers error 
+
+>tool:
+kubectl log <pod_name>
+
+kubectl logs <pod_name> -c <container_name>  
+---> if only one container in pod is failing out of multiple deployed containers.
+
+
+>*************************************************************************************************************
 
 
 *CrashLoppBackOff__Error
 
->reasons :
->troubleshooting :
->tool:
 
-(refer_ pod.yaml)
+>CrashLoopBackOff state arises when container is failed to start and controller tries to restart the container
+>again and again.
+
+>when container in a pod exited with non-zero/error code, kubelet will not start it immediatly,
+>instead, it will wait for some time after that the kubelet restart them with an exponential back-off delay 
+>(10s, 20s, 40s...) and this time is capped at 5 minutes.
+
+>once a container has executed for 10 minutes without any problem, the kubelet resets the restart backoff
+>timer for that container.
+
+>CrashLoopBackOff is not an error on itself, but indicates that there’s an error which is happening
+>that prevents a Pod from starting properly. 
+
+
+Some of the errors linked to the actual application are:
+
+>1.Misconfigurations             : Like a typo error in a configuration/manifest file.
+>2.A resource is not available   : Like a PersistentVolume for pvc's, Node Group  that is not mounted.
+>3.Wrong command line arguments  : Either missing, or the incorrect ones.
+>4.Bugs & Exceptions             : That can be anything, very specific to your application.
+
+
+errors from the network , probes , h/w and permissions are:
+
+>1.You tried to bind an existing port.
+>2.Errors in the liveness probes are not reporting the Pod as ready.
+>3.Read-only filesystems, or lack of permissions in general.
+
+tools you can use to debug it, and in which order to use it, This could be our best course of action:
+
+>1.Check the manifest, and make sure that all configurations are correct.
+>2.Check the pod description. (kubectl describe)
+>3.Check the pod logs. (kubectl logs)
+>4.Check the events.
+>5.Check the manifest for ports bindings, PV & PVC's , Image name and Tags, alloted H/W resources etc...
+>6.Make sure that ports are available and PV's are created
+>7.Check if Init Containers are properly configured or not, Unsuccessful execution of initContainer will 
+>  prevent the execution of application containers.
+
+>8.In case of error due to Permission issue, Application code will works correctly or do  ot have any issues,
+>  but, there might be a situation where, it is tries to run with user with not proper permission. such as 
+>  writting to /etc directory will require root user or user with root permission. also pod Security context
+>  might be in conflict with provided user , conflict might be user id or group id etc..
+
+>we can metigate the CrashLoppBackOff__Error, by setting restart policy to Never. There might be a situation
+>where we want pod to come up , do he job and exist, but controller keeps on restarting the pod, in such 
+>scenario pod could go in to CrashLoppBackOff__Error.
+
+
+>---------------------------------------------------------------------------------------------------------
 
 
 
 *OOM_or_NOT_ENOUGH_hw_RESOURCES_
 
->Image pulled but pod is pending
+>Image pulled but pod is pending becouse host or Namespace do ot have Enough Memory.
 
 >reasons : 
 1. ResourceQuota on namespace
@@ -105,6 +218,122 @@ kubectl describe pod -n namespace
 kubectl logs
 kubectl events
 
-(refer_ limit-quota.yaml)
 
+*Troubleshooting_Out_Of_Memory_(OOM)_
+
+
+apiVersion: v1
+kind: Pod
+metadata:
+ name: k8s-troubleshooting-ep-2
+spec:
+ containers:
+ - name: test-av
+   image: ruby
+   resources:
+    requests:
+      memory: "128Mi"
+      cpu: "250m"
+    limits:
+      memory: "250Mi"
+      cpu: "500m"
+
+
+What is OOM ?
+>When application tries to consume more resources than, what the node have or what is allowed for the
+>application to use, pod runs in to OOM state.
+
+>This may be becouse of we have alloted for less resources or Just Enough resources to the pod , that what
+>it actually needed or We have deployed to many application pods/Containers than what Node is capable of Handling.
+
+
+Types of OOM ?
+The OOM error is catagorised in to two types : 
+>OOM_Killed : Limit Overcommit 
+>OOM_Killed : Container Limit Reached
+
+In production cluster, there may be multiple applications deployed on a single cluster, each in its 
+respective namespace. And each such Namespace will have definite amount of resources allocated by
+the Administrator. In such case we expect that application with all of its pods, will consume the compute
+resources within specified limits only. This will gave rise to following two scenarios_
+
+1.OOM_Killed_Limit_Overcommit : 
+>This error occurs when the sum of pod limits is greater than the available memory on the node. 
+>that is , becouse of excessive numbers of the pod, node have runs out of the memory, and there is not
+>enough memory left to run the more pods, so we will run in to OOM state.
+
+
+2.OOM_Killed_Container_Limit_Reached : 
+>This error occurs a pod is using more memory than the set limit.
+>that is, Even though Node have more that sufficient memory left with it, but becouse, as a admnistrator
+>we have not allocated enough momory to the Namespace where our pod is deployed, our pod rans into OOM state.
+
+>In production environment, allocating memory to the namespace is well calculated task, and there is always a 
+>spare memory to spend on, so that we can prevent OOM type situation. 
+>But still such situation arises, this may be becouse of Developmental Defiencies while developing the 
+>application, due to which application may be leaking the memory or Application do not performing the 
+>Garbage Collection etc. in such case Pod which is leaking the memory goes into OOM state.
+
+
+
+How to Fix OOM ?
+1. 
+(OOM_Killed_Container_Limit_Reached )(enough memory was allocated, but pod demanding more)
+>In case of pod running in to OOM state due to MEMORY LEAKAGE, 
+>we have identify the process in to the container which is leaking the excessive memory using 
+>simple linux "ps -ef" command.  it will give us the process if, and using this process id, we have 
+>take a Thread Dump, using  "kill -3" or JSTAck command to get the o/p in to file and analyse it, 
+>based on which new desirable chnages can be made in to an application.
+
+
+2. 
+(Limit Overcommit )(Node have enough resources, Namespace dont)
+>In other case, where there is No issue with Application, but due to excessive numbers of the pod, which is 
+>beyond the capacity of the resource allocated to the Namespace, all we need to due is either Reduce the 
+>number of the pods or Increase the resource quota for that namespace. 
+
+
+>if application deployed in a cluster are interdependant or if app not having proper segregation, 
+>OOM issue with one application may leads to failure or OOM with another application. in this scenario,
+>k8s goes back and look in to linux OOM ranking mechanism. 
+
+
+>Linux OOM Ranking Mechanism_
+
+But before we deep dive into each one of them, we need to understand how a linux operating system handles 
+this problem in general.
+
+There is a program called OOM (Out of Memory Manager) that tracks memory usage per process. 
+If the system is in danger of running out of available memory, OOM Killer will come in and start 
+killing processes to try to free up memory and prevent a crash. The goal of OOM Killer is to free up as 
+much memory as possible by killing off the least number of processes.
+
+Under the hood, OOM Killer allocates each running process a score. The greater the score, 
+the greater the possibility the process will be killed off. The method it uses to calculate this score 
+is beyond this tutorial, but it's good to know that Kubernetes takes advantage of the score to help make 
+decisions about which pods to kill.
+
+The kubelet running on the VM monitors memory consumption. If resources on a VM become scarce, 
+the kubelet will start killing pods. Essentially, the idea is to preserve the health of the VM so that 
+all the pods running on it won't fail. The needs of the many outweigh the needs of the few, and the few get murdered.
+
+
+
+Tools which help in case of OOM ?
+>kubectl get logs
+>kubectl get events
+>ps -ef
+>kill -3
+
+>CONTAINER-IQ
+
+Application Logs
+Thread Dumps
+Heap Dumps
+
+
+
+
+
+*************************************************************************************************************
 >---------------------------------------------------------------------------------------------------------

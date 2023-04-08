@@ -1,0 +1,9 @@
+>
+>RBAC
+
+*ADMISSION_CONTROLLERS_
+
+*ref_https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/
+*ref_https://kubernetes.io/blog/2019/03/21/a-guide-to-kubernetes-admission-controllers/
+*ref_https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/
+*ref_
